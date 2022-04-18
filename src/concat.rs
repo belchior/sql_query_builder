@@ -4,6 +4,7 @@ impl SelectBuilder<'_> {
   pub(crate) fn concat(&self, fmts: &Formatter) -> String {
     let mut query = "".to_owned();
 
+    query = self.concat_raw(query, &fmts);
     query = self.concat_with(query, &fmts);
     query = self.concat_select(query, &fmts);
     query = self.concat_from(query, &fmts);
@@ -53,6 +54,16 @@ impl SelectBuilder<'_> {
     let columns = self._order_by.join(comma);
 
     format!("{query}ORDER BY {columns}{sep}")
+  }
+
+  fn concat_raw(&self, query: String, fmts: &Formatter) -> String {
+    if self._raw.is_empty() {
+      return query;
+    }
+    let Formatter { sep, .. } = fmts;
+    let raw_sql = self._raw.join(sep);
+
+    format!("{query}{raw_sql}{sep}")
   }
 
   fn concat_select(&self, query: String, fmts: &Formatter) -> String {

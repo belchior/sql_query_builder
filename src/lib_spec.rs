@@ -132,6 +132,22 @@ mod public_api {
   }
 
   #[test]
+  fn method_raw_should_add_raw_sql() {
+    let query = SelectBuilder::new().raw("select id from users").as_string();
+    let expected_query = "select id from users";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_should_accumulate_values_on_consecutive_calls() {
+    let query = SelectBuilder::new().raw("select id").raw("from users").as_string();
+    let expected_query = "select id from users";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_select_should_add_the_select_statement() {
     let query = SelectBuilder::new().select("id, login").as_string();
     let expected_query = "SELECT id, login";
@@ -298,6 +314,7 @@ mod concat_order {
     let select_users = SelectBuilder::new().select("*").from("users");
     let select_address = SelectBuilder::new().select("city").from("address");
     let query = SelectBuilder::new()
+      .raw("/* all statements in order */")
       .with("user_list", select_users)
       .select("*")
       .from("user_list")
@@ -309,6 +326,7 @@ mod concat_order {
       .as_string();
 
     let expected_query = "\
+      /* all statements in order */ \
       WITH user_list AS ( SELECT * FROM users ) \
       SELECT * \
       FROM user_list \
@@ -319,6 +337,14 @@ mod concat_order {
       UNION \
       SELECT city FROM address\
     ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn statement_raw_should_be_the_first() {
+    let query = SelectBuilder::new().raw("select *").from("users").as_string();
+    let expected_query = "select * FROM users";
 
     assert_eq!(query, expected_query);
   }

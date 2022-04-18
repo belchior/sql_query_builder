@@ -52,6 +52,11 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
+  pub fn raw(mut self, raw_sql: &'a str) -> Self {
+    self._raw.push(raw_sql.to_owned());
+    self
+  }
+
   pub fn select(mut self, column: &'a str) -> Self {
     self._select.push(column.to_owned());
     self
