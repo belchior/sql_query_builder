@@ -17,24 +17,26 @@ RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME
 
 cargo profdata -- merge -sparse $COVERAGE_TARGET/$PKG_NAME-*.profraw -o $COVERAGE_TARGET/$PKG_NAME.profdata;
 
-COVERAGE_ID="$(ls $COVERAGE_TARGET/debug/deps/$PKG_NAME-???????????????? | head -n1 | sed -E 's/.*-(.*)$/\1/')"
+OBJECT_PATH_LIB="$(ls $COVERAGE_TARGET/debug/deps/$PKG_NAME-????????????????)"
+OBJECT_PATH_TEST="$(ls $COVERAGE_TARGET/debug/deps/integration_tests-????????????????)"
 
 cargo cov -- report \
     --use-color \
     --ignore-filename-regex='/rustc' \
-    --ignore-filename-regex='/.cargo/registry' \
-    --ignore-filename-regex='./*_spec.rs$' \
+    --ignore-filename-regex='/?cargo/registry' \
+    --ignore-filename-regex='./tests/.*rs$' \
     --instr-profile=$COVERAGE_TARGET/$PKG_NAME.profdata \
-    --object $COVERAGE_TARGET/debug/deps/$PKG_NAME-$COVERAGE_ID;
-    sql_query_builder-f6feeee0e0428c82
+    --object $OBJECT_PATH_LIB \
+    --object $OBJECT_PATH_TEST;
 
 cargo cov -- show \
     --use-color \
     --ignore-filename-regex='/rustc' \
-    --ignore-filename-regex='/.cargo/registry' \
-    --ignore-filename-regex='./*_spec.rs$' \
+    --ignore-filename-regex='/?cargo/registry' \
+    --ignore-filename-regex='./tests/.*rs$' \
     --instr-profile=$COVERAGE_TARGET/$PKG_NAME.profdata \
-    --object $COVERAGE_TARGET/debug/deps/$PKG_NAME-$COVERAGE_ID \
+    --object $OBJECT_PATH_LIB \
+    --object $OBJECT_PATH_TEST \
     --show-instantiations \
     --show-line-counts-or-regions \
     --Xdemangler=rustfilt \

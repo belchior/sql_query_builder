@@ -4,7 +4,5 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Belchior Oliveira <belchior@outlook.com>"]
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dev-dependencies]
 pretty_assertions = "1.2.1"

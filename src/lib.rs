@@ -90,6 +90,3 @@ impl<'a> std::fmt::Debug for SelectBuilder<'a> {
     write!(f, "{}", self.concat(&fmts))
   }
 }
-
-#[cfg(test)]
-mod lib_spec;
