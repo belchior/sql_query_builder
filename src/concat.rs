@@ -14,6 +14,7 @@ impl SelectBuilder<'_> {
     query = self.concat_having(query, &fmts);
     query = self.concat_order_by(query, &fmts);
     query = self.concat_limit(query, &fmts);
+    query = self.concat_offset(query, &fmts);
     query = self.concat_union(query, &fmts);
 
     query.trim_end().to_owned()
@@ -81,7 +82,16 @@ impl SelectBuilder<'_> {
     self.concat_clause(query, fmts, Clause::Limit, sql)
   }
 
-    format!("{query}LIMIT {limit}{sep}")
+  fn concat_offset(&self, query: String, fmts: &Formatter) -> String {
+    let Formatter { lb, space, .. } = fmts;
+    let sql = if self._offset.is_empty() == false {
+      let start = self._offset;
+      format!("OFFSET {start}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    self.concat_clause(query, fmts, Clause::Offset, sql)
   }
 
   fn concat_order_by(&self, query: String, fmts: &Formatter) -> String {

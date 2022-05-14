@@ -36,6 +36,7 @@ pub fn colorize(sql: String) -> String {
     (blue, "JOIN ", "join "),
     (blue, "LEFT ", "left "),
     (blue, "LIMIT ", "limit "),
+    (blue, "OFFSET ", "offset "),
     (blue, "ORDER ", "order "),
     (blue, "RIGHT ", "right "),
     (blue, "SELECT ", "select "),

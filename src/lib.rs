@@ -51,6 +51,11 @@ impl<'a> SelectBuilder<'a> {
     Self::default()
   }
 
+  pub fn offset(mut self, num: &'a str) -> Self {
+    self._offset = num;
+    self
+  }
+
   pub fn order_by(mut self, column: &'a str) -> Self {
     self._order_by.push(column.to_owned());
     self

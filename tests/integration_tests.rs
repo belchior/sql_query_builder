@@ -64,6 +64,7 @@ mod public_api {
     assert_eq!(query, expected_query);
   }
 
+  #[test]
   fn method_group_by_should_add_the_group_by_clause() {
     let query = SelectBuilder::new().group_by("id, login").as_string();
     let expected_query = "GROUP BY id, login";
@@ -137,6 +138,22 @@ mod public_api {
   fn method_limit_should_override_the_current_value() {
     let query = SelectBuilder::new().limit("3").limit("4").as_string();
     let expected_query = "LIMIT 4";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_offset_should_add_the_offset_clause() {
+    let query = SelectBuilder::new().offset("100").as_string();
+    let expected_query = "OFFSET 100";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_offset_should_override_the_current_value() {
+    let query = SelectBuilder::new().offset("100").offset("200").as_string();
+    let expected_query = "OFFSET 200";
 
     assert_eq!(query, expected_query);
   }
@@ -479,6 +496,17 @@ mod public_api_raw {
   }
 
   #[test]
+  fn method_raw_before_should_add_raw_sql_before_offset_clause() {
+    let query = SelectBuilder::new()
+      .raw_before(Clause::Limit, "limit 1000")
+      .offset("50")
+      .as_string();
+    let expected_query = "limit 1000 OFFSET 50";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_raw_before_should_add_raw_sql_before_order_by_clause() {
     let query = SelectBuilder::new()
       .raw_before(Clause::OrderBy, "where orders.user_login = $1")
@@ -655,6 +683,7 @@ mod concat_order {
       .having("active = true")
       .order_by("created_at desc")
       .limit("1000")
+      .offset("50")
       .union(select_address)
       .as_string();
 
@@ -669,6 +698,7 @@ mod concat_order {
       HAVING active = true \
       ORDER BY created_at desc \
       LIMIT 1000 \
+      OFFSET 50 \
       UNION \
       SELECT city FROM address\
     ";
@@ -786,6 +816,17 @@ mod concat_order {
   fn clause_limit_should_be_after_order_by() {
     let query = SelectBuilder::new().order_by("created_at desc").limit("42").as_string();
     let expected_query = "ORDER BY created_at desc LIMIT 42";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn clause_offset_should_be_after_limit() {
+    let query = SelectBuilder::new().limit("500").offset("100").as_string();
+    let expected_query = "LIMIT 500 OFFSET 100";
+
+    assert_eq!(query, expected_query);
+  }
 
     assert_eq!(query, expected_query);
   }
