@@ -17,8 +17,7 @@ impl<'a> SelectBuilder<'a> {
 
   pub fn debug(self) -> Self {
     let fmts = fmt::Formatter::multi_line();
-    let sql = self.concat(&fmts);
-    println!("{sql}");
+    println!("{}", fmt::colorize(self.concat(&fmts)));
     self
   }
 
@@ -51,7 +50,7 @@ impl<'a> SelectBuilder<'a> {
 
   pub fn print(self) -> Self {
     let fmts = fmt::Formatter::one_line();
-    println!("{}", self.concat(&fmts));
+    println!("{}", fmt::colorize(self.concat(&fmts)));
     self
   }
 
@@ -100,6 +99,6 @@ impl<'a> std::fmt::Display for SelectBuilder<'a> {
 impl<'a> std::fmt::Debug for SelectBuilder<'a> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let fmts = fmt::Formatter::multi_line();
-    write!(f, "{}", self.concat(&fmts))
+    write!(f, "{}", fmt::colorize(self.concat(&fmts)))
   }
 }

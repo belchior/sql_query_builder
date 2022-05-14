@@ -102,14 +102,20 @@ impl SelectBuilder<'_> {
     format!("{query}{raw_before}{space_before}{sql}{raw_after}{space_after}")
   }
 
-    let Formatter { sep, .. } = fmts;
-    let unions_string = self._union.iter().fold("".to_owned(), |acc, select| {
-      let select_string = select.concat(&fmts);
+  fn concat_union(&self, query: String, fmts: &Formatter) -> String {
+    let Formatter { lb, space, .. } = fmts;
+    let sql = if self._union.is_empty() == false {
+      let unions_string = self._union.iter().fold("".to_owned(), |acc, select| {
+        let select_string = select.concat(&fmts);
+        format!("{acc}UNION{space}{lb}{select_string}{space}{lb}")
+      });
 
-      format!("{acc}UNION{sep}{select_string}{sep}")
-    });
+      format!("{unions_string}")
+    } else {
+      "".to_owned()
+    };
 
-    format!("{query}{unions_string}{sep}")
+    self.concat_clause(query, fmts, Clause::Union, sql)
   }
 
   fn concat_where(&self, query: String, fmts: &Formatter) -> String {
