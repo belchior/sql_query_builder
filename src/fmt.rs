@@ -27,12 +27,14 @@ impl<'a> Formatter<'a> {
 
 pub fn colorize(sql: String) -> String {
   let keywords: [(fn(&str) -> String, &str, &str); 34] = [
+    (blue, "EXCEPT ", "except "),
     (blue, "CROSS ", "cros "),
     (blue, "FROM ", "from "),
     (blue, "FULL ", "full "),
     (blue, "GROUP ", "group "),
     (blue, "HAVING ", "having "),
     (blue, "INNER ", "inner "),
+    (blue, "INTERSECT ", "intersect "),
     (blue, "JOIN ", "join "),
     (blue, "LEFT ", "left "),
     (blue, "LIMIT ", "limit "),

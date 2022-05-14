@@ -16,8 +16,26 @@ impl SelectBuilder<'_> {
     query = self.concat_limit(query, &fmts);
     query = self.concat_offset(query, &fmts);
     query = self.concat_union(query, &fmts);
+    query = self.concat_except(query, &fmts);
+    query = self.concat_intersect(query, &fmts);
 
     query.trim_end().to_owned()
+  }
+
+  fn concat_except(&self, query: String, fmts: &Formatter) -> String {
+    let Formatter { lb, space, .. } = fmts;
+    let sql = if self._except.is_empty() == false {
+      let excepts_string = self._except.iter().fold("".to_owned(), |acc, select| {
+        let select_string = select.concat(&fmts);
+        format!("{acc}EXCEPT{space}{lb}{select_string}{space}{lb}")
+      });
+
+      format!("{excepts_string}")
+    } else {
+      "".to_owned()
+    };
+
+    self.concat_clause(query, fmts, Clause::Except, sql)
   }
 
   fn concat_from(&self, query: String, fmts: &Formatter) -> String {
@@ -68,6 +86,20 @@ impl SelectBuilder<'_> {
     self.concat_clause(query, fmts, Clause::Having, sql)
   }
 
+  fn concat_intersect(&self, query: String, fmts: &Formatter) -> String {
+    let Formatter { lb, space, .. } = fmts;
+    let sql = if self._intersect.is_empty() == false {
+      let intersects_string = self._intersect.iter().fold("".to_owned(), |acc, select| {
+        let select_string = select.concat(&fmts);
+        format!("{acc}INTERSECT{space}{lb}{select_string}{space}{lb}")
+      });
+
+      format!("{intersects_string}")
+    } else {
+      "".to_owned()
+    };
+
+    self.concat_clause(query, fmts, Clause::Intersect, sql)
   }
 
   fn concat_limit(&self, query: String, fmts: &Formatter) -> String {

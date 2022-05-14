@@ -1,8 +1,10 @@
 #[derive(Default, Clone)]
 pub struct SelectBuilder<'a> {
+  pub(crate) _except: Vec<Self>,
   pub(crate) _from: Vec<String>,
   pub(crate) _group_by: Vec<String>,
   pub(crate) _having: Vec<String>,
+  pub(crate) _intersect: Vec<Self>,
   pub(crate) _join: Vec<String>,
   pub(crate) _limit: &'a str,
   pub(crate) _offset: &'a str,
@@ -18,9 +20,11 @@ pub struct SelectBuilder<'a> {
 
 #[derive(Clone, Copy, PartialEq)]
 pub enum Clause {
+  Except,
   From,
   GroupBy,
   Having,
+  Intersect,
   Join,
   Limit,
   Offset,

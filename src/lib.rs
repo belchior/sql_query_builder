@@ -21,6 +21,8 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
+  pub fn except(mut self, select: Self) -> Self {
+    self._except.push(select);
     self
   }
 
@@ -39,6 +41,8 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
+  pub fn intersect(mut self, select: Self) -> Self {
+    self._intersect.push(select);
     self
   }
 
