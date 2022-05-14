@@ -2,8 +2,7 @@ mod concat;
 mod fmt;
 mod structure;
 
-use fmt::Formatter;
-use structure::SelectBuilder;
+pub use structure::{Clause, SelectBuilder};
 
 impl<'a> SelectBuilder<'a> {
   pub fn and(mut self, clause: &'a str) -> Self {
@@ -12,13 +11,17 @@ impl<'a> SelectBuilder<'a> {
   }
 
   pub fn as_string(&self) -> String {
-    let fmts = Formatter::new(false);
+    let fmts = fmt::Formatter::one_line();
     self.concat(&fmts)
   }
 
   pub fn debug(self) -> Self {
-    let fmts = Formatter::new(true);
-    println!("{}", self.concat(&fmts));
+    let fmts = fmt::Formatter::multi_line();
+    let sql = self.concat(&fmts);
+    println!("{sql}");
+    self
+  }
+
     self
   }
 
@@ -47,13 +50,23 @@ impl<'a> SelectBuilder<'a> {
   }
 
   pub fn print(self) -> Self {
-    let fmts = Formatter::new(false);
+    let fmts = fmt::Formatter::one_line();
     println!("{}", self.concat(&fmts));
     self
   }
 
   pub fn raw(mut self, raw_sql: &'a str) -> Self {
     self._raw.push(raw_sql.to_owned());
+    self
+  }
+
+  pub fn raw_after(mut self, clause: Clause, raw_sql: &'a str) -> Self {
+    self._raw_after.push((clause, raw_sql.to_owned()));
+    self
+  }
+
+  pub fn raw_before(mut self, clause: Clause, raw_sql: &'a str) -> Self {
+    self._raw_before.push((clause, raw_sql.to_owned()));
     self
   }
 
@@ -67,8 +80,8 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  pub fn where_clause(mut self, clause: &'a str) -> Self {
-    self._where.push(clause.to_owned());
+  pub fn where_clause(mut self, condition: &'a str) -> Self {
+    self._where.push(condition.to_owned());
     self
   }
 
@@ -86,7 +99,7 @@ impl<'a> std::fmt::Display for SelectBuilder<'a> {
 
 impl<'a> std::fmt::Debug for SelectBuilder<'a> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    let fmts = Formatter::new(true);
+    let fmts = fmt::Formatter::multi_line();
     write!(f, "{}", self.concat(&fmts))
   }
 }

@@ -1,22 +1,29 @@
 pub struct Formatter<'a> {
-  pub sep: &'a str,
-  pub indent: &'a str,
   pub comma: &'a str,
+  pub lb: &'a str,
+  pub indent: &'a str,
+  pub space: &'a str,
 }
 
 impl<'a> Formatter<'a> {
-  pub fn new(pretty: bool) -> Self {
-    match pretty {
-      true => Self {
-        sep: "\n",
-        indent: "\t",
-        comma: ", ",
-      },
-      false => Self {
-        sep: " ",
-        indent: "",
-        comma: ",",
-      },
+  pub fn one_line() -> Self {
+    Self {
+      comma: ", ",
+      lb: "",
+      indent: "",
+      space: " ",
     }
+  }
+
+  pub fn multi_line() -> Self {
+    Self {
+      comma: ", ",
+      lb: "\n",
+      indent: "\t",
+      space: " ",
+    }
+  }
+}
+
   }
 }
