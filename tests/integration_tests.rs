@@ -64,6 +64,43 @@ mod public_api {
     assert_eq!(query, expected_query);
   }
 
+  fn method_group_by_should_add_the_group_by_clause() {
+    let query = SelectBuilder::new().group_by("id, login").as_string();
+    let expected_query = "GROUP BY id, login";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_group_by_should_accumulate_values_on_consecutive_calls() {
+    let query = SelectBuilder::new()
+      .group_by("id, login")
+      .group_by("created_at")
+      .as_string();
+    let expected_query = "GROUP BY id, login, created_at";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_having_should_add_the_having_clause() {
+    let query = SelectBuilder::new().having("active = true").as_string();
+    let expected_query = "HAVING active = true";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_having_should_accumulate_values_on_consecutive_calls() {
+    let query = SelectBuilder::new()
+      .having("active = true")
+      .having("allow = true")
+      .as_string();
+    let expected_query = "HAVING active = true AND allow = true";
+
+    assert_eq!(query, expected_query);
+  }
+
   #[test]
   fn method_inner_join_should_add_the_inner_join_clause() {
     let query = SelectBuilder::new()
@@ -286,6 +323,28 @@ mod public_api_raw {
   }
 
   #[test]
+  fn method_raw_after_should_add_raw_sql_after_group_by_clause() {
+    let query = SelectBuilder::new()
+      .group_by("login")
+      .raw_after(Clause::GroupBy, "LIMIT 10")
+      .as_string();
+    let expected_query = "GROUP BY login LIMIT 10";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_having_clause() {
+    let query = SelectBuilder::new()
+      .having("active = true")
+      .raw_after(Clause::Having, "LIMIT 10")
+      .as_string();
+    let expected_query = "HAVING active = true LIMIT 10";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_raw_after_should_add_raw_sql_after_join_clause() {
     let query = SelectBuilder::new()
       .inner_join("address ON users.login = address.login")
@@ -371,6 +430,28 @@ mod public_api_raw {
       .from("orders")
       .as_string();
     let expected_query = "select amount FROM orders";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_group_by_clause() {
+    let query = SelectBuilder::new()
+      .raw_before(Clause::GroupBy, "where id = $1")
+      .group_by("login")
+      .as_string();
+    let expected_query = "where id = $1 GROUP BY login";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_having_clause() {
+    let query = SelectBuilder::new()
+      .raw_before(Clause::Having, "group by id")
+      .having("active = true")
+      .as_string();
+    let expected_query = "group by id HAVING active = true";
 
     assert_eq!(query, expected_query);
   }
@@ -570,6 +651,8 @@ mod concat_order {
       .from("user_list")
       .inner_join("orders ON users.login = orders.login")
       .where_clause("user.login = $1")
+      .group_by("login")
+      .having("active = true")
       .order_by("created_at desc")
       .limit("1000")
       .union(select_address)
@@ -582,6 +665,8 @@ mod concat_order {
       FROM user_list \
       INNER JOIN orders ON users.login = orders.login \
       WHERE user.login = $1 \
+      GROUP BY login \
+      HAVING active = true \
       ORDER BY created_at desc \
       LIMIT 1000 \
       UNION \
@@ -654,6 +739,45 @@ mod concat_order {
       .where_clause("user.login = $1")
       .as_string();
     let expected_query = "INNER JOIN address ON users.login = address.login WHERE user.login = $1";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn clause_group_by_should_be_after_where() {
+    let query = SelectBuilder::new()
+      .group_by("login")
+      .where_clause("login = $1")
+      .as_string();
+    let expected_query = "\
+      WHERE login = $1 \
+      GROUP BY login\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn clause_having_should_be_after_group_by() {
+    let query = SelectBuilder::new()
+      .having("active = true")
+      .group_by("login")
+      .as_string();
+    let expected_query = "\
+      GROUP BY login \
+      HAVING active = true\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn clause_order_by_should_be_after_having() {
+    let query = SelectBuilder::new()
+      .having("active = true")
+      .order_by("created_at desc")
+      .as_string();
+    let expected_query = "HAVING active = true ORDER BY created_at desc";
 
     assert_eq!(query, expected_query);
   }

@@ -10,6 +10,8 @@ impl SelectBuilder<'_> {
     query = self.concat_from(query, &fmts);
     query = self.concat_join(query, &fmts);
     query = self.concat_where(query, &fmts);
+    query = self.concat_group_by(query, &fmts);
+    query = self.concat_having(query, &fmts);
     query = self.concat_order_by(query, &fmts);
     query = self.concat_limit(query, &fmts);
     query = self.concat_union(query, &fmts);
@@ -39,6 +41,30 @@ impl SelectBuilder<'_> {
     };
 
     self.concat_clause(query, fmts, Clause::Join, sql)
+  }
+
+  fn concat_group_by(&self, query: String, fmts: &Formatter) -> String {
+    let Formatter { comma, lb, space, .. } = fmts;
+    let sql = if self._group_by.is_empty() == false {
+      let columns = self._group_by.join(comma);
+      format!("GROUP BY {columns}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    self.concat_clause(query, fmts, Clause::GroupBy, sql)
+  }
+
+  fn concat_having(&self, query: String, fmts: &Formatter) -> String {
+    let Formatter { lb, space, .. } = fmts;
+    let sql = if self._having.is_empty() == false {
+      let conditions = self._having.join(" AND ");
+      format!("HAVING {conditions}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    self.concat_clause(query, fmts, Clause::Having, sql)
   }
 
   }

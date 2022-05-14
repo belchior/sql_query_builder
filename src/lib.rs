@@ -29,8 +29,16 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  pub fn inner_join(mut self, table: &'a str, on: &'a str) -> Self {
-    self._join.push(format!("INNER JOIN {table} ON {on}"));
+  pub fn group_by(mut self, column: &'a str) -> Self {
+    self._group_by.push(column.to_owned());
+    self
+  }
+
+  pub fn having(mut self, condition: &'a str) -> Self {
+    self._having.push(condition.to_owned());
+    self
+  }
+
     self
   }
 

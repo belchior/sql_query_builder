@@ -1,6 +1,8 @@
 #[derive(Default, Clone)]
 pub struct SelectBuilder<'a> {
   pub(crate) _from: Vec<String>,
+  pub(crate) _group_by: Vec<String>,
+  pub(crate) _having: Vec<String>,
   pub(crate) _join: Vec<String>,
   pub(crate) _limit: &'a str,
   pub(crate) _order_by: Vec<String>,
@@ -16,6 +18,8 @@ pub struct SelectBuilder<'a> {
 #[derive(Clone, Copy, PartialEq)]
 pub enum Clause {
   From,
+  GroupBy,
+  Having,
   Join,
   Limit,
   OrderBy,

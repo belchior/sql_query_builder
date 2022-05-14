@@ -30,6 +30,8 @@ pub fn colorize(sql: String) -> String {
     (blue, "CROSS ", "cros "),
     (blue, "FROM ", "from "),
     (blue, "FULL ", "full "),
+    (blue, "GROUP ", "group "),
+    (blue, "HAVING ", "having "),
     (blue, "INNER ", "inner "),
     (blue, "JOIN ", "join "),
     (blue, "LEFT ", "left "),
