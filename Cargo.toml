@@ -1,8 +1,11 @@
 [package]
 name = "sql_query_builder"
+description = "Write SQL queries in a simple and composable way"
 version = "0.1.0"
 edition = "2021"
 authors = ["Belchior Oliveira <belchior@outlook.com>"]
+license = "MIT"
+keywords = ["sql", "query"]
 
 [dev-dependencies]
 pretty_assertions = "1.2.1"
