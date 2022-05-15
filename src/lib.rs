@@ -41,6 +41,26 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
+  pub fn cross_join(mut self, table: &'a str) -> Self {
+    self._join.push(format!("CROSS JOIN {table}"));
+    self
+  }
+
+  pub fn inner_join(mut self, condition: &'a str) -> Self {
+    self._join.push(format!("INNER JOIN {condition}"));
+    self
+  }
+
+  pub fn left_join(mut self, condition: &'a str) -> Self {
+    self._join.push(format!("LEFT JOIN {condition}"));
+    self
+  }
+
+  pub fn right_join(mut self, condition: &'a str) -> Self {
+    self._join.push(format!("RIGHT JOIN {condition}"));
+    self
+  }
+
   pub fn intersect(mut self, select: Self) -> Self {
     self._intersect.push(select);
     self

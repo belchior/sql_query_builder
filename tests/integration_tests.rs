@@ -141,30 +141,6 @@ mod public_api {
   }
 
   #[test]
-  fn method_inner_join_should_add_the_inner_join_clause() {
-    let query = SelectBuilder::new()
-      .inner_join("address ON users.login = address.login")
-      .as_string();
-    let expected_query = "INNER JOIN address ON users.login = address.login";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_inner_join_should_accumulate_values_on_consecutive_calls() {
-    let query = SelectBuilder::new()
-      .inner_join("address ON users.login = address.login")
-      .inner_join("orders ON users.login = orders.login")
-      .as_string();
-    let expected_query = "\
-      INNER JOIN address ON users.login = address.login \
-      INNER JOIN orders ON users.login = orders.login\
-    ";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
   fn method_intersect_should_add_the_intersect_clause() {
     let select_users = SelectBuilder::new().select("login").from("users");
     let select_address = SelectBuilder::new().select("login").from("address");
@@ -375,6 +351,106 @@ mod public_api {
       .as_string();
     let expected_query = "\
       WITH user_list AS (SELECT id, login FROM users), user_ids AS (SELECT id FROM user_list)\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+}
+
+#[cfg(test)]
+mod public_api_join {
+  use super::*;
+  use pretty_assertions::assert_eq;
+
+  #[test]
+  fn method_cross_join_should_add_the_cross_join_clause() {
+    let query = SelectBuilder::new().cross_join("address").as_string();
+    let expected_query = "CROSS JOIN address";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_cross_join_should_accumulate_values_on_consecutive_calls() {
+    let query = SelectBuilder::new()
+      .cross_join("address")
+      .cross_join("orders")
+      .as_string();
+    let expected_query = "\
+      CROSS JOIN address \
+      CROSS JOIN orders\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_inner_join_should_add_the_inner_join_clause() {
+    let query = SelectBuilder::new()
+      .inner_join("address ON users.login = address.login")
+      .as_string();
+    let expected_query = "INNER JOIN address ON users.login = address.login";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_inner_join_should_accumulate_values_on_consecutive_calls() {
+    let query = SelectBuilder::new()
+      .inner_join("address ON users.login = address.login")
+      .inner_join("orders ON users.login = orders.login")
+      .as_string();
+    let expected_query = "\
+      INNER JOIN address ON users.login = address.login \
+      INNER JOIN orders ON users.login = orders.login\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_left_join_should_add_the_left_join_clause() {
+    let query = SelectBuilder::new()
+      .left_join("address ON users.login = address.login")
+      .as_string();
+    let expected_query = "LEFT JOIN address ON users.login = address.login";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_left_join_should_accumulate_values_on_consecutive_calls() {
+    let query = SelectBuilder::new()
+      .left_join("address ON users.login = address.login")
+      .left_join("orders ON users.login = orders.login")
+      .as_string();
+    let expected_query = "\
+      LEFT JOIN address ON users.login = address.login \
+      LEFT JOIN orders ON users.login = orders.login\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_right_join_should_add_the_right_join_clause() {
+    let query = SelectBuilder::new()
+      .right_join("address ON users.login = address.login")
+      .as_string();
+    let expected_query = "RIGHT JOIN address ON users.login = address.login";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_right_join_should_accumulate_values_on_consecutive_calls() {
+    let query = SelectBuilder::new()
+      .right_join("address ON users.login = address.login")
+      .right_join("orders ON users.login = orders.login")
+      .as_string();
+    let expected_query = "\
+      RIGHT JOIN address ON users.login = address.login \
+      RIGHT JOIN orders ON users.login = orders.login\
     ";
 
     assert_eq!(query, expected_query);
@@ -865,7 +941,7 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_select_should_be_after_with() {
+  fn clause_select_should_be_after_with_clause() {
     let select_users = SelectBuilder::new().select("*").from("users");
     let select_base = SelectBuilder::new().with("user_list", select_users).select("id");
     let query = select_base.as_string();
@@ -878,7 +954,7 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_from_should_be_after_select() {
+  fn clause_from_should_be_after_select_clause() {
     let query = SelectBuilder::new().select("*").from("users").as_string();
     let expected_query = "SELECT * FROM users";
 
@@ -886,7 +962,15 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_inner_join_should_be_after_from() {
+  fn clause_cross_join_should_be_after_from_clause() {
+    let query = SelectBuilder::new().from("users").cross_join("address").as_string();
+    let expected_query = "FROM users CROSS JOIN address";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn clause_inner_join_should_be_after_from_clause() {
     let query = SelectBuilder::new()
       .from("users")
       .inner_join("address ON users.login = address.login")
@@ -897,7 +981,29 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_where_should_be_after_any_of_the_joins() {
+  fn clause_left_join_should_be_after_from_clause() {
+    let query = SelectBuilder::new()
+      .from("users")
+      .left_join("address ON users.login = address.login")
+      .as_string();
+    let expected_query = "FROM users LEFT JOIN address ON users.login = address.login";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn clause_right_join_should_be_after_from_clause() {
+    let query = SelectBuilder::new()
+      .from("users")
+      .right_join("address ON users.login = address.login")
+      .as_string();
+    let expected_query = "FROM users RIGHT JOIN address ON users.login = address.login";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn clause_where_should_be_after_any_of_the_joins_clauses() {
     let query = SelectBuilder::new()
       .inner_join("address ON users.login = address.login")
       .where_clause("user.login = $1")
@@ -908,7 +1014,7 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_group_by_should_be_after_where() {
+  fn clause_group_by_should_be_after_where_clause() {
     let query = SelectBuilder::new()
       .group_by("login")
       .where_clause("login = $1")
@@ -922,7 +1028,7 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_having_should_be_after_group_by() {
+  fn clause_having_should_be_after_group_by_clause() {
     let query = SelectBuilder::new()
       .having("active = true")
       .group_by("login")
@@ -936,7 +1042,7 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_order_by_should_be_after_having() {
+  fn clause_order_by_should_be_after_having_clause() {
     let query = SelectBuilder::new()
       .having("active = true")
       .order_by("created_at desc")
@@ -947,7 +1053,7 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_limit_should_be_after_order_by() {
+  fn clause_limit_should_be_after_order_by_clause() {
     let query = SelectBuilder::new().order_by("created_at desc").limit("42").as_string();
     let expected_query = "ORDER BY created_at desc LIMIT 42";
 
@@ -955,7 +1061,7 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_offset_should_be_after_limit() {
+  fn clause_offset_should_be_after_limit_clause() {
     let query = SelectBuilder::new().limit("500").offset("100").as_string();
     let expected_query = "LIMIT 500 OFFSET 100";
 
@@ -963,7 +1069,7 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_except_should_be_after_offset() {
+  fn clause_except_should_be_after_offset_clause() {
     let select_address = SelectBuilder::new().select("login").from("address");
     let query = SelectBuilder::new().offset("10").except(select_address).as_string();
     let expected_query = "\
@@ -976,7 +1082,7 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_intersect_should_be_after_offset() {
+  fn clause_intersect_should_be_after_offset_clause() {
     let select_address = SelectBuilder::new().select("login").from("address");
     let query = SelectBuilder::new().offset("10").intersect(select_address).as_string();
     let expected_query = "\
@@ -989,7 +1095,7 @@ mod concat_order {
   }
 
   #[test]
-  fn clause_union_should_be_after_offset() {
+  fn clause_union_should_be_after_offset_clause() {
     let select_address = SelectBuilder::new().select("login").from("address");
     let query = SelectBuilder::new().offset("10").union(select_address).as_string();
     let expected_query = "\
