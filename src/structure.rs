@@ -1,3 +1,4 @@
+/// Builder to contruct a Select query
 #[derive(Default, Clone)]
 pub struct SelectBuilder<'a> {
   pub(crate) _except: Vec<Self>,
@@ -18,6 +19,7 @@ pub struct SelectBuilder<'a> {
   pub(crate) _with: Vec<(&'a str, Self)>,
 }
 
+/// All available clauses to be used in `raw_before` and `raw_after` methods
 #[derive(Clone, Copy, PartialEq)]
 pub enum Clause {
   Except,
