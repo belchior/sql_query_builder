@@ -1,6 +1,6 @@
 pub struct Formatter<'a> {
   pub comma: &'a str,
-  pub lb: &'a str,
+  pub lb: &'a str, // line break
   pub indent: &'a str,
   pub space: &'a str,
 }
@@ -47,8 +47,8 @@ pub fn colorize(sql: String) -> String {
     (blue, "WITH ", "with "),
     (blue, " ALL", " all"),
     (blue, " AND", " and"),
-    (blue, " AS", " as"),
     (blue, " ASC", " asc"),
+    (blue, " AS", " as"),
     (blue, " BY", " by"),
     (blue, " DESC", " desc"),
     (blue, " DISTINCT", " distinct"),

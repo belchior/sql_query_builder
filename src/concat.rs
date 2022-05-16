@@ -15,27 +15,11 @@ impl SelectBuilder<'_> {
     query = self.concat_order_by(query, &fmts);
     query = self.concat_limit(query, &fmts);
     query = self.concat_offset(query, &fmts);
-    query = self.concat_union(query, &fmts);
-    query = self.concat_except(query, &fmts);
-    query = self.concat_intersect(query, &fmts);
+    query = self.concat_combinator(query, &fmts, Clause::Except);
+    query = self.concat_combinator(query, &fmts, Clause::Intersect);
+    query = self.concat_combinator(query, &fmts, Clause::Union);
 
     query.trim_end().to_owned()
-  }
-
-  fn concat_except(&self, query: String, fmts: &Formatter) -> String {
-    let Formatter { lb, space, .. } = fmts;
-    let sql = if self._except.is_empty() == false {
-      let excepts_string = self._except.iter().fold("".to_owned(), |acc, select| {
-        let select_string = select.concat(&fmts);
-        format!("{acc}EXCEPT{space}{lb}{select_string}{space}{lb}")
-      });
-
-      format!("{excepts_string}")
-    } else {
-      "".to_owned()
-    };
-
-    self.concat_clause(query, fmts, Clause::Except, sql)
   }
 
   fn concat_from(&self, query: String, fmts: &Formatter) -> String {
@@ -84,22 +68,6 @@ impl SelectBuilder<'_> {
     };
 
     self.concat_clause(query, fmts, Clause::Having, sql)
-  }
-
-  fn concat_intersect(&self, query: String, fmts: &Formatter) -> String {
-    let Formatter { lb, space, .. } = fmts;
-    let sql = if self._intersect.is_empty() == false {
-      let intersects_string = self._intersect.iter().fold("".to_owned(), |acc, select| {
-        let select_string = select.concat(&fmts);
-        format!("{acc}INTERSECT{space}{lb}{select_string}{space}{lb}")
-      });
-
-      format!("{intersects_string}")
-    } else {
-      "".to_owned()
-    };
-
-    self.concat_clause(query, fmts, Clause::Intersect, sql)
   }
 
   fn concat_limit(&self, query: String, fmts: &Formatter) -> String {
@@ -170,22 +138,6 @@ impl SelectBuilder<'_> {
     format!("{query}{raw_before}{space_before}{sql}{raw_after}{space_after}")
   }
 
-  fn concat_union(&self, query: String, fmts: &Formatter) -> String {
-    let Formatter { lb, space, .. } = fmts;
-    let sql = if self._union.is_empty() == false {
-      let unions_string = self._union.iter().fold("".to_owned(), |acc, select| {
-        let select_string = select.concat(&fmts);
-        format!("{acc}UNION{space}{lb}{select_string}{space}{lb}")
-      });
-
-      format!("{unions_string}")
-    } else {
-      "".to_owned()
-    };
-
-    self.concat_clause(query, fmts, Clause::Union, sql)
-  }
-
   fn concat_where(&self, query: String, fmts: &Formatter) -> String {
     let Formatter { lb, space, .. } = fmts;
     let sql = if self._where.is_empty() == false {
@@ -227,6 +179,70 @@ impl SelectBuilder<'_> {
     };
 
     self.concat_clause(query, fmts, Clause::With, sql)
+  }
+
+  fn combinator_state(
+    &self,
+    fmts: &Formatter,
+    clause: Clause,
+  ) -> (String, &Vec<SelectBuilder>, String, String, String, String) {
+    let Formatter { space, .. } = fmts;
+    let (clause_name, clause_list) = match clause {
+      Clause::Except => ("EXCEPT", &self._except),
+      Clause::Intersect => ("INTERSECT", &self._intersect),
+      Clause::Union => ("UNION", &self._union),
+      _ => panic!("The received clause is not a combinator"),
+    };
+
+    let raw_before = self.queries_before(clause).join(space);
+    let raw_after = self.queries_after(clause).join(space);
+
+    let space_after = if raw_after.is_empty() == false {
+      space.to_string()
+    } else {
+      "".to_owned()
+    };
+    let space_before = if raw_before.is_empty() == false {
+      space.to_string()
+    } else {
+      "".to_owned()
+    };
+
+    (
+      clause_name.to_owned(),
+      clause_list,
+      raw_before,
+      raw_after,
+      space_after,
+      space_before,
+    )
+  }
+
+  fn concat_combinator(&self, query: String, fmts: &Formatter, clause: Clause) -> String {
+    let Formatter { lb, space, .. } = fmts;
+    let (clause_name, clause_list, raw_before, raw_after, space_after, space_before) =
+      self.combinator_state(fmts, clause);
+
+    if clause_list.is_empty() {
+      let sql = "".to_owned();
+      return format!("{query}{raw_before}{space_before}{sql}{raw_after}{space_after}");
+    }
+
+    let sql = clause_list.iter().fold("".to_owned(), |acc, select| {
+      let query = select.concat(&fmts);
+      format!("{acc}{clause_name}{space}({lb}{query}){space}{lb}")
+    });
+
+    let left_side = match sql.is_empty() {
+      true => format!("{query}{raw_before}{space_before}"),
+      false => {
+        let query = query.trim_end();
+        let space_before = space;
+        format!("({query}{raw_before}){space_before}")
+      }
+    };
+
+    format!("{left_side}{sql}{raw_after}{space_after}")
   }
 
   fn queries_after(&self, clause: Clause) -> Vec<String> {

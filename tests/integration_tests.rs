@@ -49,44 +49,6 @@ mod public_api {
   }
 
   #[test]
-  fn method_except_should_add_the_except_clause() {
-    let select_users = SelectBuilder::new().select("login").from("users");
-    let select_address = SelectBuilder::new().select("login").from("address");
-    let query = select_users.except(select_address).as_string();
-    let expected_query = "SELECT login FROM users EXCEPT SELECT login FROM address";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_except_should_accept_inline_argument() {
-    let select_users = SelectBuilder::new().select("login").from("users");
-    let query = select_users
-      .except(SelectBuilder::new().select("login").from("address"))
-      .as_string();
-    let expected_query = "SELECT login FROM users EXCEPT SELECT login FROM address";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_except_should_accumulate_values_on_consecutive_calls() {
-    let select_users = SelectBuilder::new().select("login").from("users");
-    let select_address = SelectBuilder::new().select("login").from("address");
-    let select_orders = SelectBuilder::new().select("login").from("orders");
-    let query = select_users.except(select_address).except(select_orders).as_string();
-    let expected_query = "\
-      SELECT login FROM users \
-      EXCEPT \
-      SELECT login FROM address \
-      EXCEPT \
-      SELECT login FROM orders\
-    ";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
   fn method_from_should_add_the_from_clause() {
     let query = SelectBuilder::new().from("users").as_string();
     let expected_query = "FROM users";
@@ -136,47 +98,6 @@ mod public_api {
       .having("allow = true")
       .as_string();
     let expected_query = "HAVING active = true AND allow = true";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_intersect_should_add_the_intersect_clause() {
-    let select_users = SelectBuilder::new().select("login").from("users");
-    let select_address = SelectBuilder::new().select("login").from("address");
-    let query = select_users.intersect(select_address).as_string();
-    let expected_query = "SELECT login FROM users INTERSECT SELECT login FROM address";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_intersect_should_accept_inline_argument() {
-    let select_users = SelectBuilder::new().select("login").from("users");
-    let query = select_users
-      .intersect(SelectBuilder::new().select("login").from("address"))
-      .as_string();
-    let expected_query = "SELECT login FROM users INTERSECT SELECT login FROM address";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_intersect_should_accumulate_values_on_consecutive_calls() {
-    let select_users = SelectBuilder::new().select("login").from("users");
-    let select_address = SelectBuilder::new().select("login").from("address");
-    let select_orders = SelectBuilder::new().select("login").from("orders");
-    let query = select_users
-      .intersect(select_address)
-      .intersect(select_orders)
-      .as_string();
-    let expected_query = "\
-      SELECT login FROM users \
-      INTERSECT \
-      SELECT login FROM address \
-      INTERSECT \
-      SELECT login FROM orders\
-    ";
 
     assert_eq!(query, expected_query);
   }
@@ -255,44 +176,6 @@ mod public_api {
       .select("created_at")
       .as_string();
     let expected_query = "SELECT id, login, created_at";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_union_should_add_the_union_clause() {
-    let select_users = SelectBuilder::new().select("login").from("users");
-    let select_address = SelectBuilder::new().select("login").from("address");
-    let query = select_users.union(select_address).as_string();
-    let expected_query = "SELECT login FROM users UNION SELECT login FROM address";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_union_should_accept_inline_argument() {
-    let select_users = SelectBuilder::new().select("login").from("users");
-    let query = select_users
-      .union(SelectBuilder::new().select("login").from("address"))
-      .as_string();
-    let expected_query = "SELECT login FROM users UNION SELECT login FROM address";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_union_should_accumulate_values_on_consecutive_calls() {
-    let select_users = SelectBuilder::new().select("login").from("users");
-    let select_address = SelectBuilder::new().select("login").from("address");
-    let select_orders = SelectBuilder::new().select("login").from("orders");
-    let query = select_users.union(select_address).union(select_orders).as_string();
-    let expected_query = "\
-      SELECT login FROM users \
-      UNION \
-      SELECT login FROM address \
-      UNION \
-      SELECT login FROM orders\
-    ";
 
     assert_eq!(query, expected_query);
   }
@@ -458,6 +341,135 @@ mod public_api_join {
 }
 
 #[cfg(test)]
+mod public_api_combinator {
+  use super::*;
+  use pretty_assertions::assert_eq;
+
+  // Except
+
+  #[test]
+  fn method_except_should_add_the_except_clause() {
+    let select_users = SelectBuilder::new().select("login").from("users");
+    let select_address = SelectBuilder::new().select("login").from("address");
+    let query = select_users.except(select_address).as_string();
+    let expected_query = "(SELECT login FROM users) EXCEPT (SELECT login FROM address)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_except_should_accept_inline_argument() {
+    let select_users = SelectBuilder::new().select("login").from("users");
+    let query = select_users
+      .except(SelectBuilder::new().select("login").from("address"))
+      .as_string();
+    let expected_query = "(SELECT login FROM users) EXCEPT (SELECT login FROM address)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_except_should_accumulate_values_on_consecutive_calls() {
+    let select_users = SelectBuilder::new().select("login").from("users");
+    let select_address = SelectBuilder::new().select("login").from("address");
+    let select_orders = SelectBuilder::new().select("login").from("orders");
+    let query = select_users.except(select_address).except(select_orders).as_string();
+    let expected_query = "\
+      (SELECT login FROM users) \
+      EXCEPT \
+      (SELECT login FROM address) \
+      EXCEPT \
+      (SELECT login FROM orders)\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  // Intersect
+
+  #[test]
+  fn method_intersect_should_add_the_intersect_clause() {
+    let select_users = SelectBuilder::new().select("login").from("users");
+    let select_address = SelectBuilder::new().select("login").from("address");
+    let query = select_users.intersect(select_address).as_string();
+    let expected_query = "(SELECT login FROM users) INTERSECT (SELECT login FROM address)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_intersect_should_accept_inline_argument() {
+    let select_users = SelectBuilder::new().select("login").from("users");
+    let query = select_users
+      .intersect(SelectBuilder::new().select("login").from("address"))
+      .as_string();
+    let expected_query = "(SELECT login FROM users) INTERSECT (SELECT login FROM address)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_intersect_should_accumulate_values_on_consecutive_calls() {
+    let select_users = SelectBuilder::new().select("login").from("users");
+    let select_address = SelectBuilder::new().select("login").from("address");
+    let select_orders = SelectBuilder::new().select("login").from("orders");
+    let query = select_users
+      .intersect(select_address)
+      .intersect(select_orders)
+      .as_string();
+    let expected_query = "\
+      (SELECT login FROM users) \
+      INTERSECT \
+      (SELECT login FROM address) \
+      INTERSECT \
+      (SELECT login FROM orders)\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  // Union
+
+  #[test]
+  fn method_union_should_add_the_union_clause() {
+    let select_users = SelectBuilder::new().select("login").from("users");
+    let select_address = SelectBuilder::new().select("login").from("address");
+    let query = select_users.union(select_address).as_string();
+    let expected_query = "(SELECT login FROM users) UNION (SELECT login FROM address)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_union_should_accept_inline_argument() {
+    let select_users = SelectBuilder::new().select("login").from("users");
+    let query = select_users
+      .union(SelectBuilder::new().select("login").from("address"))
+      .as_string();
+    let expected_query = "(SELECT login FROM users) UNION (SELECT login FROM address)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_union_should_accumulate_values_on_consecutive_calls() {
+    let select_users = SelectBuilder::new().select("login").from("users");
+    let select_address = SelectBuilder::new().select("login").from("address");
+    let select_orders = SelectBuilder::new().select("login").from("orders");
+    let query = select_users.union(select_address).union(select_orders).as_string();
+    let expected_query = "\
+      (SELECT login FROM users) \
+      UNION \
+      (SELECT login FROM address) \
+      UNION \
+      (SELECT login FROM orders)\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+}
+
+#[cfg(test)]
 mod public_api_raw {
   use super::*;
   use pretty_assertions::assert_eq;
@@ -486,10 +498,11 @@ mod public_api_raw {
   #[test]
   fn method_raw_after_should_add_raw_sql_after_except_clause() {
     let query = SelectBuilder::new()
+      .select("name")
       .except(SelectBuilder::new().select("name"))
       .raw_after(Clause::Except, "/* the name */")
       .as_string();
-    let expected_query = "EXCEPT SELECT name /* the name */";
+    let expected_query = "(SELECT name) EXCEPT (SELECT name) /* the name */";
 
     assert_eq!(query, expected_query);
   }
@@ -530,10 +543,11 @@ mod public_api_raw {
   #[test]
   fn method_raw_after_should_add_raw_sql_after_intersect_clause() {
     let query = SelectBuilder::new()
+      .select("name")
       .intersect(SelectBuilder::new().select("name"))
       .raw_after(Clause::Intersect, "/* the name */")
       .as_string();
-    let expected_query = "INTERSECT SELECT name /* the name */";
+    let expected_query = "(SELECT name) INTERSECT (SELECT name) /* the name */";
 
     assert_eq!(query, expected_query);
   }
@@ -596,10 +610,11 @@ mod public_api_raw {
   #[test]
   fn method_raw_after_should_add_raw_sql_after_union_clause() {
     let query = SelectBuilder::new()
+      .select("name")
       .union(SelectBuilder::new().select("name"))
       .raw_after(Clause::Union, "/* the name */")
       .as_string();
-    let expected_query = "UNION SELECT name /* the name */";
+    let expected_query = "(SELECT name) UNION (SELECT name) /* the name */";
 
     assert_eq!(query, expected_query);
   }
@@ -634,7 +649,7 @@ mod public_api_raw {
       .raw_before(Clause::Except, "select name from orders")
       .except(SelectBuilder::new().select("name"))
       .as_string();
-    let expected_query = "select name from orders EXCEPT SELECT name";
+    let expected_query = "(select name from orders) EXCEPT (SELECT name)";
 
     assert_eq!(query, expected_query);
   }
@@ -678,7 +693,7 @@ mod public_api_raw {
       .raw_before(Clause::Except, "select name from orders")
       .intersect(SelectBuilder::new().select("name"))
       .as_string();
-    let expected_query = "select name from orders INTERSECT SELECT name";
+    let expected_query = "(select name from orders) INTERSECT (SELECT name)";
 
     assert_eq!(query, expected_query);
   }
@@ -744,7 +759,7 @@ mod public_api_raw {
       .raw_before(Clause::Union, "select name from orders")
       .union(SelectBuilder::new().select("name"))
       .as_string();
-    let expected_query = "select name from orders UNION SELECT name";
+    let expected_query = "(select name from orders) UNION (SELECT name)";
 
     assert_eq!(query, expected_query);
   }
@@ -881,7 +896,6 @@ mod concat_order {
   #[test]
   fn all_clauses_in_order() {
     let select_users = SelectBuilder::new().select("*").from("users");
-    let select_address = SelectBuilder::new().select("city").from("address");
     let query = SelectBuilder::new()
       .raw("/* all clauses in order */")
       .with("user_list", select_users)
@@ -894,7 +908,6 @@ mod concat_order {
       .order_by("created_at desc")
       .limit("1000")
       .offset("50")
-      .union(select_address)
       .as_string();
 
     let expected_query = "\
@@ -908,9 +921,7 @@ mod concat_order {
       HAVING active = true \
       ORDER BY created_at desc \
       LIMIT 1000 \
-      OFFSET 50 \
-      UNION \
-      SELECT city FROM address\
+      OFFSET 50\
     ";
 
     assert_eq!(query, expected_query);
@@ -1073,9 +1084,9 @@ mod concat_order {
     let select_address = SelectBuilder::new().select("login").from("address");
     let query = SelectBuilder::new().offset("10").except(select_address).as_string();
     let expected_query = "\
-      OFFSET 10 \
+      (OFFSET 10) \
       EXCEPT \
-      SELECT login FROM address\
+      (SELECT login FROM address)\
     ";
 
     assert_eq!(query, expected_query);
@@ -1086,9 +1097,9 @@ mod concat_order {
     let select_address = SelectBuilder::new().select("login").from("address");
     let query = SelectBuilder::new().offset("10").intersect(select_address).as_string();
     let expected_query = "\
-      OFFSET 10 \
+      (OFFSET 10) \
       INTERSECT \
-      SELECT login FROM address\
+      (SELECT login FROM address)\
     ";
 
     assert_eq!(query, expected_query);
@@ -1099,9 +1110,9 @@ mod concat_order {
     let select_address = SelectBuilder::new().select("login").from("address");
     let query = SelectBuilder::new().offset("10").union(select_address).as_string();
     let expected_query = "\
-      OFFSET 10 \
+      (OFFSET 10) \
       UNION \
-      SELECT login FROM address\
+      (SELECT login FROM address)\
     ";
 
     assert_eq!(query, expected_query);
