@@ -30,10 +30,10 @@ Output
 SELECT id, login FROM users WHERE login = $1 AND id = $2
 ```
 
-In simple terms this library will not try to undestand what you are writing, for one side this is good
+In simple terms this library will not try to understand what you are writing inside the arguments, this is good
 because it's removes a lot complexity and verbosity that other libraries needs to generate a SQL query,
-for another side debug tends to be more dificult based on the same arguments. The lib has `.debug()` method
-to minimize the effort to debug a complex query.
+whereas debugging tends to be more difficult and silly error can araise.
+The lib has `.debug()` method to minimize the effort to debug a complex query.
 
 ## How it's works
 

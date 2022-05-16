@@ -1,8 +1,4 @@
 {
-  "rust-analyzer.inlayHints.enable": false,
   "editor.tabSize": 2,
-  "rust-analyzer.cargo.runBuildScripts": true,
-  "rust-analyzer.hoverActions.run": true,
-  "rust-analyzer.lens.run": false,
-  "rust-analyzer.lens.debug": false,
+  "rust-analyzer.cargo.buildScripts.enable": true,
 }

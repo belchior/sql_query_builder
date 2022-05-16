@@ -5,7 +5,7 @@ version = "0.1.1"
 edition = "2021"
 authors = ["Belchior Oliveira <belchior@outlook.com>"]
 license = "MIT"
-keywords = ["sql", "query"]
+keywords = ["sql", "query", "postgres"]
 
 [dev-dependencies]
 pretty_assertions = "1.2.1"
