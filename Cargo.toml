@@ -1,9 +1,10 @@
 [package]
 name = "sql_query_builder"
 description = "Write SQL queries in a simple and composable way"
-version = "0.1.2"
-edition = "2021"
 authors = ["Belchior Oliveira <belchior@outlook.com>"]
+repository = "https://github.com/belchior/sql_query_builder"
+version = "0.1.3"
+edition = "2021"
 license = "MIT"
 keywords = ["sql", "query", "postgres"]
 
