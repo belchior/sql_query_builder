@@ -3,6 +3,7 @@ Write SQL queries in a simple and composable way.
 The main goal of this library is to find the best balance between write idiomatic SQL queries and manage cenarios
 of complex query composition. Try in a large query and you will understand what this lib can do for you.
 
+
 ## Quick Start
 
 ```rust
@@ -13,10 +14,10 @@ let mut select = SelectBuilder::new()
   .from("users")
   .where_clause("login = $1");
 
-let id = Some(123);
+let is_admin = true;
 
-if let Some(id) = id {
-  select = select.and("id = $2");
+if is_admin {
+  select = select.and("is_admin = true");
 }
 
 let query = select.as_string();
@@ -27,13 +28,14 @@ println!("{}", query);
 Output
 
 ```sql
-SELECT id, login FROM users WHERE login = $1 AND id = $2
+SELECT id, login FROM users WHERE login = $1 AND is_admin = true
 ```
 
 In simple terms this library will not try to understand what you are writing inside the arguments, this is good
 because it's removes a lot complexity and verbosity that other libraries needs to generate a SQL query,
-whereas debugging tends to be more difficult and silly error can araise.
-The lib has `.debug()` method to minimize the effort to debug a complex query.
+in contrast debugging tends to be more difficult and silly error can araise.
+The lib has `.debug()` method with a nice output to minimize the effort to debug a complex query.
+
 
 ## How it's works
 
@@ -63,7 +65,6 @@ let select = SelectBuilder::new()
   .limit("1000")
   .limit("123");
 ```
-
 
 The library ignores the order between clauses so the two selects produce the same SQL query
 
@@ -98,6 +99,7 @@ if shouldIncludesAddress {
 }
 ```
 
+
 ## Composition
 
 Composition is very welcome to write complex queries, this feature makes the library shine
@@ -112,7 +114,7 @@ select
     .select("o.name as product_name")
 }
 
-fn joins(select: SelectBuilder) -> SelectBuilder {
+fn relations(select: SelectBuilder) -> SelectBuilder {
   select
     .from("users u")
     .inner_join("address a ON a.user_login = u.login")
@@ -120,7 +122,9 @@ fn joins(select: SelectBuilder) -> SelectBuilder {
 }
 
 fn conditions(select: SelectBuilder) -> SelectBuilder {
-  select.where_clause("u.login = $1").and("o.id = $2")
+  select
+    .where_clause("u.login = $1")
+    .and("o.id = $2")
 }
 
 fn as_string(select: SelectBuilder) -> String {
@@ -129,7 +133,7 @@ fn as_string(select: SelectBuilder) -> String {
 
 let query = Some(SelectBuilder::new())
   .map(project)
-  .map(joins)
+  .map(relations)
   .map(conditions)
   .map(as_string)
   .unwrap();
@@ -146,3 +150,51 @@ INNER JOIN address a ON a.user_login = u.login
 INNER JOIN orders o ON o.user_login = u.login
 WHERE u.login = $1 AND o.id = $2
 ```
+
+
+## Raw queries
+
+You can use the raw method to accomplish some edge cases that are hard to rewrite into the SelectBuilder syntax.
+The `select.raw()` method will put any SQL you define at top of the output
+
+```rust
+use sql_query_builder::SelectBuilder;
+
+let raw_query = "\
+  select u.id as user_id, addr.* \
+  from users u \
+  inner join address addr on u.login = addr.owner_login\
+";
+let select = SelectBuilder::new()
+  .raw(raw_query)
+  .where_clause("login = $1");
+```
+
+To a more precisely use case your can use the `select.raw_before()` and `select.raw_after()`
+
+```rust
+use sql_query_builder::{SelectBuilder, Clause};
+
+let raw_query = "\
+  from users u \
+  inner join address addr on u.login = addr.owner_login\
+";
+let select = SelectBuilder::new()
+  .select("u.id as user_id, addr.*")
+  .raw_before(Clause::Where, raw_query)
+  .where_clause("login = $1");
+```
+
+```rust
+use sql_query_builder::{SelectBuilder, Clause};
+
+let raw_query = "\
+  from users u \
+  inner join address addr on u.login = addr.owner_login\
+";
+let select = SelectBuilder::new()
+  .select("u.id as user_id, addr.*")
+  .raw_after(Clause::Select, raw_query)
+  .where_clause("login = $1");
+```
+
