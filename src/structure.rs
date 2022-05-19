@@ -20,7 +20,7 @@ pub struct SelectBuilder<'a> {
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, PartialEq)]
 pub enum Clause {
   Except,
   From,
@@ -35,4 +35,10 @@ pub enum Clause {
   Union,
   Where,
   With,
+}
+
+pub enum Combinator {
+  Except,
+  Intersect,
+  Union,
 }

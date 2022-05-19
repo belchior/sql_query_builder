@@ -197,4 +197,3 @@ let select = SelectBuilder::new()
   .raw_after(Clause::Select, raw_query)
   .where_clause("login = $1");
 ```
-

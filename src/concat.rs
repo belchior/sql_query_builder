@@ -1,4 +1,8 @@
-use crate::{fmt::Formatter, structure::Clause, SelectBuilder};
+use crate::{
+  fmt::Formatter,
+  structure::{Clause, Combinator},
+  SelectBuilder,
+};
 
 impl SelectBuilder<'_> {
   pub(crate) fn concat(&self, fmts: &Formatter) -> String {
@@ -15,9 +19,9 @@ impl SelectBuilder<'_> {
     query = self.concat_order_by(query, &fmts);
     query = self.concat_limit(query, &fmts);
     query = self.concat_offset(query, &fmts);
-    query = self.concat_combinator(query, &fmts, Clause::Except);
-    query = self.concat_combinator(query, &fmts, Clause::Intersect);
-    query = self.concat_combinator(query, &fmts, Clause::Union);
+    query = self.concat_combinator(query, &fmts, Combinator::Except);
+    query = self.concat_combinator(query, &fmts, Combinator::Intersect);
+    query = self.concat_combinator(query, &fmts, Combinator::Union);
 
     query.trim_end().to_owned()
   }
@@ -130,8 +134,8 @@ impl SelectBuilder<'_> {
 
   fn concat_before_after(&self, query: String, fmts: &Formatter, clause: Clause, sql: String) -> String {
     let Formatter { space, .. } = fmts;
-    let raw_after = self.queries_after(clause).join(space);
-    let raw_before = self.queries_before(clause).join(space);
+    let raw_after = self.queries_after(&clause).join(space);
+    let raw_before = self.queries_before(&clause).join(space);
     let space_after = if raw_after.is_empty() == false { space } else { "" };
     let space_before = if raw_before.is_empty() == false { space } else { "" };
 
@@ -181,17 +185,16 @@ impl SelectBuilder<'_> {
     self.concat_before_after(query, fmts, Clause::With, sql)
   }
 
-  fn concat_combinator(&self, query: String, fmts: &Formatter, clause: Clause) -> String {
+  fn concat_combinator(&self, query: String, fmts: &Formatter, combinator: Combinator) -> String {
     let Formatter { lb, space, .. } = fmts;
-    let (clause_name, clause_list) = match clause {
-      Clause::Except => ("EXCEPT", &self._except),
-      Clause::Intersect => ("INTERSECT", &self._intersect),
-      Clause::Union => ("UNION", &self._union),
-      _ => panic!("The received clause is not a combinator"),
+    let (clause, clause_name, clause_list) = match combinator {
+      Combinator::Except => (Clause::Except, "EXCEPT", &self._except),
+      Combinator::Intersect => (Clause::Intersect, "INTERSECT", &self._intersect),
+      Combinator::Union => (Clause::Union, "UNION", &self._union),
     };
 
-    let raw_before = self.queries_before(clause).join(space);
-    let raw_after = self.queries_after(clause).join(space);
+    let raw_before = self.queries_before(&clause).join(space);
+    let raw_after = self.queries_after(&clause).join(space);
 
     let space_before = if raw_before.is_empty() {
       "".to_owned()
@@ -214,32 +217,27 @@ impl SelectBuilder<'_> {
       format!("{acc}{clause_name}{space}({lb}{query}){space}{lb}")
     });
 
-    let left_stmt = match right_stmt.is_empty() {
-      true => format!("{query}{raw_before}{space_before}"),
-      false => {
-        let query = query.trim_end();
-        let space_before = space;
-        format!("({query}{raw_before}){space_before}")
-      }
-    };
+    let query = query.trim_end();
+    let space_before = space;
+    let left_stmt = format!("({query}{raw_before}){space_before}");
 
     format!("{left_stmt}{right_stmt}{raw_after}{space_after}")
   }
 
-  fn queries_after(&self, clause: Clause) -> Vec<String> {
+  fn queries_after(&self, clause: &Clause) -> Vec<String> {
     self
       ._raw_after
       .iter()
-      .filter(|item| item.0 == clause)
+      .filter(|item| item.0 == *clause)
       .map(|item| item.1.clone())
       .collect::<Vec<_>>()
   }
 
-  fn queries_before(&self, clause: Clause) -> Vec<String> {
+  fn queries_before(&self, clause: &Clause) -> Vec<String> {
     self
       ._raw_before
       .iter()
-      .filter(|item| item.0 == clause)
+      .filter(|item| item.0 == *clause)
       .map(|item| item.1.clone())
       .collect::<Vec<_>>()
   }

@@ -1,4 +1,8 @@
 {
   "editor.tabSize": 2,
-  "rust-analyzer.cargo.buildScripts.enable": true,
+  "rust-analyzer.cargo.buildScripts.enable": false,
+  "rust-analyzer.lens.implementations.enable": false,
+  "rust-analyzer.inlayHints.chainingHints.enable": false,
+  "rust-analyzer.lens.run.enable": false,
+  "rust-analyzer.lens.debug.enable": false,
 }
