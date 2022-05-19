@@ -17,8 +17,8 @@ RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME
 
 cargo profdata -- merge -sparse $COVERAGE_TARGET/$PKG_NAME-*.profraw -o $COVERAGE_TARGET/$PKG_NAME.profdata;
 
-OBJECT_PATH_LIB="$(ls $COVERAGE_TARGET/debug/deps/$PKG_NAME-????????????????)"
-OBJECT_PATH_TEST="$(ls $COVERAGE_TARGET/debug/deps/integration_tests-????????????????)"
+OBJECT_PATH_LIB="$(ls $COVERAGE_TARGET/debug/deps/$PKG_NAME-???????????????? | xargs -I {} echo '--object {}')"
+OBJECT_PATH_TEST="$(ls $COVERAGE_TARGET/debug/deps/*_spec-???????????????? | xargs -I {} echo '--object {}')"
 
 cargo cov -- report \
     --use-color \
@@ -26,8 +26,8 @@ cargo cov -- report \
     --ignore-filename-regex='/?cargo/registry' \
     --ignore-filename-regex='./tests/.*rs$' \
     --instr-profile=$COVERAGE_TARGET/$PKG_NAME.profdata \
-    --object $OBJECT_PATH_LIB \
-    --object $OBJECT_PATH_TEST;
+    $OBJECT_PATH_LIB \
+    $OBJECT_PATH_TEST;
 
 cargo cov -- show \
     --use-color \
@@ -35,8 +35,8 @@ cargo cov -- show \
     --ignore-filename-regex='/?cargo/registry' \
     --ignore-filename-regex='./tests/.*rs$' \
     --instr-profile=$COVERAGE_TARGET/$PKG_NAME.profdata \
-    --object $OBJECT_PATH_LIB \
-    --object $OBJECT_PATH_TEST \
+    $OBJECT_PATH_LIB \
+    $OBJECT_PATH_TEST \
     --show-instantiations \
     --show-line-counts-or-regions \
     --Xdemangler=rustfilt \
