@@ -173,7 +173,7 @@ let select = SelectBuilder::new()
 To a more precisely use case your can use the `select.raw_before()` and `select.raw_after()`
 
 ```rust
-use sql_query_builder::{SelectBuilder, Clause};
+use sql_query_builder::{SelectBuilder, SelectClause};
 
 let raw_query = "\
   from users u \
@@ -181,12 +181,12 @@ let raw_query = "\
 ";
 let select = SelectBuilder::new()
   .select("u.id as user_id, addr.*")
-  .raw_before(Clause::Where, raw_query)
+  .raw_before(SelectClause::Where, raw_query)
   .where_clause("login = $1");
 ```
 
 ```rust
-use sql_query_builder::{SelectBuilder, Clause};
+use sql_query_builder::{SelectBuilder, SelectClause};
 
 let raw_query = "\
   from users u \
@@ -194,6 +194,6 @@ let raw_query = "\
 ";
 let select = SelectBuilder::new()
   .select("u.id as user_id, addr.*")
-  .raw_after(Clause::Select, raw_query)
+  .raw_after(SelectClause::Select, raw_query)
   .where_clause("login = $1");
 ```
