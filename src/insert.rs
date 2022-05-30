@@ -40,6 +40,11 @@ impl<'a> InsertBuilder<'a> {
     self._raw_before.push((clause, raw_sql.to_owned()));
     self
   }
+
+  pub fn values(mut self, value: &'a str) -> Self {
+    self._values.push(value.to_owned());
+    self
+  }
 }
 
 impl BuilderInner<'_, InsertClause> for InsertBuilder<'_> {
@@ -47,6 +52,7 @@ impl BuilderInner<'_, InsertClause> for InsertBuilder<'_> {
     let mut query = "".to_owned();
 
     query = self.concat_insert_into(query, &fmts);
+    query = self.concat_values(query, &fmts);
 
     query.trim_end().to_owned()
   }
@@ -71,5 +77,17 @@ impl InsertBuilder<'_> {
     };
 
     self.concat_raw_before_after(InsertClause::InsertInto, query, fmts, sql)
+  }
+
+  fn concat_values(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { comma, lb, space, .. } = fmts;
+    let sql = if self._values.is_empty() == false {
+      let values = self._values.join(comma);
+      format!("VALUES {values}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    self.concat_raw_before_after(InsertClause::Values, query, fmts, sql)
   }
 }
