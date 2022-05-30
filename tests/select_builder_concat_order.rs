@@ -19,18 +19,18 @@ fn all_clauses_in_order() {
     .as_string();
 
   let expected_query = "\
-      /* all clauses in order */ \
-      WITH user_list AS (SELECT * FROM users) \
-      SELECT * \
-      FROM user_list \
-      INNER JOIN orders ON users.login = orders.login \
-      WHERE user.login = $1 \
-      GROUP BY login \
-      HAVING active = true \
-      ORDER BY created_at desc \
-      LIMIT 1000 \
-      OFFSET 50\
-    ";
+    /* all clauses in order */ \
+    WITH user_list AS (SELECT * FROM users) \
+    SELECT * \
+    FROM user_list \
+    INNER JOIN orders ON users.login = orders.login \
+    WHERE user.login = $1 \
+    GROUP BY login \
+    HAVING active = true \
+    ORDER BY created_at desc \
+    LIMIT 1000 \
+    OFFSET 50\
+  ";
 
   assert_eq!(query, expected_query);
 }
@@ -51,10 +51,10 @@ fn clause_with_should_be_after_raw() {
     .select("id");
   let query = select_base.as_string();
   let expected_query = "\
-      select 123 as id union \
-      WITH user_list AS (SELECT * FROM users) \
-      SELECT id\
-    ";
+    select 123 as id union \
+    WITH user_list AS (SELECT * FROM users) \
+    SELECT id\
+  ";
 
   assert_eq!(query, expected_query);
 }
@@ -65,9 +65,9 @@ fn clause_select_should_be_after_with_clause() {
   let select_base = SelectBuilder::new().with("user_list", select_users).select("id");
   let query = select_base.as_string();
   let expected_query = "\
-      WITH user_list AS (SELECT * FROM users) \
-      SELECT id\
-    ";
+    WITH user_list AS (SELECT * FROM users) \
+    SELECT id\
+  ";
 
   assert_eq!(query, expected_query);
 }
@@ -139,9 +139,9 @@ fn clause_group_by_should_be_after_where_clause() {
     .where_clause("login = $1")
     .as_string();
   let expected_query = "\
-      WHERE login = $1 \
-      GROUP BY login\
-    ";
+    WHERE login = $1 \
+    GROUP BY login\
+  ";
 
   assert_eq!(query, expected_query);
 }
@@ -153,9 +153,9 @@ fn clause_having_should_be_after_group_by_clause() {
     .group_by("login")
     .as_string();
   let expected_query = "\
-      GROUP BY login \
-      HAVING active = true\
-    ";
+    GROUP BY login \
+    HAVING active = true\
+  ";
 
   assert_eq!(query, expected_query);
 }
@@ -192,10 +192,10 @@ fn clause_except_should_be_after_offset_clause() {
   let select_address = SelectBuilder::new().select("login").from("address");
   let query = SelectBuilder::new().offset("10").except(select_address).as_string();
   let expected_query = "\
-      (OFFSET 10) \
-      EXCEPT \
-      (SELECT login FROM address)\
-    ";
+    (OFFSET 10) \
+    EXCEPT \
+    (SELECT login FROM address)\
+  ";
 
   assert_eq!(query, expected_query);
 }
@@ -205,10 +205,10 @@ fn clause_intersect_should_be_after_offset_clause() {
   let select_address = SelectBuilder::new().select("login").from("address");
   let query = SelectBuilder::new().offset("10").intersect(select_address).as_string();
   let expected_query = "\
-      (OFFSET 10) \
-      INTERSECT \
-      (SELECT login FROM address)\
-    ";
+    (OFFSET 10) \
+    INTERSECT \
+    (SELECT login FROM address)\
+  ";
 
   assert_eq!(query, expected_query);
 }
@@ -218,10 +218,10 @@ fn clause_union_should_be_after_offset_clause() {
   let select_address = SelectBuilder::new().select("login").from("address");
   let query = SelectBuilder::new().offset("10").union(select_address).as_string();
   let expected_query = "\
-      (OFFSET 10) \
-      UNION \
-      (SELECT login FROM address)\
-    ";
+    (OFFSET 10) \
+    UNION \
+    (SELECT login FROM address)\
+  ";
 
   assert_eq!(query, expected_query);
 }

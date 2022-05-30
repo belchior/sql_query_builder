@@ -1,9 +1,31 @@
-use crate::fmt;
-
-pub trait Concat {
-  fn concat(&self, fmts: &fmt::Formatter) -> String;
+pub enum Combinator {
+  Except,
+  Intersect,
+  Union,
 }
 
+/// Builder to contruct a Insert query
+#[derive(Default)]
+pub struct InsertBuilder<'a> {
+  pub(crate) _insert_into: &'a str,
+  pub(crate) _on: Vec<String>,
+  pub(crate) _overriding: Vec<String>,
+  pub(crate) _raw_after: Vec<(InsertClause, String)>,
+  pub(crate) _raw_before: Vec<(InsertClause, String)>,
+  pub(crate) _raw: Vec<String>,
+  pub(crate) _select: Vec<SelectBuilder<'a>>,
+  pub(crate) _values: Vec<String>,
+}
+
+/// All available clauses to be used in `raw_before` and `raw_after` methods of the InsertBuilder
+#[derive(PartialEq)]
+pub enum InsertClause {
+  InsertInto,
+  Values,
+  Select,
+  Overriding,
+  On,
+}
 /// Builder to contruct a Select query
 #[derive(Default, Clone)]
 pub struct SelectBuilder<'a> {
@@ -25,7 +47,7 @@ pub struct SelectBuilder<'a> {
   pub(crate) _with: Vec<(&'a str, Self)>,
 }
 
-/// All available clauses to be used in `raw_before` and `raw_after` methods
+/// All available clauses to be used in `raw_before` and `raw_after` methods of the SelectBuilder
 #[derive(Clone, PartialEq)]
 pub enum SelectClause {
   Except,
@@ -41,10 +63,4 @@ pub enum SelectClause {
   Union,
   Where,
   With,
-}
-
-pub enum Combinator {
-  Except,
-  Intersect,
-  Union,
 }

@@ -10,7 +10,7 @@ fn method_new_should_initialize_as_empty_string() {
 }
 
 #[test]
-fn method_as_string_should_convert_the_current_state_to_string() {
+fn method_as_string_should_convert_the_current_state_into_string() {
   let query = SelectBuilder::new().as_string();
   let expected_query = "";
 

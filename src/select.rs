@@ -1,6 +1,7 @@
 use crate::{
+  behavior::raw_queries,
   fmt,
-  structure::{Combinator, Concat, SelectBuilder, SelectClause},
+  structure::{Combinator, SelectBuilder, SelectClause},
 };
 
 impl<'a> SelectBuilder<'a> {
@@ -272,7 +273,7 @@ impl<'a> SelectBuilder<'a> {
   }
 }
 
-impl Concat for SelectBuilder<'_> {
+impl SelectBuilder<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
@@ -293,9 +294,56 @@ impl Concat for SelectBuilder<'_> {
 
     query.trim_end().to_owned()
   }
-}
 
-impl SelectBuilder<'_> {
+  fn concat_raw_before_after(&self, query: String, fmts: &fmt::Formatter, clause: SelectClause, sql: String) -> String {
+    let fmt::Formatter { space, .. } = fmts;
+    let raw_before = raw_queries(&self._raw_before, &clause).join(space);
+    let raw_after = raw_queries(&self._raw_after, &clause).join(space);
+    let space_after = if raw_after.is_empty() == false { space } else { "" };
+    let space_before = if raw_before.is_empty() == false { space } else { "" };
+
+    format!("{query}{raw_before}{space_before}{sql}{raw_after}{space_after}")
+  }
+
+  fn concat_combinator(&self, query: String, fmts: &fmt::Formatter, combinator: Combinator) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let (clause, clause_name, clause_list) = match combinator {
+      Combinator::Except => (SelectClause::Except, "EXCEPT", &self._except),
+      Combinator::Intersect => (SelectClause::Intersect, "INTERSECT", &self._intersect),
+      Combinator::Union => (SelectClause::Union, "UNION", &self._union),
+    };
+
+    let raw_before = raw_queries(&self._raw_before, &clause).join(space);
+    let raw_after = raw_queries(&self._raw_after, &clause).join(space);
+
+    let space_before = if raw_before.is_empty() {
+      "".to_owned()
+    } else {
+      space.to_string()
+    };
+    let space_after = if raw_after.is_empty() {
+      "".to_owned()
+    } else {
+      space.to_string()
+    };
+
+    if clause_list.is_empty() {
+      let sql = "".to_owned();
+      return format!("{query}{raw_before}{space_before}{sql}{raw_after}{space_after}");
+    }
+
+    let right_stmt = clause_list.iter().fold("".to_owned(), |acc, select| {
+      let query = select.concat(&fmts);
+      format!("{acc}{clause_name}{space}({lb}{query}){space}{lb}")
+    });
+
+    let query = query.trim_end();
+    let space_before = space;
+    let left_stmt = format!("({query}{raw_before}){space_before}");
+
+    format!("{left_stmt}{right_stmt}{raw_after}{space_after}")
+  }
+
   fn concat_from(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._from.is_empty() == false {
@@ -305,19 +353,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_before_after(query, fmts, SelectClause::From, sql)
-  }
-
-  fn concat_join(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._join.is_empty() == false {
-      let joins = self._join.join(format!("{space}{lb}").as_str());
-      format!("{joins}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    self.concat_before_after(query, fmts, SelectClause::Join, sql)
+    self.concat_raw_before_after(query, fmts, SelectClause::From, sql)
   }
 
   fn concat_group_by(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -329,7 +365,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_before_after(query, fmts, SelectClause::GroupBy, sql)
+    self.concat_raw_before_after(query, fmts, SelectClause::GroupBy, sql)
   }
 
   fn concat_having(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -341,7 +377,19 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_before_after(query, fmts, SelectClause::Having, sql)
+    self.concat_raw_before_after(query, fmts, SelectClause::Having, sql)
+  }
+
+  fn concat_join(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._join.is_empty() == false {
+      let joins = self._join.join(format!("{space}{lb}").as_str());
+      format!("{joins}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    self.concat_raw_before_after(query, fmts, SelectClause::Join, sql)
   }
 
   fn concat_limit(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -353,7 +401,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_before_after(query, fmts, SelectClause::Limit, sql)
+    self.concat_raw_before_after(query, fmts, SelectClause::Limit, sql)
   }
 
   fn concat_offset(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -365,7 +413,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_before_after(query, fmts, SelectClause::Offset, sql)
+    self.concat_raw_before_after(query, fmts, SelectClause::Offset, sql)
   }
 
   fn concat_order_by(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -377,7 +425,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_before_after(query, fmts, SelectClause::OrderBy, sql)
+    self.concat_raw_before_after(query, fmts, SelectClause::OrderBy, sql)
   }
 
   fn concat_raw(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -399,17 +447,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_before_after(query, fmts, SelectClause::Select, sql)
-  }
-
-  fn concat_before_after(&self, query: String, fmts: &fmt::Formatter, clause: SelectClause, sql: String) -> String {
-    let fmt::Formatter { space, .. } = fmts;
-    let raw_after = self.queries_after(&clause).join(space);
-    let raw_before = self.queries_before(&clause).join(space);
-    let space_after = if raw_after.is_empty() == false { space } else { "" };
-    let space_before = if raw_before.is_empty() == false { space } else { "" };
-
-    format!("{query}{raw_before}{space_before}{sql}{raw_after}{space_after}")
+    self.concat_raw_before_after(query, fmts, SelectClause::Select, sql)
   }
 
   fn concat_where(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -421,7 +459,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_before_after(query, fmts, SelectClause::Where, sql)
+    self.concat_raw_before_after(query, fmts, SelectClause::Where, sql)
   }
 
   fn concat_with(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -452,64 +490,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_before_after(query, fmts, SelectClause::With, sql)
-  }
-
-  fn concat_combinator(&self, query: String, fmts: &fmt::Formatter, combinator: Combinator) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let (clause, clause_name, clause_list) = match combinator {
-      Combinator::Except => (SelectClause::Except, "EXCEPT", &self._except),
-      Combinator::Intersect => (SelectClause::Intersect, "INTERSECT", &self._intersect),
-      Combinator::Union => (SelectClause::Union, "UNION", &self._union),
-    };
-
-    let raw_before = self.queries_before(&clause).join(space);
-    let raw_after = self.queries_after(&clause).join(space);
-
-    let space_before = if raw_before.is_empty() {
-      "".to_owned()
-    } else {
-      space.to_string()
-    };
-    let space_after = if raw_after.is_empty() {
-      "".to_owned()
-    } else {
-      space.to_string()
-    };
-
-    if clause_list.is_empty() {
-      let sql = "".to_owned();
-      return format!("{query}{raw_before}{space_before}{sql}{raw_after}{space_after}");
-    }
-
-    let right_stmt = clause_list.iter().fold("".to_owned(), |acc, select| {
-      let query = select.concat(&fmts);
-      format!("{acc}{clause_name}{space}({lb}{query}){space}{lb}")
-    });
-
-    let query = query.trim_end();
-    let space_before = space;
-    let left_stmt = format!("({query}{raw_before}){space_before}");
-
-    format!("{left_stmt}{right_stmt}{raw_after}{space_after}")
-  }
-
-  fn queries_after(&self, clause: &SelectClause) -> Vec<String> {
-    self
-      ._raw_after
-      .iter()
-      .filter(|item| item.0 == *clause)
-      .map(|item| item.1.clone())
-      .collect::<Vec<_>>()
-  }
-
-  fn queries_before(&self, clause: &SelectClause) -> Vec<String> {
-    self
-      ._raw_before
-      .iter()
-      .filter(|item| item.0 == *clause)
-      .map(|item| item.1.clone())
-      .collect::<Vec<_>>()
+    self.concat_raw_before_after(query, fmts, SelectClause::With, sql)
   }
 }
 
