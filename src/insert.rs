@@ -25,6 +25,11 @@ impl<'a> InsertBuilder<'a> {
     Self::default()
   }
 
+  pub fn overriding(mut self, option: &'a str) -> Self {
+    self._overriding = option;
+    self
+  }
+
   pub fn print(self) -> Self {
     let fmts = fmt::Formatter::one_line();
     println!("{}", fmt::colorize(self.concat(&fmts)));
@@ -52,6 +57,7 @@ impl BuilderInner<'_, InsertClause> for InsertBuilder<'_> {
     let mut query = "".to_owned();
 
     query = self.concat_insert_into(query, &fmts);
+    query = self.concat_overriding(query, &fmts);
     query = self.concat_values(query, &fmts);
 
     query.trim_end().to_owned()
@@ -77,6 +83,18 @@ impl InsertBuilder<'_> {
     };
 
     self.concat_raw_before_after(InsertClause::InsertInto, query, fmts, sql)
+  }
+
+  fn concat_overriding(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._overriding.is_empty() == false {
+      let overriding = self._overriding;
+      format!("OVERRIDING {overriding}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    self.concat_raw_before_after(InsertClause::Overriding, query, fmts, sql)
   }
 
   fn concat_values(&self, query: String, fmts: &fmt::Formatter) -> String {
