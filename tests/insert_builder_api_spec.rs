@@ -1,36 +1,72 @@
-use pretty_assertions::assert_eq;
 use sql_query_builder::{InsertBuilder, InsertClause};
 
-#[test]
-fn method_as_string_should_convert_the_current_state_into_string() {
-  let query = InsertBuilder::new().as_string();
-  let expected_query = "";
+mod builder_methods {
+  use super::*;
+  use pretty_assertions::assert_eq;
 
-  assert_eq!(query, expected_query);
-}
+  #[test]
+  fn method_as_string_should_convert_the_current_state_into_string() {
+    let query = InsertBuilder::new().as_string();
+    let expected_query = "";
 
-#[test]
-fn method_debug_should_print_at_console_in_a_human_readable_format() {
-  let query = InsertBuilder::new().insert_into("users").debug().as_string();
-  let expected_query = "INSERT INTO users";
+    assert_eq!(query, expected_query);
+  }
 
-  assert_eq!(query, expected_query);
-}
+  #[test]
+  fn method_debug_should_print_at_console_in_a_human_readable_format() {
+    let query = InsertBuilder::new().insert_into("users").debug().as_string();
+    let expected_query = "INSERT INTO users";
 
-#[test]
-fn method_new_should_initialize_as_empty_string() {
-  let query = InsertBuilder::new().as_string();
-  let expected_query = "";
+    assert_eq!(query, expected_query);
+  }
 
-  assert_eq!(query, expected_query);
-}
+  #[test]
+  fn method_new_should_initialize_as_empty_string() {
+    let query = InsertBuilder::new().as_string();
+    let expected_query = "";
 
-#[test]
-fn method_print_should_print_in_one_line_the_current_state_of_builder() {
-  let query = InsertBuilder::new().insert_into("users").print().as_string();
-  let expected_query = "INSERT INTO users";
+    assert_eq!(query, expected_query);
+  }
 
-  assert_eq!(query, expected_query);
+  #[test]
+  fn method_print_should_print_in_one_line_the_current_state_of_builder() {
+    let query = InsertBuilder::new().insert_into("users").print().as_string();
+    let expected_query = "INSERT INTO users";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_should_add_raw_sql() {
+    let query = InsertBuilder::new()
+      .raw("insert into address (state, country)")
+      .as_string();
+    let expected_query = "insert into address (state, country)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_should_accumulate_values_on_consecutive_calls() {
+    let query = InsertBuilder::new()
+      .raw("/* raw statement */")
+      .raw("insert into address (state, country)")
+      .as_string();
+    let expected_query = "/* raw statement */ insert into address (state, country)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_should_be_the_first_to_be_concatenated() {
+    let query = InsertBuilder::new()
+      .raw("insert into address (state, country)")
+      .values("('foo', 'bar')")
+      .as_string();
+    let expected_query = "insert into address (state, country) VALUES ('foo', 'bar')";
+
+    assert_eq!(query, expected_query);
+  }
 }
 
 mod insert_into_clause {

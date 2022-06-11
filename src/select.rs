@@ -5,7 +5,7 @@ use crate::{
 };
 
 impl<'a> SelectBuilder<'a> {
-  /// The same as `where_clause` method, useful to write more ideomatic SQL query
+  /// The same as `where_clause` method, useful to write more idiomatic SQL query
   /// ```
   /// use sql_query_builder::SelectBuilder;
   ///
@@ -18,13 +18,13 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// Gets the current state of the select returns as string
+  /// Gets the current state of the SelectBuilder returns it as string
   pub fn as_string(&self) -> String {
     let fmts = fmt::Formatter::one_line();
     self.concat(&fmts)
   }
 
-  /// Prints the current state of the select into console output in a more ease to read version.
+  /// Prints the current state of the SelectBuilder into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   /// ```
   /// use sql_query_builder::SelectBuilder;
@@ -123,7 +123,7 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// The limit clause. This method overrides the previous value, the two select produce the same SQL query
+  /// The limit clause. This method overrides the previous value
   ///
   /// ```
   /// use sql_query_builder::SelectBuilder;
@@ -140,12 +140,12 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// Create select builder instance
+  /// Create SelectBuilder's instance
   pub fn new() -> Self {
     Self::default()
   }
 
-  /// The offset clause. This method overrides the previous value, the two select produce the same SQL query
+  /// The offset clause. This method overrides the previous value
   ///
   /// ```
   /// use sql_query_builder::SelectBuilder;
@@ -168,7 +168,7 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// Prints the current state of the select into console output similar to debug method,
+  /// Prints the current state of the SelectBuilder into console output similar to debug method,
   /// the diference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::Formatter::one_line();

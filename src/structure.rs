@@ -5,7 +5,7 @@ pub enum Combinator {
 }
 
 /// Builder to contruct a Insert query
-#[derive(Default)]
+#[derive(Default, Clone)]
 pub struct InsertBuilder<'a> {
   pub(crate) _insert_into: &'a str,
   pub(crate) _on: Vec<String>,
@@ -18,7 +18,7 @@ pub struct InsertBuilder<'a> {
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods of the InsertBuilder
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum InsertClause {
   InsertInto,
   Values,
@@ -26,6 +26,7 @@ pub enum InsertClause {
   Overriding,
   On,
 }
+
 /// Builder to contruct a Select query
 #[derive(Default, Clone)]
 pub struct SelectBuilder<'a> {
