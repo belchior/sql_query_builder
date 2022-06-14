@@ -2,6 +2,7 @@ use crate::{
   behavior::BuilderInner,
   fmt,
   structure::{InsertBuilder, InsertClause},
+  SelectBuilder,
 };
 
 impl<'a> InsertBuilder<'a> {
@@ -16,11 +17,12 @@ impl<'a> InsertBuilder<'a> {
   /// ```
   /// use sql_query_builder::InsertBuilder;
   ///
-  /// let select = InsertBuilder::new()
+  /// let insert_query = InsertBuilder::new()
   ///   .insert_into("users (login, name)")
   ///   .values("('foo', 'Foo')")
   ///   .debug()
-  ///   .values("('bar', 'Bar')");
+  ///   .values("('bar', 'Bar')")
+  ///   .as_string();
   /// ```
   ///
   /// Output
@@ -40,10 +42,10 @@ impl<'a> InsertBuilder<'a> {
   /// ```
   /// use sql_query_builder::InsertBuilder;
   ///
-  /// let select = InsertBuilder::new()
+  /// let insert = InsertBuilder::new()
   ///   .insert_into("users (login, name)");
   ///
-  /// let select = InsertBuilder::new()
+  /// let insert = InsertBuilder::new()
   ///   .insert_into("address (state, country)")
   ///   .insert_into("users (login, name)");
   /// ```
@@ -71,15 +73,45 @@ impl<'a> InsertBuilder<'a> {
     self
   }
 
+  /// The select clause. This method overrides the previous value
+  ///
+  /// ```
+  /// use sql_query_builder::{InsertClause, InsertBuilder, SelectBuilder};
+  ///
+  /// let insert_query = InsertBuilder::new()
+  ///   .insert_into("users (login, name)")
+  ///   .select(
+  ///     SelectBuilder::new()
+  ///       .select("login, name")
+  ///       .from("users_bk")
+  ///       .where_clause("active = true"),
+  ///   )
+  ///   .as_string();
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// INSERT INTO users (login, name)
+  /// SELECT login, name
+  /// FROM users_bk
+  /// WHERE active = true
+  /// ```
+  pub fn select(mut self, select: SelectBuilder<'a>) -> Self {
+    self._select = Some(select);
+    self
+  }
+
   /// Adds at the beginning a raw SQL query.
   ///
   /// ```
   /// use sql_query_builder::InsertBuilder;
   ///
   /// let raw_query = "insert into users (login, name)";
-  /// let select = InsertBuilder::new()
+  /// let insert_query = InsertBuilder::new()
   ///   .raw(raw_query)
-  ///   .values("('foo', 'Foo')");
+  ///   .values("('foo', 'Foo')")
+  ///   .as_string();
   /// ```
   ///
   /// Output
@@ -99,9 +131,10 @@ impl<'a> InsertBuilder<'a> {
   /// use sql_query_builder::{InsertClause, InsertBuilder};
   ///
   /// let raw = "values ('foo', 'Foo')";
-  /// let select = InsertBuilder::new()
+  /// let insert_query = InsertBuilder::new()
   ///   .insert_into("users (login, name)")
-  ///   .raw_after(InsertClause::InsertInto, raw);
+  ///   .raw_after(InsertClause::InsertInto, raw)
+  ///   .as_string();
   /// ```
   ///
   /// Output
@@ -121,9 +154,10 @@ impl<'a> InsertBuilder<'a> {
   /// use sql_query_builder::{InsertClause, InsertBuilder};
   ///
   /// let raw = "insert into users (login, name)";
-  /// let select = InsertBuilder::new()
+  /// let insert_query = InsertBuilder::new()
   ///   .raw_before(InsertClause::Values, raw)
-  ///   .values("('bar', 'Bar')");
+  ///   .values("('bar', 'Bar')")
+  ///   .as_string();
   /// ```
   ///
   /// Output
@@ -152,6 +186,7 @@ impl BuilderInner<'_, InsertClause> for InsertBuilder<'_> {
     query = self.concat_insert_into(query, &fmts);
     query = self.concat_overriding(query, &fmts);
     query = self.concat_values(query, &fmts);
+    query = self.concat_select(query, &fmts);
 
     query.trim_end().to_owned()
   }
@@ -198,6 +233,18 @@ impl InsertBuilder<'_> {
     let raw_sql = self._raw.join(space);
 
     format!("{query}{raw_sql}{space}{lb}")
+  }
+
+  fn concat_select(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if let Some(select) = &self._select {
+      let select_string = select.concat(fmts);
+      format!("{select_string}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    self.concat_raw_before_after(InsertClause::Select, query, fmts, sql)
   }
 
   fn concat_values(&self, query: String, fmts: &fmt::Formatter) -> String {

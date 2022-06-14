@@ -13,7 +13,7 @@ pub struct InsertBuilder<'a> {
   pub(crate) _raw_after: Vec<(InsertClause, String)>,
   pub(crate) _raw_before: Vec<(InsertClause, String)>,
   pub(crate) _raw: Vec<String>,
-  pub(crate) _select: Vec<SelectBuilder<'a>>,
+  pub(crate) _select: Option<SelectBuilder<'a>>,
   pub(crate) _values: Vec<String>,
 }
 
@@ -24,7 +24,6 @@ pub enum InsertClause {
   Values,
   Select,
   Overriding,
-  On,
 }
 
 /// Builder to contruct a Select query

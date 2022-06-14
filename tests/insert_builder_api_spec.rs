@@ -1,4 +1,4 @@
-use sql_query_builder::{InsertBuilder, InsertClause};
+use sql_query_builder::{InsertBuilder, InsertClause, SelectBuilder};
 
 mod builder_methods {
   use super::*;
@@ -110,6 +110,81 @@ mod insert_into_clause {
       .raw_after(InsertClause::InsertInto, "values ('foo')")
       .as_string();
     let expected_query = "INSERT INTO users (name) values ('foo')";
+
+    assert_eq!(query, expected_query);
+  }
+}
+
+mod select_clause {
+  use super::*;
+  use pretty_assertions::assert_eq;
+
+  #[test]
+  fn method_select_should_add_a_select_clause() {
+    let query = InsertBuilder::new()
+      .insert_into("users (login, name)")
+      .select(
+        SelectBuilder::new()
+          .select("login, name")
+          .from("users_bk")
+          .where_clause("active = true"),
+      )
+      .as_string();
+
+    let expected_query = "\
+      INSERT INTO users (login, name) \
+      SELECT login, name \
+      FROM users_bk \
+      WHERE active = true\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_select_should_override_value_on_consecutive_calls() {
+    let query = InsertBuilder::new()
+      .insert_into("users")
+      .select(SelectBuilder::new().select("login, name"))
+      .select(SelectBuilder::new().select("*"))
+      .as_string();
+
+    let expected_query = "INSERT INTO users SELECT *";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_select_clause() {
+    let query = InsertBuilder::new()
+      .raw_before(InsertClause::Select, "insert into users")
+      .select(SelectBuilder::new().select("*"))
+      .as_string();
+
+    let expected_query = "insert into users SELECT *";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_select_clause() {
+    let query = InsertBuilder::new()
+      .insert_into("users")
+      .select(SelectBuilder::new().select("*"))
+      .raw_after(InsertClause::Select, "from users_bk")
+      .as_string();
+    let expected_query = "INSERT INTO users SELECT * from users_bk";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn clause_select_should_be_after_insert_into_clause() {
+    let query = InsertBuilder::new()
+      .select(SelectBuilder::new().select("login, name"))
+      .insert_into("users (login, name)")
+      .as_string();
+    let expected_query = "INSERT INTO users (login, name) SELECT login, name";
 
     assert_eq!(query, expected_query);
   }

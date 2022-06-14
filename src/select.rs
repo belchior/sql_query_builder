@@ -49,12 +49,13 @@ impl<'a> SelectBuilder<'a> {
   /// ```
   /// use sql_query_builder::SelectBuilder;
   ///
-  /// let select = SelectBuilder::new()
+  /// let select_query = SelectBuilder::new()
   ///   .select("*")
   ///   .from("users")
   ///   .debug()
   ///   .where_clause("login = foo")
-  ///   .and("active = true");
+  ///   .and("active = true")
+  ///   .as_string();
   /// ```
   ///
   /// Output
@@ -182,9 +183,10 @@ impl<'a> SelectBuilder<'a> {
   /// use sql_query_builder::SelectBuilder;
   ///
   /// let raw_query = "select * from users u inner join address addr on u.login = addr.owner_login";
-  /// let select = SelectBuilder::new()
+  /// let select_query = SelectBuilder::new()
   ///   .raw(raw_query)
-  ///   .where_clause("u.login = foo");
+  ///   .where_clause("u.login = foo")
+  ///   .as_string();
   /// ```
   ///
   /// Output
@@ -204,11 +206,12 @@ impl<'a> SelectBuilder<'a> {
   /// use sql_query_builder::{SelectClause, SelectBuilder};
   ///
   /// let raw_join = "inner join address addr on u.login = addr.owner_login";
-  /// let select = SelectBuilder::new()
+  /// let select_query = SelectBuilder::new()
   ///   .select("*")
   ///   .from("users u")
   ///   .raw_after(SelectClause::From, raw_join)
-  ///   .where_clause("u.login = foo");
+  ///   .where_clause("u.login = foo")
+  ///   .as_string();
   /// ```
   ///
   /// Output
@@ -230,10 +233,11 @@ impl<'a> SelectBuilder<'a> {
   /// use sql_query_builder::{SelectClause, SelectBuilder};
   ///
   /// let raw_query = "from users u inner join address addr on u.login = addr.owner_login";
-  /// let select = SelectBuilder::new()
+  /// let select_query = SelectBuilder::new()
   ///   .select("*")
   ///   .raw_before(SelectClause::Where, raw_query)
-  ///   .where_clause("u.login = foo");
+  ///   .where_clause("u.login = foo")
+  ///   .as_string();
   /// ```
   ///
   /// Output
@@ -274,7 +278,7 @@ impl<'a> SelectBuilder<'a> {
 }
 
 impl SelectBuilder<'_> {
-  fn concat(&self, fmts: &fmt::Formatter) -> String {
+  pub(crate) fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
     query = self.concat_raw(query, &fmts);
