@@ -299,6 +299,10 @@ impl BuilderInner<'_, SelectClause> for SelectBuilder<'_> {
     query.trim_end().to_owned()
   }
 
+  fn raws(&self) -> &Vec<String> {
+    &self._raw
+  }
+
   fn raw_after(&self) -> &Vec<(SelectClause, String)> {
     &self._raw_after
   }
@@ -430,16 +434,6 @@ impl SelectBuilder<'_> {
     };
 
     self.concat_raw_before_after(SelectClause::OrderBy, query, fmts, sql)
-  }
-
-  fn concat_raw(&self, query: String, fmts: &fmt::Formatter) -> String {
-    if self._raw.is_empty() {
-      return query;
-    }
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let raw_sql = self._raw.join(space);
-
-    format!("{query}{raw_sql}{space}{lb}")
   }
 
   fn concat_select(&self, query: String, fmts: &fmt::Formatter) -> String {

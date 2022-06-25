@@ -14,9 +14,21 @@ where
 pub trait BuilderInner<'a, T> {
   fn concat(&self, fmts: &fmt::Formatter) -> String;
 
+  fn raws(&self) -> &Vec<String>;
+
   fn raw_before(&self) -> &Vec<(T, String)>;
 
   fn raw_after(&self) -> &Vec<(T, String)>;
+
+  fn concat_raw(&self, query: String, fmts: &fmt::Formatter) -> String {
+    if self.raws().is_empty() {
+      return query;
+    }
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let raw_sql = self.raws().join(space);
+
+    format!("{query}{raw_sql}{space}{lb}")
+  }
 
   fn concat_raw_before_after(&self, clause: T, query: String, fmts: &fmt::Formatter, sql: String) -> String
   where

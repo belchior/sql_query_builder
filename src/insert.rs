@@ -191,6 +191,10 @@ impl BuilderInner<'_, InsertClause> for InsertBuilder<'_> {
     query.trim_end().to_owned()
   }
 
+  fn raws(&self) -> &Vec<String> {
+    &self._raw
+  }
+
   fn raw_after(&self) -> &Vec<(InsertClause, String)> {
     &self._raw_after
   }
@@ -223,16 +227,6 @@ impl InsertBuilder<'_> {
     };
 
     self.concat_raw_before_after(InsertClause::Overriding, query, fmts, sql)
-  }
-
-  fn concat_raw(&self, query: String, fmts: &fmt::Formatter) -> String {
-    if self._raw.is_empty() {
-      return query;
-    }
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let raw_sql = self._raw.join(space);
-
-    format!("{query}{raw_sql}{space}{lb}")
   }
 
   fn concat_select(&self, query: String, fmts: &fmt::Formatter) -> String {
