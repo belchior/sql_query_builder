@@ -1,5 +1,5 @@
 use crate::{
-  behavior::raw_queries,
+  behavior::{raw_queries, BuilderInner},
   fmt,
   structure::{Combinator, SelectBuilder, SelectClause},
 };
@@ -277,8 +277,8 @@ impl<'a> SelectBuilder<'a> {
   }
 }
 
-impl SelectBuilder<'_> {
-  pub(crate) fn concat(&self, fmts: &fmt::Formatter) -> String {
+impl BuilderInner<'_, SelectClause> for SelectBuilder<'_> {
+  fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
     query = self.concat_raw(query, &fmts);
@@ -299,16 +299,16 @@ impl SelectBuilder<'_> {
     query.trim_end().to_owned()
   }
 
-  fn concat_raw_before_after(&self, query: String, fmts: &fmt::Formatter, clause: SelectClause, sql: String) -> String {
-    let fmt::Formatter { space, .. } = fmts;
-    let raw_before = raw_queries(&self._raw_before, &clause).join(space);
-    let raw_after = raw_queries(&self._raw_after, &clause).join(space);
-    let space_after = if raw_after.is_empty() == false { space } else { "" };
-    let space_before = if raw_before.is_empty() == false { space } else { "" };
-
-    format!("{query}{raw_before}{space_before}{sql}{raw_after}{space_after}")
+  fn raw_after(&self) -> &Vec<(SelectClause, String)> {
+    &self._raw_after
   }
 
+  fn raw_before(&self) -> &Vec<(SelectClause, String)> {
+    &self._raw_before
+  }
+}
+
+impl SelectBuilder<'_> {
   fn concat_combinator(&self, query: String, fmts: &fmt::Formatter, combinator: Combinator) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let (clause, clause_name, clause_list) = match combinator {
@@ -357,7 +357,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(query, fmts, SelectClause::From, sql)
+    self.concat_raw_before_after(SelectClause::From, query, fmts, sql)
   }
 
   fn concat_group_by(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -369,7 +369,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(query, fmts, SelectClause::GroupBy, sql)
+    self.concat_raw_before_after(SelectClause::GroupBy, query, fmts, sql)
   }
 
   fn concat_having(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -381,7 +381,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(query, fmts, SelectClause::Having, sql)
+    self.concat_raw_before_after(SelectClause::Having, query, fmts, sql)
   }
 
   fn concat_join(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -393,7 +393,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(query, fmts, SelectClause::Join, sql)
+    self.concat_raw_before_after(SelectClause::Join, query, fmts, sql)
   }
 
   fn concat_limit(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -405,7 +405,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(query, fmts, SelectClause::Limit, sql)
+    self.concat_raw_before_after(SelectClause::Limit, query, fmts, sql)
   }
 
   fn concat_offset(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -417,7 +417,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(query, fmts, SelectClause::Offset, sql)
+    self.concat_raw_before_after(SelectClause::Offset, query, fmts, sql)
   }
 
   fn concat_order_by(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -429,7 +429,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(query, fmts, SelectClause::OrderBy, sql)
+    self.concat_raw_before_after(SelectClause::OrderBy, query, fmts, sql)
   }
 
   fn concat_raw(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -451,7 +451,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(query, fmts, SelectClause::Select, sql)
+    self.concat_raw_before_after(SelectClause::Select, query, fmts, sql)
   }
 
   fn concat_where(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -463,7 +463,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(query, fmts, SelectClause::Where, sql)
+    self.concat_raw_before_after(SelectClause::Where, query, fmts, sql)
   }
 
   fn concat_with(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -494,7 +494,7 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(query, fmts, SelectClause::With, sql)
+    self.concat_raw_before_after(SelectClause::With, query, fmts, sql)
   }
 }
 
