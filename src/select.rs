@@ -170,7 +170,7 @@ impl<'a> SelectBuilder<'a> {
   }
 
   /// Prints the current state of the SelectBuilder into console output similar to debug method,
-  /// the diference is that this method prints in one line.
+  /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::Formatter::one_line();
     println!("{}", fmt::colorize(self.concat(&fmts)));

@@ -1,8 +1,7 @@
 use crate::{
   behavior::BuilderInner,
   fmt,
-  structure::{InsertBuilder, InsertClause},
-  SelectBuilder,
+  structure::{InsertBuilder, InsertClause, SelectBuilder},
 };
 
 impl<'a> InsertBuilder<'a> {
@@ -66,7 +65,7 @@ impl<'a> InsertBuilder<'a> {
   }
 
   /// Prints the current state of the InsertBuilder into console output similar to debug method,
-  /// the diference is that this method prints in one line.
+  /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::Formatter::one_line();
     println!("{}", fmt::colorize(self.concat(&fmts)));

@@ -4,7 +4,7 @@ pub enum Combinator {
   Union,
 }
 
-/// Builder to contruct a Insert query
+/// Builder to contruct a insert command
 #[derive(Default, Clone)]
 pub struct InsertBuilder<'a> {
   pub(crate) _insert_into: &'a str,
@@ -21,12 +21,12 @@ pub struct InsertBuilder<'a> {
 #[derive(PartialEq, Clone)]
 pub enum InsertClause {
   InsertInto,
-  Values,
-  Select,
   Overriding,
+  Select,
+  Values,
 }
 
-/// Builder to contruct a Select query
+/// Builder to contruct a select command
 #[derive(Default, Clone)]
 pub struct SelectBuilder<'a> {
   pub(crate) _except: Vec<Self>,
@@ -63,4 +63,23 @@ pub enum SelectClause {
   Union,
   Where,
   With,
+}
+
+/// Builder to contruct a update command
+#[derive(Default, Clone)]
+pub struct UpdateBuilder<'a> {
+  pub(crate) _raw_after: Vec<(UpdateClause, String)>,
+  pub(crate) _raw_before: Vec<(UpdateClause, String)>,
+  pub(crate) _raw: Vec<String>,
+  pub(crate) _set: Vec<String>,
+  pub(crate) _update: &'a str,
+  pub(crate) _where: Vec<String>,
+}
+
+/// All available clauses to be used in `raw_before` and `raw_after` methods of the UpdateBuilder
+#[derive(PartialEq, Clone)]
+pub enum UpdateClause {
+  Set,
+  Update,
+  Where,
 }

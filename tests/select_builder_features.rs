@@ -43,7 +43,7 @@ fn select_builder_should_be_cloneable() {
 }
 
 #[test]
-fn select_builder_should_be_able_to_dynamically_add_clauses() {
+fn select_builder_should_be_able_to_conditionally_add_clauses() {
   let mut select = SelectBuilder::new().select("zipcode").from("address");
 
   if true {

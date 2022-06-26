@@ -1,7 +1,7 @@
 Write SQL queries in a simple and composable way.
 
-The main goal of this library is to find the best balance between write idiomatic SQL queries and manage cenarios
-of complex query composition. Try in a large query and you will understand what this lib can do for you.
+The main goal is to find the best balance between write idiomatic SQL queries and manage cenarios
+of complex query composition mixed with conditional clauses.
 
 
 ## Quick Start
@@ -82,7 +82,7 @@ let select = SelectBuilder::new()
   .select("id, login");
 ```
 
-You can dynamically add a clause mutating the select
+You can conditionally add a clause mutating the select
 
 ```rust
 use sql_query_builder::SelectBuilder;

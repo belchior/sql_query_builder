@@ -47,7 +47,7 @@ fn insert_builder_should_be_cloneable() {
 }
 
 #[test]
-fn insert_builder_should_be_able_to_dynamically_add_clauses() {
+fn insert_builder_should_be_able_to_conditionally_add_clauses() {
   let mut insert = InsertBuilder::new()
     .insert_into("users(login, name)")
     .values("('bar', 'Bar')");
