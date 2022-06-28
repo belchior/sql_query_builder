@@ -14,7 +14,7 @@ impl<'a> SelectBuilder<'a> {
   ///   .and("active = true");
   /// ```
   pub fn and(mut self, clause: &'a str) -> Self {
-    self = self.where_clause(clause);
+    self = self.where_clause(clause.trim());
     self
   }
 
@@ -78,42 +78,46 @@ impl<'a> SelectBuilder<'a> {
 
   /// The from clause
   pub fn from(mut self, tables: &'a str) -> Self {
-    self._from.push(tables.to_owned());
+    self._from.push(tables.trim().to_owned());
     self
   }
 
   /// The group by clause
   pub fn group_by(mut self, column: &'a str) -> Self {
-    self._group_by.push(column.to_owned());
+    self._group_by.push(column.trim().to_owned());
     self
   }
 
   /// The having clause
   pub fn having(mut self, condition: &'a str) -> Self {
-    self._having.push(condition.to_owned());
+    self._having.push(condition.trim().to_owned());
     self
   }
 
   /// The cross join clause
   pub fn cross_join(mut self, table: &'a str) -> Self {
+    let table = table.trim();
     self._join.push(format!("CROSS JOIN {table}"));
     self
   }
 
   /// The inner join clause
   pub fn inner_join(mut self, condition: &'a str) -> Self {
+    let condition = condition.trim();
     self._join.push(format!("INNER JOIN {condition}"));
     self
   }
 
   /// The left join clause
   pub fn left_join(mut self, condition: &'a str) -> Self {
+    let condition = condition.trim();
     self._join.push(format!("LEFT JOIN {condition}"));
     self
   }
 
   /// The right join clause
   pub fn right_join(mut self, condition: &'a str) -> Self {
+    let condition = condition.trim();
     self._join.push(format!("RIGHT JOIN {condition}"));
     self
   }
@@ -137,7 +141,7 @@ impl<'a> SelectBuilder<'a> {
   ///   .limit("123");
   /// ```
   pub fn limit(mut self, num: &'a str) -> Self {
-    self._limit = num;
+    self._limit = num.trim();
     self
   }
 
@@ -159,13 +163,13 @@ impl<'a> SelectBuilder<'a> {
   ///   .offset("1500");
   /// ```
   pub fn offset(mut self, num: &'a str) -> Self {
-    self._offset = num;
+    self._offset = num.trim();
     self
   }
 
   /// The order by clause
   pub fn order_by(mut self, column: &'a str) -> Self {
-    self._order_by.push(column.to_owned());
+    self._order_by.push(column.trim().to_owned());
     self
   }
 
@@ -196,7 +200,7 @@ impl<'a> SelectBuilder<'a> {
   /// WHERE u.login = foo
   /// ```
   pub fn raw(mut self, raw_sql: &'a str) -> Self {
-    self._raw.push(raw_sql.to_owned());
+    self._raw.push(raw_sql.trim().to_owned());
     self
   }
 
@@ -223,7 +227,7 @@ impl<'a> SelectBuilder<'a> {
   /// WHERE u.login = foo
   /// ```
   pub fn raw_after(mut self, clause: SelectClause, raw_sql: &'a str) -> Self {
-    self._raw_after.push((clause, raw_sql.to_owned()));
+    self._raw_after.push((clause, raw_sql.trim().to_owned()));
     self
   }
 
@@ -248,13 +252,13 @@ impl<'a> SelectBuilder<'a> {
   /// WHERE u.login = foo
   /// ```
   pub fn raw_before(mut self, clause: SelectClause, raw_sql: &'a str) -> Self {
-    self._raw_before.push((clause, raw_sql.to_owned()));
+    self._raw_before.push((clause, raw_sql.trim().to_owned()));
     self
   }
 
   /// The select by clause
   pub fn select(mut self, column: &'a str) -> Self {
-    self._select.push(column.to_owned());
+    self._select.push(column.trim().to_owned());
     self
   }
 
@@ -266,13 +270,13 @@ impl<'a> SelectBuilder<'a> {
 
   /// The where by clause
   pub fn where_clause(mut self, condition: &'a str) -> Self {
-    self._where.push(condition.to_owned());
+    self._where.push(condition.trim().to_owned());
     self
   }
 
   /// The with by clause
   pub fn with(mut self, name: &'a str, select: Self) -> Self {
-    self._with.push((name, select));
+    self._with.push((name.trim(), select));
     self
   }
 }

@@ -65,6 +65,34 @@ mod builder_methods {
 
     assert_eq!(query, expected_query);
   }
+
+  #[test]
+  fn method_raw_should_trim_space_of_the_argument() {
+    let query = UpdateBuilder::new().raw("  update users  ").as_string();
+    let expected_query = "update users";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_after_should_trim_space_of_the_argument() {
+    let query = UpdateBuilder::new()
+      .raw_after(UpdateClause::Update, "  set name = 'Bar'  ")
+      .as_string();
+    let expected_query = "set name = 'Bar'";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_before_should_trim_space_of_the_argument() {
+    let query = UpdateBuilder::new()
+      .raw_before(UpdateClause::Where, "  set name = 'Bar'  ")
+      .as_string();
+    let expected_query = "set name = 'Bar'";
+
+    assert_eq!(query, expected_query);
+  }
 }
 
 mod set_clause {
@@ -86,6 +114,14 @@ mod set_clause {
       .set("name = 'Foo'")
       .as_string();
     let expected_query = "SET login = 'foo', name = 'Foo'";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_set_should_trim_space_of_the_argument() {
+    let query = UpdateBuilder::new().set("  name = 'Bar'  ").as_string();
+    let expected_query = "SET name = 'Bar'";
 
     assert_eq!(query, expected_query);
   }
@@ -136,6 +172,14 @@ mod update_clause {
   #[test]
   fn method_update_should_override_value_on_consecutive_calls() {
     let query = UpdateBuilder::new().update("users").update("orders").as_string();
+    let expected_query = "UPDATE orders";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_update_should_trim_space_of_the_argument() {
+    let query = UpdateBuilder::new().update("  orders  ").as_string();
     let expected_query = "UPDATE orders";
 
     assert_eq!(query, expected_query);
@@ -194,6 +238,14 @@ mod where_clause {
       .where_clause("login = $2")
       .as_string();
     let expected_query = "SET name = $1 WHERE login = $2";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_where_should_trim_space_of_the_argument() {
+    let query = UpdateBuilder::new().where_clause("  id = $1  ").as_string();
+    let expected_query = "WHERE id = $1";
 
     assert_eq!(query, expected_query);
   }

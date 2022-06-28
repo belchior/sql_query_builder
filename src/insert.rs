@@ -49,7 +49,7 @@ impl<'a> InsertBuilder<'a> {
   ///   .insert_into("users (login, name)");
   /// ```
   pub fn insert_into(mut self, table_name: &'a str) -> Self {
-    self._insert_into = table_name;
+    self._insert_into = table_name.trim();
     self
   }
 
@@ -60,7 +60,7 @@ impl<'a> InsertBuilder<'a> {
 
   /// The overriding clause
   pub fn overriding(mut self, option: &'a str) -> Self {
-    self._overriding = option;
+    self._overriding = option.trim();
     self
   }
 
@@ -120,7 +120,7 @@ impl<'a> InsertBuilder<'a> {
   /// VALUES ('bar', 'Bar')
   /// ```
   pub fn raw(mut self, raw_sql: &'a str) -> Self {
-    self._raw.push(raw_sql.to_owned());
+    self._raw.push(raw_sql.trim().to_owned());
     self
   }
 
@@ -143,7 +143,7 @@ impl<'a> InsertBuilder<'a> {
   /// values ('foo', 'Foo')
   /// ```
   pub fn raw_after(mut self, clause: InsertClause, raw_sql: &'a str) -> Self {
-    self._raw_after.push((clause, raw_sql.to_owned()));
+    self._raw_after.push((clause, raw_sql.trim().to_owned()));
     self
   }
 
@@ -166,13 +166,13 @@ impl<'a> InsertBuilder<'a> {
   /// VALUES ('bar', 'Bar')
   /// ```
   pub fn raw_before(mut self, clause: InsertClause, raw_sql: &'a str) -> Self {
-    self._raw_before.push((clause, raw_sql.to_owned()));
+    self._raw_before.push((clause, raw_sql.trim().to_owned()));
     self
   }
 
   /// The values clause
   pub fn values(mut self, value: &'a str) -> Self {
-    self._values.push(value.to_owned());
+    self._values.push(value.trim().to_owned());
     self
   }
 }

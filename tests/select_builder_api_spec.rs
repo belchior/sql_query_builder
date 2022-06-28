@@ -94,6 +94,34 @@ mod builder_methods {
 
     assert_eq!(query, expected_query);
   }
+
+  #[test]
+  fn method_raw_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new().raw("  update users  ").as_string();
+    let expected_query = "update users";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_after_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new()
+      .raw_after(SelectClause::Select, "  from orders  ")
+      .as_string();
+    let expected_query = "from orders";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_raw_before_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new()
+      .raw_before(SelectClause::Where, "  from address  ")
+      .as_string();
+    let expected_query = "from address";
+
+    assert_eq!(query, expected_query);
+  }
 }
 
 mod and_clause {
@@ -115,6 +143,14 @@ mod and_clause {
       .and("active = true")
       .as_string();
     let expected_query = "WHERE login = 'foo' AND active = true";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_and_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new().and("  name = 'Bar'  ").as_string();
+    let expected_query = "WHERE name = 'Bar'";
 
     assert_eq!(query, expected_query);
   }
@@ -144,6 +180,14 @@ mod from_clause {
   fn clause_from_should_be_after_select_clause() {
     let query = SelectBuilder::new().select("*").from("users").as_string();
     let expected_query = "SELECT * FROM users";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_from_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new().from("  users  ").as_string();
+    let expected_query = "FROM users";
 
     assert_eq!(query, expected_query);
   }
@@ -190,6 +234,14 @@ mod group_by_clause {
       .group_by("created_at")
       .as_string();
     let expected_query = "GROUP BY id, login, created_at";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_group_by_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new().group_by("  id, login  ").as_string();
+    let expected_query = "GROUP BY id, login";
 
     assert_eq!(query, expected_query);
   }
@@ -255,6 +307,14 @@ mod having_clause {
   }
 
   #[test]
+  fn method_having_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new().having("  sum(amount) > 500  ").as_string();
+    let expected_query = "HAVING sum(amount) > 500";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn clause_having_should_be_after_group_by_clause() {
     let query = SelectBuilder::new()
       .having("active = true")
@@ -312,6 +372,14 @@ mod limit_clause {
   }
 
   #[test]
+  fn method_limit_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new().limit("  50  ").as_string();
+    let expected_query = "LIMIT 50";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn clause_limit_should_be_after_order_by_clause() {
     let query = SelectBuilder::new().order_by("created_at desc").limit("42").as_string();
     let expected_query = "ORDER BY created_at desc LIMIT 42";
@@ -358,6 +426,14 @@ mod offset_clause {
   fn method_offset_should_override_the_current_value() {
     let query = SelectBuilder::new().offset("100").offset("200").as_string();
     let expected_query = "OFFSET 200";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_offset_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new().offset("  2000  ").as_string();
+    let expected_query = "OFFSET 2000";
 
     assert_eq!(query, expected_query);
   }
@@ -417,6 +493,14 @@ mod order_by_clause {
   }
 
   #[test]
+  fn method_order_by_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new().order_by("  id desc  ").as_string();
+    let expected_query = "ORDER BY id desc";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn clause_order_by_should_be_after_having_clause() {
     let query = SelectBuilder::new()
       .having("active = true")
@@ -469,6 +553,14 @@ mod select_clause {
       .select("created_at")
       .as_string();
     let expected_query = "SELECT id, login, created_at";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_select_by_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new().select("  login, name  ").as_string();
+    let expected_query = "SELECT login, name";
 
     assert_eq!(query, expected_query);
   }
@@ -534,6 +626,14 @@ mod where_clause {
         created_at::date > current_date - INTERVAL '2 days' \
         AND created_at::date <= current_date\
     ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_where_by_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new().where_clause("  id = $1  ").as_string();
+    let expected_query = "WHERE id = $1";
 
     assert_eq!(query, expected_query);
   }
@@ -606,6 +706,16 @@ mod with_clause {
     let expected_query = "\
       WITH user_list AS (SELECT id, login FROM users), user_ids AS (SELECT id FROM user_list)\
     ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_with_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new()
+      .with("  date  ", SelectBuilder::new().select("current_date"))
+      .as_string();
+    let expected_query = "WITH date AS (SELECT current_date)";
 
     assert_eq!(query, expected_query);
   }

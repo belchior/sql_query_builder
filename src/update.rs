@@ -68,7 +68,7 @@ impl<'a> UpdateBuilder<'a> {
   /// SET login = 'foo'
   /// ```
   pub fn raw(mut self, raw_sql: &'a str) -> Self {
-    self._raw.push(raw_sql.to_owned());
+    self._raw.push(raw_sql.trim().to_owned());
     self
   }
 
@@ -91,7 +91,7 @@ impl<'a> UpdateBuilder<'a> {
   /// set name = 'Foo'
   /// ```
   pub fn raw_after(mut self, clause: UpdateClause, raw_sql: &'a str) -> Self {
-    self._raw_after.push((clause, raw_sql.to_owned()));
+    self._raw_after.push((clause, raw_sql.trim().to_owned()));
     self
   }
 
@@ -114,13 +114,13 @@ impl<'a> UpdateBuilder<'a> {
   /// SET name = 'Bar'
   /// ```
   pub fn raw_before(mut self, clause: UpdateClause, raw_sql: &'a str) -> Self {
-    self._raw_before.push((clause, raw_sql.to_owned()));
+    self._raw_before.push((clause, raw_sql.trim().to_owned()));
     self
   }
 
   /// The set clause
   pub fn set(mut self, value: &'a str) -> Self {
-    self._set.push(value.to_owned());
+    self._set.push(value.trim().to_owned());
     self
   }
 
@@ -137,13 +137,13 @@ impl<'a> UpdateBuilder<'a> {
   ///   .update("orders");
   /// ```
   pub fn update(mut self, table_name: &'a str) -> Self {
-    self._update = table_name;
+    self._update = table_name.trim();
     self
   }
 
-  /// The where by clause
+  /// The where clause
   pub fn where_clause(mut self, condition: &'a str) -> Self {
-    self._where.push(condition.to_owned());
+    self._where.push(condition.trim().to_owned());
     self
   }
 }
