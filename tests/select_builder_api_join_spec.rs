@@ -62,6 +62,17 @@ mod cross_join_clause {
   }
 
   #[test]
+  fn method_cross_join_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new()
+      .cross_join("address")
+      .cross_join("address")
+      .as_string();
+    let expected_query = "CROSS JOIN address";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn clause_cross_join_should_be_after_from_clause() {
     let query = SelectBuilder::new().from("users").cross_join("address").as_string();
     let expected_query = "FROM users CROSS JOIN address";
@@ -102,6 +113,17 @@ mod inner_join_clause {
   fn method_inner_join_by_should_trim_space_of_the_argument() {
     let query = SelectBuilder::new().inner_join("  orders  ").as_string();
     let expected_query = "INNER JOIN orders";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_inner_join_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new()
+      .inner_join("address")
+      .inner_join("address")
+      .as_string();
+    let expected_query = "INNER JOIN address";
 
     assert_eq!(query, expected_query);
   }
@@ -155,6 +177,17 @@ mod left_join_clause {
   }
 
   #[test]
+  fn method_left_join_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new()
+      .left_join("address")
+      .left_join("address")
+      .as_string();
+    let expected_query = "LEFT JOIN address";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn clause_left_join_should_be_after_from_clause() {
     let query = SelectBuilder::new()
       .from("users")
@@ -198,6 +231,17 @@ mod right_join_clause {
   fn method_right_join_by_should_trim_space_of_the_argument() {
     let query = SelectBuilder::new().right_join("  orders  ").as_string();
     let expected_query = "RIGHT JOIN orders";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_right_join_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new()
+      .right_join("address")
+      .right_join("address")
+      .as_string();
+    let expected_query = "RIGHT JOIN address";
 
     assert_eq!(query, expected_query);
   }

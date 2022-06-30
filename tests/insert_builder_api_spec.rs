@@ -77,6 +77,17 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_arguments_with_the_same_content() {
+    let query = InsertBuilder::new()
+      .raw("insert users (name)")
+      .raw("insert users (name)")
+      .as_string();
+    let expected_query = "insert users (name)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_raw_after_should_trim_space_of_the_argument() {
     let query = InsertBuilder::new()
       .raw_after(InsertClause::InsertInto, "  values ('Foo')  ")
@@ -318,6 +329,17 @@ mod values_clause {
   fn method_values_should_trim_space_of_the_argument() {
     let query = InsertBuilder::new().values("   ('Bar')  ").as_string();
     let expected_query = "VALUES ('Bar')";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_values_should_not_accumulate_arguments_with_the_same_content() {
+    let query = InsertBuilder::new()
+      .values("('bar', 'Bar')")
+      .values("('bar', 'Bar')")
+      .as_string();
+    let expected_query = "VALUES ('bar', 'Bar')";
 
     assert_eq!(query, expected_query);
   }

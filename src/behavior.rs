@@ -11,6 +11,14 @@ where
     .collect::<Vec<_>>()
 }
 
+pub fn push_unique<'a>(list: &mut Vec<String>, value: String) {
+  let prev_item = list.iter().find(|&item| *item == value);
+
+  if prev_item.is_none() {
+    list.push(value);
+  }
+}
+
 pub trait BuilderInner<'a, T> {
   fn concat(&self, fmts: &fmt::Formatter) -> String;
 

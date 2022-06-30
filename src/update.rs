@@ -1,5 +1,5 @@
 use crate::{
-  behavior::BuilderInner,
+  behavior::{push_unique, BuilderInner},
   fmt,
   structure::{UpdateBuilder, UpdateClause},
 };
@@ -68,7 +68,7 @@ impl<'a> UpdateBuilder<'a> {
   /// SET login = 'foo'
   /// ```
   pub fn raw(mut self, raw_sql: &'a str) -> Self {
-    self._raw.push(raw_sql.trim().to_owned());
+    push_unique(&mut self._raw, raw_sql.trim().to_owned());
     self
   }
 
@@ -120,7 +120,7 @@ impl<'a> UpdateBuilder<'a> {
 
   /// The set clause
   pub fn set(mut self, value: &'a str) -> Self {
-    self._set.push(value.trim().to_owned());
+    push_unique(&mut self._set, value.trim().to_owned());
     self
   }
 
@@ -143,7 +143,7 @@ impl<'a> UpdateBuilder<'a> {
 
   /// The where clause
   pub fn where_clause(mut self, condition: &'a str) -> Self {
-    self._where.push(condition.trim().to_owned());
+    push_unique(&mut self._where, condition.trim().to_owned());
     self
   }
 }

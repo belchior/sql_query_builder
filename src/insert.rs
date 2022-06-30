@@ -1,5 +1,5 @@
 use crate::{
-  behavior::BuilderInner,
+  behavior::{push_unique, BuilderInner},
   fmt,
   structure::{InsertBuilder, InsertClause, SelectBuilder},
 };
@@ -58,7 +58,7 @@ impl<'a> InsertBuilder<'a> {
     Self::default()
   }
 
-  /// The overriding clause
+  /// The overriding clause. This method overrides the previous value
   pub fn overriding(mut self, option: &'a str) -> Self {
     self._overriding = option.trim();
     self
@@ -120,7 +120,7 @@ impl<'a> InsertBuilder<'a> {
   /// VALUES ('bar', 'Bar')
   /// ```
   pub fn raw(mut self, raw_sql: &'a str) -> Self {
-    self._raw.push(raw_sql.trim().to_owned());
+    push_unique(&mut self._raw, raw_sql.trim().to_owned());
     self
   }
 
@@ -172,7 +172,7 @@ impl<'a> InsertBuilder<'a> {
 
   /// The values clause
   pub fn values(mut self, value: &'a str) -> Self {
-    self._values.push(value.trim().to_owned());
+    push_unique(&mut self._values, value.trim().to_owned());
     self
   }
 }

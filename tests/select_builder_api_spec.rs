@@ -104,6 +104,17 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new()
+      .raw("select login, name")
+      .raw("select login, name")
+      .as_string();
+    let expected_query = "select login, name";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_raw_after_should_trim_space_of_the_argument() {
     let query = SelectBuilder::new()
       .raw_after(SelectClause::Select, "  from orders  ")
@@ -154,6 +165,17 @@ mod and_clause {
 
     assert_eq!(query, expected_query);
   }
+
+  #[test]
+  fn method_and_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new()
+      .and("status = 'success'")
+      .and("status = 'success'")
+      .as_string();
+    let expected_query = "WHERE status = 'success'";
+
+    assert_eq!(query, expected_query);
+  }
 }
 
 mod from_clause {
@@ -177,17 +199,25 @@ mod from_clause {
   }
 
   #[test]
-  fn clause_from_should_be_after_select_clause() {
-    let query = SelectBuilder::new().select("*").from("users").as_string();
-    let expected_query = "SELECT * FROM users";
+  fn method_from_should_trim_space_of_the_argument() {
+    let query = SelectBuilder::new().from("  users  ").as_string();
+    let expected_query = "FROM users";
 
     assert_eq!(query, expected_query);
   }
 
   #[test]
-  fn method_from_should_trim_space_of_the_argument() {
-    let query = SelectBuilder::new().from("  users  ").as_string();
-    let expected_query = "FROM users";
+  fn method_from_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new().from("address").from("address").as_string();
+    let expected_query = "FROM address";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn clause_from_should_be_after_select_clause() {
+    let query = SelectBuilder::new().select("*").from("users").as_string();
+    let expected_query = "SELECT * FROM users";
 
     assert_eq!(query, expected_query);
   }
@@ -242,6 +272,14 @@ mod group_by_clause {
   fn method_group_by_should_trim_space_of_the_argument() {
     let query = SelectBuilder::new().group_by("  id, login  ").as_string();
     let expected_query = "GROUP BY id, login";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_group_by_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new().group_by("status").group_by("status").as_string();
+    let expected_query = "GROUP BY status";
 
     assert_eq!(query, expected_query);
   }
@@ -310,6 +348,17 @@ mod having_clause {
   fn method_having_should_trim_space_of_the_argument() {
     let query = SelectBuilder::new().having("  sum(amount) > 500  ").as_string();
     let expected_query = "HAVING sum(amount) > 500";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_having_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new()
+      .having("active = true")
+      .having("active = true")
+      .as_string();
+    let expected_query = "HAVING active = true";
 
     assert_eq!(query, expected_query);
   }
@@ -501,6 +550,14 @@ mod order_by_clause {
   }
 
   #[test]
+  fn method_order_by_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new().order_by("id desc").order_by("id desc").as_string();
+    let expected_query = "ORDER BY id desc";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn clause_order_by_should_be_after_having_clause() {
     let query = SelectBuilder::new()
       .having("active = true")
@@ -560,6 +617,17 @@ mod select_clause {
   #[test]
   fn method_select_by_should_trim_space_of_the_argument() {
     let query = SelectBuilder::new().select("  login, name  ").as_string();
+    let expected_query = "SELECT login, name";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_select_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new()
+      .select("login, name")
+      .select("login, name")
+      .as_string();
     let expected_query = "SELECT login, name";
 
     assert_eq!(query, expected_query);
@@ -634,6 +702,17 @@ mod where_clause {
   fn method_where_by_should_trim_space_of_the_argument() {
     let query = SelectBuilder::new().where_clause("  id = $1  ").as_string();
     let expected_query = "WHERE id = $1";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_where_should_not_accumulate_arguments_with_the_same_content() {
+    let query = SelectBuilder::new()
+      .where_clause("active = true")
+      .where_clause("active = true")
+      .as_string();
+    let expected_query = "WHERE active = true";
 
     assert_eq!(query, expected_query);
   }

@@ -1,5 +1,5 @@
 use crate::{
-  behavior::{raw_queries, BuilderInner},
+  behavior::{push_unique, raw_queries, BuilderInner},
   fmt,
   structure::{Combinator, SelectBuilder, SelectClause},
 };
@@ -13,8 +13,8 @@ impl<'a> SelectBuilder<'a> {
   ///   .where_clause("login = foo")
   ///   .and("active = true");
   /// ```
-  pub fn and(mut self, clause: &'a str) -> Self {
-    self = self.where_clause(clause.trim());
+  pub fn and(mut self, condition: &'a str) -> Self {
+    self = self.where_clause(condition);
     self
   }
 
@@ -78,47 +78,51 @@ impl<'a> SelectBuilder<'a> {
 
   /// The from clause
   pub fn from(mut self, tables: &'a str) -> Self {
-    self._from.push(tables.trim().to_owned());
+    push_unique(&mut self._from, tables.trim().to_owned());
     self
   }
 
   /// The group by clause
   pub fn group_by(mut self, column: &'a str) -> Self {
-    self._group_by.push(column.trim().to_owned());
+    push_unique(&mut self._group_by, column.trim().to_owned());
     self
   }
 
   /// The having clause
   pub fn having(mut self, condition: &'a str) -> Self {
-    self._having.push(condition.trim().to_owned());
+    push_unique(&mut self._having, condition.trim().to_owned());
     self
   }
 
   /// The cross join clause
   pub fn cross_join(mut self, table: &'a str) -> Self {
     let table = table.trim();
-    self._join.push(format!("CROSS JOIN {table}"));
+    let table = format!("CROSS JOIN {table}");
+    push_unique(&mut self._join, table);
     self
   }
 
   /// The inner join clause
-  pub fn inner_join(mut self, condition: &'a str) -> Self {
-    let condition = condition.trim();
-    self._join.push(format!("INNER JOIN {condition}"));
+  pub fn inner_join(mut self, table: &'a str) -> Self {
+    let table = table.trim();
+    let table = format!("INNER JOIN {table}");
+    push_unique(&mut self._join, table);
     self
   }
 
   /// The left join clause
-  pub fn left_join(mut self, condition: &'a str) -> Self {
-    let condition = condition.trim();
-    self._join.push(format!("LEFT JOIN {condition}"));
+  pub fn left_join(mut self, table: &'a str) -> Self {
+    let table = table.trim();
+    let table = format!("LEFT JOIN {table}");
+    push_unique(&mut self._join, table);
     self
   }
 
   /// The right join clause
-  pub fn right_join(mut self, condition: &'a str) -> Self {
-    let condition = condition.trim();
-    self._join.push(format!("RIGHT JOIN {condition}"));
+  pub fn right_join(mut self, table: &'a str) -> Self {
+    let table = table.trim();
+    let table = format!("RIGHT JOIN {table}");
+    push_unique(&mut self._join, table);
     self
   }
 
@@ -169,7 +173,7 @@ impl<'a> SelectBuilder<'a> {
 
   /// The order by clause
   pub fn order_by(mut self, column: &'a str) -> Self {
-    self._order_by.push(column.trim().to_owned());
+    push_unique(&mut self._order_by, column.trim().to_owned());
     self
   }
 
@@ -200,7 +204,7 @@ impl<'a> SelectBuilder<'a> {
   /// WHERE u.login = foo
   /// ```
   pub fn raw(mut self, raw_sql: &'a str) -> Self {
-    self._raw.push(raw_sql.trim().to_owned());
+    push_unique(&mut self._raw, raw_sql.trim().to_owned());
     self
   }
 
@@ -258,7 +262,7 @@ impl<'a> SelectBuilder<'a> {
 
   /// The select by clause
   pub fn select(mut self, column: &'a str) -> Self {
-    self._select.push(column.trim().to_owned());
+    push_unique(&mut self._select, column.trim().to_owned());
     self
   }
 
@@ -270,7 +274,7 @@ impl<'a> SelectBuilder<'a> {
 
   /// The where by clause
   pub fn where_clause(mut self, condition: &'a str) -> Self {
-    self._where.push(condition.trim().to_owned());
+    push_unique(&mut self._where, condition.trim().to_owned());
     self
   }
 
