@@ -4,6 +4,23 @@ pub enum Combinator {
   Union,
 }
 
+/// Builder to contruct a delete command
+#[derive(Default, Clone)]
+pub struct DeleteBuilder<'a> {
+  pub(crate) _delete_from: &'a str,
+  pub(crate) _raw_after: Vec<(DeleteClause, String)>,
+  pub(crate) _raw_before: Vec<(DeleteClause, String)>,
+  pub(crate) _raw: Vec<String>,
+  pub(crate) _where: Vec<String>,
+}
+
+/// All available clauses to be used in `raw_before` and `raw_after` methods of the DeleteBuilder
+#[derive(PartialEq, Clone)]
+pub enum DeleteClause {
+  DeleteFrom,
+  Where,
+}
+
 /// Builder to contruct a insert command
 #[derive(Default, Clone)]
 pub struct InsertBuilder<'a> {
