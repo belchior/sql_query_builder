@@ -160,15 +160,15 @@ impl BuilderInner<'_, UpdateClause> for UpdateBuilder<'_> {
     query.trim_end().to_owned()
   }
 
-  fn raws(&self) -> &Vec<String> {
+  fn _raw(&self) -> &Vec<String> {
     &self._raw
   }
 
-  fn raw_after(&self) -> &Vec<(UpdateClause, String)> {
+  fn _raw_after(&self) -> &Vec<(UpdateClause, String)> {
     &self._raw_after
   }
 
-  fn raw_before(&self) -> &Vec<(UpdateClause, String)> {
+  fn _raw_before(&self) -> &Vec<(UpdateClause, String)> {
     &self._raw_before
   }
 }

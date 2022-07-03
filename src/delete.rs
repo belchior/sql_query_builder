@@ -36,6 +36,23 @@ impl<'a> DeleteBuilder<'a> {
     self
   }
 
+  /// The delete clause. This method overrides the previous value
+  ///
+  /// ```
+  /// use sql_query_builder::DeleteBuilder;
+  ///
+  /// let delete = DeleteBuilder::new()
+  ///   .delete_from("orders");
+  ///
+  /// let delete = DeleteBuilder::new()
+  ///   .delete_from("address")
+  ///   .delete_from("orders");
+  /// ```
+  pub fn delete_from(mut self, table_name: &'a str) -> Self {
+    self._delete_from = table_name.trim();
+    self
+  }
+
   /// Create DeleteBuilder's instance
   pub fn new() -> Self {
     Self::default()
@@ -118,23 +135,6 @@ impl<'a> DeleteBuilder<'a> {
     self
   }
 
-  /// The delete clause. This method overrides the previous value
-  ///
-  /// ```
-  /// use sql_query_builder::DeleteBuilder;
-  ///
-  /// let delete = DeleteBuilder::new()
-  ///   .delete_from("orders");
-  ///
-  /// let delete = DeleteBuilder::new()
-  ///   .delete_from("address")
-  ///   .delete_from("orders");
-  /// ```
-  pub fn delete_from(mut self, table_name: &'a str) -> Self {
-    self._delete_from = table_name.trim();
-    self
-  }
-
   /// The where clause
   pub fn where_clause(mut self, condition: &'a str) -> Self {
     push_unique(&mut self._where, condition.trim().to_owned());
@@ -153,15 +153,15 @@ impl BuilderInner<'_, DeleteClause> for DeleteBuilder<'_> {
     query.trim_end().to_owned()
   }
 
-  fn raws(&self) -> &Vec<String> {
+  fn _raw(&self) -> &Vec<String> {
     &self._raw
   }
 
-  fn raw_after(&self) -> &Vec<(DeleteClause, String)> {
+  fn _raw_after(&self) -> &Vec<(DeleteClause, String)> {
     &self._raw_after
   }
 
-  fn raw_before(&self) -> &Vec<(DeleteClause, String)> {
+  fn _raw_before(&self) -> &Vec<(DeleteClause, String)> {
     &self._raw_before
   }
 }

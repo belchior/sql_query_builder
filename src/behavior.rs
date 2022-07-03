@@ -1,5 +1,12 @@
 use crate::fmt;
 
+pub fn push_unique<T: Eq>(list: &mut Vec<T>, value: T) {
+  let prev_item = list.iter().find(|&item| *item == value);
+  if prev_item.is_none() {
+    list.push(value);
+  }
+}
+
 pub fn raw_queries<'a, T>(raw_list: &'a Vec<(T, String)>, clause: &'a T) -> Vec<String>
 where
   T: PartialEq,
@@ -11,29 +18,21 @@ where
     .collect::<Vec<_>>()
 }
 
-pub fn push_unique<'a>(list: &mut Vec<String>, value: String) {
-  let prev_item = list.iter().find(|&item| *item == value);
-
-  if prev_item.is_none() {
-    list.push(value);
-  }
-}
-
 pub trait BuilderInner<'a, T> {
   fn concat(&self, fmts: &fmt::Formatter) -> String;
 
-  fn raws(&self) -> &Vec<String>;
+  fn _raw(&self) -> &Vec<String>;
 
-  fn raw_before(&self) -> &Vec<(T, String)>;
+  fn _raw_before(&self) -> &Vec<(T, String)>;
 
-  fn raw_after(&self) -> &Vec<(T, String)>;
+  fn _raw_after(&self) -> &Vec<(T, String)>;
 
   fn concat_raw(&self, query: String, fmts: &fmt::Formatter) -> String {
-    if self.raws().is_empty() {
+    if self._raw().is_empty() {
       return query;
     }
     let fmt::Formatter { lb, space, .. } = fmts;
-    let raw_sql = self.raws().join(space);
+    let raw_sql = self._raw().join(space);
 
     format!("{query}{raw_sql}{space}{lb}")
   }
@@ -43,8 +42,8 @@ pub trait BuilderInner<'a, T> {
     T: PartialEq,
   {
     let fmt::Formatter { space, .. } = fmts;
-    let raw_before = raw_queries(self.raw_before(), &clause).join(space);
-    let raw_after = raw_queries(self.raw_after(), &clause).join(space);
+    let raw_before = raw_queries(self._raw_before(), &clause).join(space);
+    let raw_after = raw_queries(self._raw_after(), &clause).join(space);
     let space_after = if raw_after.is_empty() == false { space } else { "" };
     let space_before = if raw_before.is_empty() == false { space } else { "" };
 
