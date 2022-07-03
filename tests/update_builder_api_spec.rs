@@ -103,6 +103,18 @@ mod builder_methods {
   }
 }
 
+mod and_clause {
+  use super::*;
+  use pretty_assertions::assert_eq;
+
+  #[test]
+  fn method_and_should_be_an_alias_to_where_clause() {
+    let query = UpdateBuilder::new().and("login = 'foo'").as_string();
+    let expected_query = "WHERE login = 'foo'";
+
+    assert_eq!(query, expected_query);
+  }
+}
 mod set_clause {
   use super::*;
   use pretty_assertions::assert_eq;

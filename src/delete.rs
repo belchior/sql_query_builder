@@ -5,6 +5,20 @@ use crate::{
 };
 
 impl<'a> DeleteBuilder<'a> {
+  /// The same as `where_clause` method, useful to write more idiomatic SQL query
+  /// ```
+  /// use sql_query_builder::DeleteBuilder;
+  ///
+  /// let delete = DeleteBuilder::new()
+  ///   .delete_from("users")
+  ///   .where_clause("created_at < $1")
+  ///   .and("active = false");
+  /// ```
+  pub fn and(mut self, condition: &'a str) -> Self {
+    self = self.where_clause(condition);
+    self
+  }
+
   /// Gets the current state of the DeleteBuilder and returns it as string
   pub fn as_string(&self) -> String {
     let fmts = fmt::Formatter::one_line();
@@ -136,6 +150,13 @@ impl<'a> DeleteBuilder<'a> {
   }
 
   /// The where clause
+  /// ```
+  /// use sql_query_builder::DeleteBuilder;
+  ///
+  /// let delete = DeleteBuilder::new()
+  ///   .delete_from("users")
+  ///   .where_clause("login = 'foo'");
+  /// ```
   pub fn where_clause(mut self, condition: &'a str) -> Self {
     push_unique(&mut self._where, condition.trim().to_owned());
     self

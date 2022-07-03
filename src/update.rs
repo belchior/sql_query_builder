@@ -5,6 +5,21 @@ use crate::{
 };
 
 impl<'a> UpdateBuilder<'a> {
+  /// The same as `where_clause` method, useful to write more idiomatic SQL query
+  /// ```
+  /// use sql_query_builder::UpdateBuilder;
+  ///
+  /// let update = UpdateBuilder::new()
+  ///   .update("users")
+  ///   .set("name = $1")
+  ///   .where_clause("login = $2")
+  ///   .and("active = true");
+  /// ```
+  pub fn and(mut self, condition: &'a str) -> Self {
+    self = self.where_clause(condition);
+    self
+  }
+
   /// Gets the current state of the UpdateBuilder and returns it as string
   pub fn as_string(&self) -> String {
     let fmts = fmt::Formatter::one_line();
@@ -142,6 +157,14 @@ impl<'a> UpdateBuilder<'a> {
   }
 
   /// The where clause
+  /// ```
+  /// use sql_query_builder::UpdateBuilder;
+  ///
+  /// let update = UpdateBuilder::new()
+  ///   .update("users")
+  ///   .set("name = $1")
+  ///   .where_clause("login = $2");
+  /// ```
   pub fn where_clause(mut self, condition: &'a str) -> Self {
     push_unique(&mut self._where, condition.trim().to_owned());
     self

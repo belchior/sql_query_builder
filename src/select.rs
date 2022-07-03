@@ -260,25 +260,32 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// The select by clause
+  /// The select clause
   pub fn select(mut self, column: &'a str) -> Self {
     push_unique(&mut self._select, column.trim().to_owned());
     self
   }
 
-  /// The union by clause
+  /// The union clause
   pub fn union(mut self, select: Self) -> Self {
     self._union.push(select);
     self
   }
 
-  /// The where by clause
+  /// The where clause
+  /// ```
+  /// use sql_query_builder::SelectBuilder;
+  ///
+  /// let select = SelectBuilder::new()
+  ///   .from("users")
+  ///   .where_clause("login = $1");
+  /// ```
   pub fn where_clause(mut self, condition: &'a str) -> Self {
     push_unique(&mut self._where, condition.trim().to_owned());
     self
   }
 
-  /// The with by clause
+  /// The with clause
   pub fn with(mut self, name: &'a str, select: Self) -> Self {
     self._with.push((name.trim(), select));
     self

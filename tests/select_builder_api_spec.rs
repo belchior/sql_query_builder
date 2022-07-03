@@ -140,7 +140,7 @@ mod and_clause {
   use pretty_assertions::assert_eq;
 
   #[test]
-  fn method_and_should_add_a_where_clause() {
+  fn method_and_should_be_an_alias_to_where_clause() {
     let query = SelectBuilder::new().and("login = 'foo'").as_string();
     let expected_query = "WHERE login = 'foo'";
 
