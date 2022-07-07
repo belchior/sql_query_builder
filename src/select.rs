@@ -286,6 +286,7 @@ impl<'a> SelectBuilder<'a> {
   }
 
   /// The with clause
+  #[cfg(feature = "postgresql")]
   pub fn with(mut self, name: &'a str, select: Self) -> Self {
     self._with.push((name.trim(), select));
     self
@@ -297,7 +298,12 @@ impl BuilderInner<'_, SelectClause> for SelectBuilder<'_> {
     let mut query = "".to_owned();
 
     query = self.concat_raw(query, &fmts);
-    query = self.concat_with(query, &fmts);
+
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_with(query, &fmts);
+    }
+
     query = self.concat_select(query, &fmts);
     query = self.concat_from(query, &fmts);
     query = self.concat_join(query, &fmts);
@@ -475,6 +481,7 @@ impl SelectBuilder<'_> {
     self.concat_raw_before_after(SelectClause::Where, query, fmts, sql)
   }
 
+  #[cfg(feature = "postgresql")]
   fn concat_with(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter {
       comma,

@@ -3,10 +3,8 @@ use sql_query_builder::{SelectBuilder, SelectClause};
 
 #[test]
 fn all_clauses_concatenated_in_order() {
-  let select_users = SelectBuilder::new().select("*").from("users");
   let query = SelectBuilder::new()
     .raw("/* all clauses in order */")
-    .with("user_list", select_users)
     .select("*")
     .from("user_list")
     .inner_join("orders ON users.login = orders.login")
@@ -20,7 +18,6 @@ fn all_clauses_concatenated_in_order() {
 
   let expected_query = "\
     /* all clauses in order */ \
-    WITH user_list AS (SELECT * FROM users) \
     SELECT * \
     FROM user_list \
     INNER JOIN orders ON users.login = orders.login \
@@ -634,19 +631,6 @@ mod select_clause {
   }
 
   #[test]
-  fn clause_select_should_be_after_with_clause() {
-    let select_users = SelectBuilder::new().select("*").from("users");
-    let select_base = SelectBuilder::new().with("user_list", select_users).select("id");
-    let query = select_base.as_string();
-    let expected_query = "\
-    WITH user_list AS (SELECT * FROM users) \
-    SELECT id\
-  ";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
   fn method_raw_before_should_add_raw_sql_before_select_clause() {
     let query = SelectBuilder::new()
       .raw_before(SelectClause::Select, "/* list orders */")
@@ -746,93 +730,6 @@ mod where_clause {
       .raw_after(SelectClause::Where, "limit 10")
       .as_string();
     let expected_query = "WHERE created_at::date = current_date limit 10";
-
-    assert_eq!(query, expected_query);
-  }
-}
-
-mod with_clause {
-  use super::*;
-  use pretty_assertions::assert_eq;
-
-  #[test]
-  fn method_with_should_add_the_with_clause() {
-    let select_users = SelectBuilder::new().select("login").from("users");
-    let query = SelectBuilder::new().with("user_list", select_users).as_string();
-    let expected_query = "WITH user_list AS (SELECT login FROM users)";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_with_should_accept_inline_argument() {
-    let query = SelectBuilder::new()
-      .with("user_list", SelectBuilder::new().select("login").from("users"))
-      .as_string();
-    let expected_query = "WITH user_list AS (SELECT login FROM users)";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_with_should_accumulate_values_on_consecutive_calls() {
-    let select_users = SelectBuilder::new().select("id, login").from("users");
-    let select_users_id = SelectBuilder::new().select("id").from("user_list");
-    let query = SelectBuilder::new()
-      .with("user_list", select_users)
-      .with("user_ids", select_users_id)
-      .as_string();
-    let expected_query = "\
-      WITH user_list AS (SELECT id, login FROM users), user_ids AS (SELECT id FROM user_list)\
-    ";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_with_should_trim_space_of_the_argument() {
-    let query = SelectBuilder::new()
-      .with("  date  ", SelectBuilder::new().select("current_date"))
-      .as_string();
-    let expected_query = "WITH date AS (SELECT current_date)";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn clause_with_should_be_after_raw() {
-    let select_base = SelectBuilder::new()
-      .raw("select 123 as id union")
-      .with("user_list", SelectBuilder::new().select("*").from("users"))
-      .select("id");
-    let query = select_base.as_string();
-    let expected_query = "\
-    select 123 as id union \
-    WITH user_list AS (SELECT * FROM users) \
-    SELECT id\
-  ";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_raw_before_should_add_raw_sql_before_with_clause() {
-    let query = SelectBuilder::new()
-      .raw_before(SelectClause::With, "/* the users orders */")
-      .with("orders_list", SelectBuilder::new().select("*").from("orders"))
-      .as_string();
-    let expected_query = "/* the users orders */ WITH orders_list AS (SELECT * FROM orders)";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn method_raw_after_should_add_raw_sql_with_clause() {
-    let query = SelectBuilder::new()
-      .with("address_list", SelectBuilder::new().select("*").from("address"))
-      .raw_after(SelectClause::With, "select name, login")
-      .as_string();
-    let expected_query = "WITH address_list AS (SELECT * FROM address) select name, login";
 
     assert_eq!(query, expected_query);
   }

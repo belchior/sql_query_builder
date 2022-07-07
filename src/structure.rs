@@ -73,6 +73,8 @@ pub struct SelectBuilder<'a> {
   pub(crate) _select: Vec<String>,
   pub(crate) _union: Vec<Self>,
   pub(crate) _where: Vec<String>,
+
+  #[cfg(feature = "postgresql")]
   pub(crate) _with: Vec<(&'a str, Self)>,
 }
 
@@ -91,6 +93,8 @@ pub enum SelectClause {
   Select,
   Union,
   Where,
+
+  #[cfg(feature = "postgresql")]
   With,
 }
 
