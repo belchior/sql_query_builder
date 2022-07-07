@@ -197,3 +197,17 @@ let select = SelectBuilder::new()
   .raw_after(SelectClause::Select, raw_query)
   .where_clause("login = $1");
 ```
+
+
+## Crate features
+
+SQL Query Builder comes with the following optional features:
+- `postgresql` enable Postgres syntax
+
+You can enable features like
+
+```toml
+# Cargo.toml
+
+sql_query_builder = { version = "0.x.x", features = ["postgresql"] }
+```

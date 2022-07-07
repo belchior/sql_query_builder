@@ -133,6 +133,13 @@ impl<'a> UpdateBuilder<'a> {
     self
   }
 
+  /// The returning clause
+  #[cfg(feature = "postgresql")]
+  pub fn returning(mut self, output_name: &'a str) -> Self {
+    push_unique(&mut self._returning, output_name.trim().to_owned());
+    self
+  }
+
   /// The set clause
   pub fn set(mut self, value: &'a str) -> Self {
     push_unique(&mut self._set, value.trim().to_owned());
@@ -180,6 +187,11 @@ impl BuilderInner<'_, UpdateClause> for UpdateBuilder<'_> {
     query = self.concat_set(query, &fmts);
     query = self.concat_where(query, &fmts);
 
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_returning(query, &fmts);
+    }
+
     query.trim_end().to_owned()
   }
 
@@ -197,6 +209,19 @@ impl BuilderInner<'_, UpdateClause> for UpdateBuilder<'_> {
 }
 
 impl UpdateBuilder<'_> {
+  #[cfg(feature = "postgresql")]
+  fn concat_returning(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, comma, .. } = fmts;
+    let sql = if self._returning.is_empty() == false {
+      let output_names = self._returning.join(comma);
+      format!("RETURNING{space}{output_names}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    self.concat_raw_before_after(UpdateClause::Returning, query, fmts, sql)
+  }
+
   fn concat_set(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._set.is_empty() == false {

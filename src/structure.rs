@@ -12,6 +12,9 @@ pub struct DeleteBuilder<'a> {
   pub(crate) _raw_before: Vec<(DeleteClause, String)>,
   pub(crate) _raw: Vec<String>,
   pub(crate) _where: Vec<String>,
+
+  #[cfg(feature = "postgresql")]
+  pub(crate) _returning: Vec<String>,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods of the DeleteBuilder
@@ -19,6 +22,9 @@ pub struct DeleteBuilder<'a> {
 pub enum DeleteClause {
   DeleteFrom,
   Where,
+
+  #[cfg(feature = "postgresql")]
+  Returning,
 }
 
 /// Builder to contruct a insert command
@@ -32,6 +38,9 @@ pub struct InsertBuilder<'a> {
   pub(crate) _raw: Vec<String>,
   pub(crate) _select: Option<SelectBuilder<'a>>,
   pub(crate) _values: Vec<String>,
+
+  #[cfg(feature = "postgresql")]
+  pub(crate) _returning: Vec<String>,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods of the InsertBuilder
@@ -41,6 +50,9 @@ pub enum InsertClause {
   Overriding,
   Select,
   Values,
+
+  #[cfg(feature = "postgresql")]
+  Returning,
 }
 
 /// Builder to contruct a select command
@@ -91,6 +103,9 @@ pub struct UpdateBuilder<'a> {
   pub(crate) _set: Vec<String>,
   pub(crate) _update: &'a str,
   pub(crate) _where: Vec<String>,
+
+  #[cfg(feature = "postgresql")]
+  pub(crate) _returning: Vec<String>,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods of the UpdateBuilder
@@ -99,4 +114,7 @@ pub enum UpdateClause {
   Set,
   Update,
   Where,
+
+  #[cfg(feature = "postgresql")]
+  Returning,
 }

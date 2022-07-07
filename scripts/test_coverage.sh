@@ -8,11 +8,11 @@ PKG_NAME="$(grep 'name\s*=\s*"' Cargo.toml | sed -E 's/.*"(.*)"/\1/')"
 COVERAGE_OUTPUT="coverage"
 COVERAGE_TARGET="target/coverage"
 
+rm -fr "$COVERAGE_TARGET"
 mkdir -p "$COVERAGE_OUTPUT"
 mkdir -p "$COVERAGE_TARGET"
-rm -f "$COVERAGE_TARGET/$PKG_NAME"*
-rm -f "$COVERAGE_TARGET/debug/deps/$PKG_NAME"*
 
+RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME-%m.profraw" cargo test --features postgresql --test cargo_feature_* --target-dir $COVERAGE_TARGET;
 RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME-%m.profraw" cargo test --target-dir $COVERAGE_TARGET;
 
 cargo profdata -- merge -sparse $COVERAGE_TARGET/$PKG_NAME-*.profraw -o $COVERAGE_TARGET/$PKG_NAME.profdata;

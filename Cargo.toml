@@ -9,5 +9,11 @@ edition = "2021"
 license = "MIT"
 keywords = ["sql", "query", "postgres"]
 
+[features]
+postgresql = []
+
+[package.metadata.docs.rs]
+features = ["postgresql"]
+
 [dev-dependencies]
 pretty_assertions = "1.2.1"

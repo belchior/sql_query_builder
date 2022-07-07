@@ -197,17 +197,6 @@ mod where_clause {
   }
 
   #[test]
-  fn clause_where_should_be_after_delete_from_clause() {
-    let query = DeleteBuilder::new()
-      .where_clause("name = $1")
-      .delete_from("users")
-      .as_string();
-    let expected_query = "DELETE FROM users WHERE name = $1";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
   fn method_where_clause_should_not_accumulate_arguments_with_the_same_content() {
     let query = DeleteBuilder::new()
       .where_clause("id = $1")
@@ -222,6 +211,17 @@ mod where_clause {
   fn method_where_should_trim_space_of_the_argument() {
     let query = DeleteBuilder::new().where_clause("  id = $1  ").as_string();
     let expected_query = "WHERE id = $1";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn clause_where_should_be_after_delete_from_clause() {
+    let query = DeleteBuilder::new()
+      .where_clause("name = $1")
+      .delete_from("users")
+      .as_string();
+    let expected_query = "DELETE FROM users WHERE name = $1";
 
     assert_eq!(query, expected_query);
   }

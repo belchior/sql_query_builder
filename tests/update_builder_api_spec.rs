@@ -115,6 +115,7 @@ mod and_clause {
     assert_eq!(query, expected_query);
   }
 }
+
 mod set_clause {
   use super::*;
   use pretty_assertions::assert_eq;
