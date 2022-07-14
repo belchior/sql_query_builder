@@ -12,8 +12,8 @@ rm -fr "$COVERAGE_TARGET"
 mkdir -p "$COVERAGE_OUTPUT"
 mkdir -p "$COVERAGE_TARGET"
 
-RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME-%m.profraw" cargo test --features postgresql --test cargo_feature_* --target-dir $COVERAGE_TARGET;
 RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME-%m.profraw" cargo test --target-dir $COVERAGE_TARGET;
+RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME-%m.profraw" cargo test --target-dir $COVERAGE_TARGET --features postgresql --test feature_flag_postgresql;
 
 cargo profdata -- merge -sparse $COVERAGE_TARGET/$PKG_NAME-*.profraw -o $COVERAGE_TARGET/$PKG_NAME.profdata;
 

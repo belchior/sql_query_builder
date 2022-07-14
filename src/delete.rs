@@ -149,7 +149,7 @@ impl<'a> DeleteBuilder<'a> {
     self
   }
 
-  /// The returning clause
+  /// The returning clause, this method can be used enabling the feature flag `postgresql`
   #[cfg(feature = "postgresql")]
   pub fn returning(mut self, output_name: &'a str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());

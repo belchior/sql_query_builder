@@ -1,4 +1,4 @@
 #!/bin/sh
 
-cargo test --features postgresql --test cargo_feature_*
 cargo test
+cargo test --features postgresql --test feature_flag_postgresql

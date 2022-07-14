@@ -285,7 +285,7 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// The with clause
+  /// The with clause, this method can be used enabling the feature flag `postgresql`
   #[cfg(feature = "postgresql")]
   pub fn with(mut self, name: &'a str, select: Self) -> Self {
     self._with.push((name.trim(), select));

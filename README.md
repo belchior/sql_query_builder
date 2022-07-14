@@ -199,7 +199,7 @@ let select = SelectBuilder::new()
 ```
 
 
-## Crate features
+## Feature Flags
 
 SQL Query Builder comes with the following optional features:
 - `postgresql` enable Postgres syntax
