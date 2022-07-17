@@ -317,7 +317,14 @@ impl Concat for SelectBuilder<'_> {
     query = self.concat_select(query, &fmts);
     query = self.concat_from(query, &fmts);
     query = self.concat_join(query, &fmts);
-    query = self.concat_where(query, &fmts);
+    query = self.concat_where(
+      &self._where,
+      &self._raw_before,
+      &self._raw_after,
+      SelectClause::Where,
+      query,
+      &fmts,
+    );
     query = self.concat_group_by(query, &fmts);
     query = self.concat_having(query, &fmts);
     query = self.concat_order_by(query, &fmts);
@@ -465,18 +472,6 @@ impl SelectBuilder<'_> {
     };
 
     self.concat_raw_before_after(SelectClause::Select, query, fmts, sql)
-  }
-
-  fn concat_where(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._where.is_empty() == false {
-      let conditions = self._where.join(" AND ");
-      format!("WHERE {conditions}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    self.concat_raw_before_after(SelectClause::Where, query, fmts, sql)
   }
 }
 

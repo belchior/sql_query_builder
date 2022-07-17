@@ -63,6 +63,26 @@ pub trait ConcatMethods<'a, Clause: PartialEq> {
     concat_raw_before_after_2(items_raw_before, items_raw_after, clause, query, fmts, sql)
   }
 
+  fn concat_where(
+    &self,
+    items: &Vec<String>,
+    items_raw_before: &Vec<(Clause, String)>,
+    items_raw_after: &Vec<(Clause, String)>,
+    clause: Clause,
+    query: String,
+    fmts: &fmt::Formatter,
+  ) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if items.is_empty() == false {
+      let conditions = items.join(" AND ");
+      format!("WHERE{space}{conditions}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    concat_raw_before_after_2(items_raw_before, items_raw_after, clause, query, fmts, sql)
+  }
+
   #[cfg(feature = "postgresql")]
   fn concat_with(
     &self,

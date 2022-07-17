@@ -208,7 +208,14 @@ impl Concat for UpdateBuilder<'_> {
     }
     query = self.concat_update(query, &fmts);
     query = self.concat_set(query, &fmts);
-    query = self.concat_where(query, &fmts);
+    query = self.concat_where(
+      &self._where,
+      &self._raw_before,
+      &self._raw_after,
+      UpdateClause::Where,
+      query,
+      &fmts,
+    );
 
     #[cfg(feature = "postgresql")]
     {
@@ -249,18 +256,6 @@ impl UpdateBuilder<'_> {
     };
 
     self.concat_raw_before_after(UpdateClause::Update, query, fmts, sql)
-  }
-
-  fn concat_where(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._where.is_empty() == false {
-      let conditions = self._where.join(" AND ");
-      format!("WHERE{space}{conditions}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    self.concat_raw_before_after(UpdateClause::Where, query, fmts, sql)
   }
 }
 

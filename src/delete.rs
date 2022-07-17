@@ -199,7 +199,14 @@ impl Concat for DeleteBuilder<'_> {
       );
     }
     query = self.concat_delete_from(query, &fmts);
-    query = self.concat_where(query, &fmts);
+    query = self.concat_where(
+      &self._where,
+      &self._raw_before,
+      &self._raw_after,
+      DeleteClause::Where,
+      query,
+      &fmts,
+    );
     #[cfg(feature = "postgresql")]
     {
       query = self.concat_returning(
@@ -227,18 +234,6 @@ impl DeleteBuilder<'_> {
     };
 
     self.concat_raw_before_after(DeleteClause::DeleteFrom, query, fmts, sql)
-  }
-
-  fn concat_where(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._where.is_empty() == false {
-      let conditions = self._where.join(" AND ");
-      format!("WHERE {conditions}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    self.concat_raw_before_after(DeleteClause::Where, query, fmts, sql)
   }
 }
 
