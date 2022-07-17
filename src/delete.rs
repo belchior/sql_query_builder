@@ -1,5 +1,5 @@
 use crate::{
-  behavior::{push_unique, Concat, ConcatMethods, Query, Raw},
+  behavior::{concat_raw_before_after, push_unique, Concat, ConcatMethods, Query},
   fmt,
   structure::{DeleteBuilder, DeleteClause},
 };
@@ -186,36 +186,36 @@ impl Concat for DeleteBuilder<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
-    query = self.concat_raw(query, &fmts);
+    query = self.concat_raw(query, &fmts, &self._raw);
     #[cfg(feature = "postgresql")]
     {
       query = self.concat_with(
-        &self._with,
         &self._raw_before,
         &self._raw_after,
-        DeleteClause::With,
         query,
         &fmts,
+        DeleteClause::With,
+        &self._with,
       );
     }
     query = self.concat_delete_from(query, &fmts);
     query = self.concat_where(
-      &self._where,
       &self._raw_before,
       &self._raw_after,
-      DeleteClause::Where,
       query,
       &fmts,
+      DeleteClause::Where,
+      &self._where,
     );
     #[cfg(feature = "postgresql")]
     {
       query = self.concat_returning(
-        &self._returning,
         &self._raw_before,
         &self._raw_after,
-        DeleteClause::Returning,
         query,
         &fmts,
+        DeleteClause::Returning,
+        &self._returning,
       );
     }
 
@@ -233,21 +233,14 @@ impl DeleteBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(DeleteClause::DeleteFrom, query, fmts, sql)
-  }
-}
-
-impl Raw<'_, DeleteClause> for DeleteBuilder<'_> {
-  fn _raw(&self) -> &Vec<String> {
-    &self._raw
-  }
-
-  fn _raw_after(&self) -> &Vec<(DeleteClause, String)> {
-    &self._raw_after
-  }
-
-  fn _raw_before(&self) -> &Vec<(DeleteClause, String)> {
-    &self._raw_before
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      DeleteClause::DeleteFrom,
+      sql,
+    )
   }
 }
 

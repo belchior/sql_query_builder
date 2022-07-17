@@ -1,5 +1,5 @@
 use crate::{
-  behavior::{push_unique, Concat, ConcatMethods, Query, Raw},
+  behavior::{concat_raw_before_after, push_unique, Concat, ConcatMethods, Query},
   fmt,
   structure::{UpdateBuilder, UpdateClause},
 };
@@ -194,38 +194,38 @@ impl Concat for UpdateBuilder<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
-    query = self.concat_raw(query, &fmts);
+    query = self.concat_raw(query, &fmts, &self._raw);
     #[cfg(feature = "postgresql")]
     {
       query = self.concat_with(
-        &self._with,
         &self._raw_before,
         &self._raw_after,
-        UpdateClause::With,
         query,
         &fmts,
+        UpdateClause::With,
+        &self._with,
       );
     }
     query = self.concat_update(query, &fmts);
     query = self.concat_set(query, &fmts);
     query = self.concat_where(
-      &self._where,
       &self._raw_before,
       &self._raw_after,
-      UpdateClause::Where,
       query,
       &fmts,
+      UpdateClause::Where,
+      &self._where,
     );
 
     #[cfg(feature = "postgresql")]
     {
       query = self.concat_returning(
-        &self._returning,
         &self._raw_before,
         &self._raw_after,
-        UpdateClause::Returning,
         query,
         &fmts,
+        UpdateClause::Returning,
+        &self._returning,
       );
     }
 
@@ -243,7 +243,7 @@ impl UpdateBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(UpdateClause::Set, query, fmts, sql)
+    concat_raw_before_after(&self._raw_before, &self._raw_after, query, fmts, UpdateClause::Set, sql)
   }
 
   fn concat_update(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -255,21 +255,14 @@ impl UpdateBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(UpdateClause::Update, query, fmts, sql)
-  }
-}
-
-impl Raw<'_, UpdateClause> for UpdateBuilder<'_> {
-  fn _raw(&self) -> &Vec<String> {
-    &self._raw
-  }
-
-  fn _raw_after(&self) -> &Vec<(UpdateClause, String)> {
-    &self._raw_after
-  }
-
-  fn _raw_before(&self) -> &Vec<(UpdateClause, String)> {
-    &self._raw_before
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      UpdateClause::Update,
+      sql,
+    )
   }
 }
 

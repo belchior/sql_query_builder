@@ -1,5 +1,5 @@
 use crate::{
-  behavior::{push_unique, raw_queries, Concat, ConcatMethods, Query, Raw},
+  behavior::{concat_raw_before_after, push_unique, raw_queries, Concat, ConcatMethods, Query},
   fmt,
   structure::{Combinator, SelectBuilder, SelectClause},
 };
@@ -302,28 +302,28 @@ impl Concat for SelectBuilder<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
-    query = self.concat_raw(query, &fmts);
+    query = self.concat_raw(query, &fmts, &self._raw);
     #[cfg(feature = "postgresql")]
     {
       query = self.concat_with(
-        &self._with,
         &self._raw_before,
         &self._raw_after,
-        SelectClause::With,
         query,
         &fmts,
+        SelectClause::With,
+        &self._with,
       );
     }
     query = self.concat_select(query, &fmts);
     query = self.concat_from(query, &fmts);
     query = self.concat_join(query, &fmts);
     query = self.concat_where(
-      &self._where,
       &self._raw_before,
       &self._raw_after,
-      SelectClause::Where,
       query,
       &fmts,
+      SelectClause::Where,
+      &self._where,
     );
     query = self.concat_group_by(query, &fmts);
     query = self.concat_having(query, &fmts);
@@ -382,36 +382,57 @@ impl SelectBuilder<'_> {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._from.is_empty() == false {
       let tables = self._from.join(comma);
-      format!("FROM {tables}{space}{lb}")
+      format!("FROM{space}{tables}{space}{lb}")
     } else {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(SelectClause::From, query, fmts, sql)
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::From,
+      sql,
+    )
   }
 
   fn concat_group_by(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._group_by.is_empty() == false {
       let columns = self._group_by.join(comma);
-      format!("GROUP BY {columns}{space}{lb}")
+      format!("GROUP BY{space}{columns}{space}{lb}")
     } else {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(SelectClause::GroupBy, query, fmts, sql)
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::GroupBy,
+      sql,
+    )
   }
 
   fn concat_having(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._having.is_empty() == false {
       let conditions = self._having.join(" AND ");
-      format!("HAVING {conditions}{space}{lb}")
+      format!("HAVING{space}{conditions}{space}{lb}")
     } else {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(SelectClause::Having, query, fmts, sql)
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::Having,
+      sql,
+    )
   }
 
   fn concat_join(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -423,69 +444,90 @@ impl SelectBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(SelectClause::Join, query, fmts, sql)
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::Join,
+      sql,
+    )
   }
 
   fn concat_limit(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._limit.is_empty() == false {
       let count = self._limit;
-      format!("LIMIT {count}{space}{lb}")
+      format!("LIMIT{space}{count}{space}{lb}")
     } else {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(SelectClause::Limit, query, fmts, sql)
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::Limit,
+      sql,
+    )
   }
 
   fn concat_offset(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._offset.is_empty() == false {
       let start = self._offset;
-      format!("OFFSET {start}{space}{lb}")
+      format!("OFFSET{space}{start}{space}{lb}")
     } else {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(SelectClause::Offset, query, fmts, sql)
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::Offset,
+      sql,
+    )
   }
 
   fn concat_order_by(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._order_by.is_empty() == false {
       let columns = self._order_by.join(comma);
-      format!("ORDER BY {columns}{space}{lb}")
+      format!("ORDER BY{space}{columns}{space}{lb}")
     } else {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(SelectClause::OrderBy, query, fmts, sql)
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::OrderBy,
+      sql,
+    )
   }
 
   fn concat_select(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._select.is_empty() == false {
       let columns = self._select.join(comma);
-      format!("SELECT {columns}{space}{lb}")
+      format!("SELECT{space}{columns}{space}{lb}")
     } else {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(SelectClause::Select, query, fmts, sql)
-  }
-}
-
-impl Raw<'_, SelectClause> for SelectBuilder<'_> {
-  fn _raw(&self) -> &Vec<String> {
-    &self._raw
-  }
-
-  fn _raw_after(&self) -> &Vec<(SelectClause, String)> {
-    &self._raw_after
-  }
-
-  fn _raw_before(&self) -> &Vec<(SelectClause, String)> {
-    &self._raw_before
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::Select,
+      sql,
+    )
   }
 }
 

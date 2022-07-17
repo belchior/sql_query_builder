@@ -9,27 +9,26 @@ pub fn push_unique<T: Eq>(list: &mut Vec<T>, value: T) {
   }
 }
 
-pub fn raw_queries<'a, T>(raw_list: &'a Vec<(T, String)>, clause: &'a T) -> Vec<String>
-where
-  T: PartialEq,
-{
+pub fn raw_queries<'a, Clause: PartialEq>(raw_list: &'a Vec<(Clause, String)>, clause: &'a Clause) -> Vec<String> {
   raw_list
     .iter()
     .filter(|item| item.0 == *clause)
     .map(|item| item.1.clone())
     .collect::<Vec<_>>()
 }
+
 pub trait Query: Concat {}
+
 pub trait Concat {
   fn concat(&self, fmts: &fmt::Formatter) -> String;
 }
 
-fn concat_raw_before_after_2<Clause: PartialEq>(
+pub fn concat_raw_before_after<Clause: PartialEq>(
   items_before: &Vec<(Clause, String)>,
   items_after: &Vec<(Clause, String)>,
-  clause: Clause,
   query: String,
   fmts: &fmt::Formatter,
+  clause: Clause,
   sql: String,
 ) -> String {
   let fmt::Formatter { space, .. } = fmts;
@@ -42,15 +41,25 @@ fn concat_raw_before_after_2<Clause: PartialEq>(
 }
 
 pub trait ConcatMethods<'a, Clause: PartialEq> {
+  fn concat_raw(&self, query: String, fmts: &fmt::Formatter, items: &Vec<String>) -> String {
+    if items.is_empty() {
+      return query;
+    }
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let raw_sql = items.join(space);
+
+    format!("{query}{raw_sql}{space}{lb}")
+  }
+
   #[cfg(feature = "postgresql")]
   fn concat_returning(
     &self,
-    items: &Vec<String>,
     items_raw_before: &Vec<(Clause, String)>,
     items_raw_after: &Vec<(Clause, String)>,
-    clause: Clause,
     query: String,
     fmts: &fmt::Formatter,
+    clause: Clause,
+    items: &Vec<String>,
   ) -> String {
     let fmt::Formatter { lb, space, comma, .. } = fmts;
     let sql = if items.is_empty() == false {
@@ -60,17 +69,17 @@ pub trait ConcatMethods<'a, Clause: PartialEq> {
       "".to_owned()
     };
 
-    concat_raw_before_after_2(items_raw_before, items_raw_after, clause, query, fmts, sql)
+    concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
   }
 
   fn concat_where(
     &self,
-    items: &Vec<String>,
     items_raw_before: &Vec<(Clause, String)>,
     items_raw_after: &Vec<(Clause, String)>,
-    clause: Clause,
     query: String,
     fmts: &fmt::Formatter,
+    clause: Clause,
+    items: &Vec<String>,
   ) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if items.is_empty() == false {
@@ -80,18 +89,18 @@ pub trait ConcatMethods<'a, Clause: PartialEq> {
       "".to_owned()
     };
 
-    concat_raw_before_after_2(items_raw_before, items_raw_after, clause, query, fmts, sql)
+    concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
   }
 
   #[cfg(feature = "postgresql")]
   fn concat_with(
     &self,
-    items: &Vec<(&'a str, Arc<dyn Query>)>,
     items_raw_before: &Vec<(Clause, String)>,
     items_raw_after: &Vec<(Clause, String)>,
-    clause: Clause,
     query: String,
     fmts: &fmt::Formatter,
+    clause: Clause,
+    items: &Vec<(&'a str, Arc<dyn Query>)>,
   ) -> String {
     let fmt::Formatter {
       comma,
@@ -120,34 +129,6 @@ pub trait ConcatMethods<'a, Clause: PartialEq> {
       "".to_owned()
     };
 
-    concat_raw_before_after_2(items_raw_before, items_raw_after, clause, query, fmts, sql)
-  }
-}
-
-pub trait Raw<'a, Clause: PartialEq> {
-  fn _raw(&self) -> &Vec<String>;
-
-  fn _raw_before(&self) -> &Vec<(Clause, String)>;
-
-  fn _raw_after(&self) -> &Vec<(Clause, String)>;
-
-  fn concat_raw(&self, query: String, fmts: &fmt::Formatter) -> String {
-    if self._raw().is_empty() {
-      return query;
-    }
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let raw_sql = self._raw().join(space);
-
-    format!("{query}{raw_sql}{space}{lb}")
-  }
-
-  fn concat_raw_before_after(&self, clause: Clause, query: String, fmts: &fmt::Formatter, sql: String) -> String {
-    let fmt::Formatter { space, .. } = fmts;
-    let raw_before = raw_queries(self._raw_before(), &clause).join(space);
-    let raw_after = raw_queries(self._raw_after(), &clause).join(space);
-    let space_after = if raw_after.is_empty() == false { space } else { "" };
-    let space_before = if raw_before.is_empty() == false { space } else { "" };
-
-    format!("{query}{raw_before}{space_before}{sql}{raw_after}{space_after}")
+    concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
   }
 }

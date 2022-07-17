@@ -1,5 +1,5 @@
 use crate::{
-  behavior::{push_unique, Concat, ConcatMethods, Query, Raw},
+  behavior::{concat_raw_before_after, push_unique, Concat, ConcatMethods, Query},
   fmt,
   structure::{InsertBuilder, InsertClause, SelectBuilder},
 };
@@ -200,16 +200,16 @@ impl Concat for InsertBuilder<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
-    query = self.concat_raw(query, &fmts);
+    query = self.concat_raw(query, &fmts, &self._raw);
     #[cfg(feature = "postgresql")]
     {
       query = self.concat_with(
-        &self._with,
         &self._raw_before,
         &self._raw_after,
-        InsertClause::With,
         query,
         &fmts,
+        InsertClause::With,
+        &self._with,
       );
     }
     query = self.concat_insert_into(query, &fmts);
@@ -220,12 +220,12 @@ impl Concat for InsertBuilder<'_> {
     #[cfg(feature = "postgresql")]
     {
       query = self.concat_returning(
-        &self._returning,
         &self._raw_before,
         &self._raw_after,
-        InsertClause::Returning,
         query,
         &fmts,
+        InsertClause::Returning,
+        &self._returning,
       );
     }
 
@@ -243,19 +243,33 @@ impl InsertBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(InsertClause::InsertInto, query, fmts, sql)
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::InsertInto,
+      sql,
+    )
   }
 
   fn concat_overriding(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._overriding.is_empty() == false {
       let overriding = self._overriding;
-      format!("OVERRIDING {overriding}{space}{lb}")
+      format!("OVERRIDING{space}{overriding}{space}{lb}")
     } else {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(InsertClause::Overriding, query, fmts, sql)
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::Overriding,
+      sql,
+    )
   }
 
   fn concat_select(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -267,7 +281,14 @@ impl InsertBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(InsertClause::Select, query, fmts, sql)
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::Select,
+      sql,
+    )
   }
 
   fn concat_values(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -279,21 +300,14 @@ impl InsertBuilder<'_> {
       "".to_owned()
     };
 
-    self.concat_raw_before_after(InsertClause::Values, query, fmts, sql)
-  }
-}
-
-impl Raw<'_, InsertClause> for InsertBuilder<'_> {
-  fn _raw(&self) -> &Vec<String> {
-    &self._raw
-  }
-
-  fn _raw_after(&self) -> &Vec<(InsertClause, String)> {
-    &self._raw_after
-  }
-
-  fn _raw_before(&self) -> &Vec<(InsertClause, String)> {
-    &self._raw_before
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::Values,
+      sql,
+    )
   }
 }
 
