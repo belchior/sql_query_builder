@@ -8,6 +8,7 @@ mod select;
 mod structure;
 mod update;
 
+pub use crate::behavior::Query;
 pub use crate::structure::{
   DeleteBuilder, DeleteClause, InsertBuilder, InsertClause, SelectBuilder, SelectClause, UpdateBuilder, UpdateClause,
 };

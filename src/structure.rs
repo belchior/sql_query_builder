@@ -1,3 +1,6 @@
+use crate::behavior::Query;
+use std::sync::Arc;
+
 pub enum Combinator {
   Except,
   Intersect,
@@ -15,6 +18,8 @@ pub struct DeleteBuilder<'a> {
 
   #[cfg(feature = "postgresql")]
   pub(crate) _returning: Vec<String>,
+  #[cfg(feature = "postgresql")]
+  pub(crate) _with: Vec<(&'a str, Arc<dyn Query>)>,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods of the DeleteBuilder
@@ -25,6 +30,8 @@ pub enum DeleteClause {
 
   #[cfg(feature = "postgresql")]
   Returning,
+  #[cfg(feature = "postgresql")]
+  With,
 }
 
 /// Builder to contruct a insert command
@@ -41,6 +48,8 @@ pub struct InsertBuilder<'a> {
 
   #[cfg(feature = "postgresql")]
   pub(crate) _returning: Vec<String>,
+  #[cfg(feature = "postgresql")]
+  pub(crate) _with: Vec<(&'a str, Arc<dyn Query>)>,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods of the InsertBuilder
@@ -53,6 +62,8 @@ pub enum InsertClause {
 
   #[cfg(feature = "postgresql")]
   Returning,
+  #[cfg(feature = "postgresql")]
+  With,
 }
 
 /// Builder to contruct a select command
@@ -75,7 +86,7 @@ pub struct SelectBuilder<'a> {
   pub(crate) _where: Vec<String>,
 
   #[cfg(feature = "postgresql")]
-  pub(crate) _with: Vec<(&'a str, Self)>,
+  pub(crate) _with: Vec<(&'a str, Arc<dyn Query>)>,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods of the SelectBuilder
@@ -110,6 +121,8 @@ pub struct UpdateBuilder<'a> {
 
   #[cfg(feature = "postgresql")]
   pub(crate) _returning: Vec<String>,
+  #[cfg(feature = "postgresql")]
+  pub(crate) _with: Vec<(&'a str, Arc<dyn Query>)>,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods of the UpdateBuilder
@@ -121,4 +134,6 @@ pub enum UpdateClause {
 
   #[cfg(feature = "postgresql")]
   Returning,
+  #[cfg(feature = "postgresql")]
+  With,
 }

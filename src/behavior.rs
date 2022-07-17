@@ -17,10 +17,13 @@ where
     .map(|item| item.1.clone())
     .collect::<Vec<_>>()
 }
-
-pub trait BuilderInner<'a, T> {
+pub trait Concat {
   fn concat(&self, fmts: &fmt::Formatter) -> String;
+}
 
+pub trait Query: Concat {}
+
+pub trait Raw<'a, T>: Concat {
   fn _raw(&self) -> &Vec<String>;
 
   fn _raw_before(&self) -> &Vec<(T, String)>;

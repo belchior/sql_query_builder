@@ -1,8 +1,9 @@
 use crate::{
-  behavior::{push_unique, raw_queries, BuilderInner},
+  behavior::{push_unique, raw_queries, Concat, Query, Raw},
   fmt,
   structure::{Combinator, SelectBuilder, SelectClause},
 };
+use std::sync::Arc;
 
 impl<'a> SelectBuilder<'a> {
   /// The same as `where_clause` method, useful to write more idiomatic SQL query
@@ -287,23 +288,23 @@ impl<'a> SelectBuilder<'a> {
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   #[cfg(feature = "postgresql")]
-  pub fn with(mut self, name: &'a str, select: Self) -> Self {
-    self._with.push((name.trim(), select));
+  pub fn with(mut self, name: &'a str, query: impl Query + 'static) -> Self {
+    self._with.push((name.trim(), Arc::new(query)));
     self
   }
 }
 
-impl BuilderInner<'_, SelectClause> for SelectBuilder<'_> {
+impl Query for SelectBuilder<'_> {}
+
+impl Concat for SelectBuilder<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
     query = self.concat_raw(query, &fmts);
-
     #[cfg(feature = "postgresql")]
     {
       query = self.concat_with(query, &fmts);
     }
-
     query = self.concat_select(query, &fmts);
     query = self.concat_from(query, &fmts);
     query = self.concat_join(query, &fmts);
@@ -318,18 +319,6 @@ impl BuilderInner<'_, SelectClause> for SelectBuilder<'_> {
     query = self.concat_combinator(query, &fmts, Combinator::Union);
 
     query.trim_end().to_owned()
-  }
-
-  fn _raw(&self) -> &Vec<String> {
-    &self._raw
-  }
-
-  fn _raw_after(&self) -> &Vec<(SelectClause, String)> {
-    &self._raw_after
-  }
-
-  fn _raw_before(&self) -> &Vec<(SelectClause, String)> {
-    &self._raw_before
   }
 }
 
@@ -491,7 +480,7 @@ impl SelectBuilder<'_> {
     } = fmts;
     let sql = if self._with.is_empty() == false {
       let with = self._with.iter().fold("".to_owned(), |acc, item| {
-        let (name, select) = item;
+        let (name, query) = item;
         let inner_lb = format!("{lb}{indent}");
         let inner_fmts = fmt::Formatter {
           comma,
@@ -499,13 +488,13 @@ impl SelectBuilder<'_> {
           indent,
           space,
         };
-        let select_string = select.concat(&inner_fmts);
+        let query_string = query.concat(&inner_fmts);
 
-        format!("{acc}{name} AS ({lb}{indent}{select_string}{lb}){comma}")
+        format!("{acc}{name}{space}AS{space}({lb}{indent}{query_string}{lb}){comma}")
       });
       let with = &with[..with.len() - comma.len()];
 
-      format!("WITH {with}{space}{lb}")
+      format!("WITH{space}{with}{space}{lb}")
     } else {
       "".to_owned()
     };
@@ -514,13 +503,27 @@ impl SelectBuilder<'_> {
   }
 }
 
-impl<'a> std::fmt::Display for SelectBuilder<'a> {
+impl Raw<'_, SelectClause> for SelectBuilder<'_> {
+  fn _raw(&self) -> &Vec<String> {
+    &self._raw
+  }
+
+  fn _raw_after(&self) -> &Vec<(SelectClause, String)> {
+    &self._raw_after
+  }
+
+  fn _raw_before(&self) -> &Vec<(SelectClause, String)> {
+    &self._raw_before
+  }
+}
+
+impl std::fmt::Display for SelectBuilder<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl<'a> std::fmt::Debug for SelectBuilder<'a> {
+impl std::fmt::Debug for SelectBuilder<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let fmts = fmt::Formatter::multi_line();
     write!(f, "{}", fmt::colorize(self.concat(&fmts)))

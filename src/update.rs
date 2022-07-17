@@ -1,8 +1,9 @@
 use crate::{
-  behavior::{push_unique, BuilderInner},
+  behavior::{push_unique, Concat, Query, Raw},
   fmt,
   structure::{UpdateBuilder, UpdateClause},
 };
+use std::sync::Arc;
 
 impl<'a> UpdateBuilder<'a> {
   /// The same as `where_clause` method, useful to write more idiomatic SQL query
@@ -176,13 +177,26 @@ impl<'a> UpdateBuilder<'a> {
     push_unique(&mut self._where, condition.trim().to_owned());
     self
   }
+
+  /// The with clause, this method can be used enabling the feature flag `postgresql`
+  #[cfg(feature = "postgresql")]
+  pub fn with(mut self, name: &'a str, query: impl Query + 'static) -> Self {
+    self._with.push((name.trim(), Arc::new(query)));
+    self
+  }
 }
 
-impl BuilderInner<'_, UpdateClause> for UpdateBuilder<'_> {
+impl Query for UpdateBuilder<'_> {}
+
+impl Concat for UpdateBuilder<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
     query = self.concat_raw(query, &fmts);
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_with(query, &fmts);
+    }
     query = self.concat_update(query, &fmts);
     query = self.concat_set(query, &fmts);
     query = self.concat_where(query, &fmts);
@@ -193,18 +207,6 @@ impl BuilderInner<'_, UpdateClause> for UpdateBuilder<'_> {
     }
 
     query.trim_end().to_owned()
-  }
-
-  fn _raw(&self) -> &Vec<String> {
-    &self._raw
-  }
-
-  fn _raw_after(&self) -> &Vec<(UpdateClause, String)> {
-    &self._raw_after
-  }
-
-  fn _raw_before(&self) -> &Vec<(UpdateClause, String)> {
-    &self._raw_before
   }
 }
 
@@ -257,15 +259,61 @@ impl UpdateBuilder<'_> {
 
     self.concat_raw_before_after(UpdateClause::Where, query, fmts, sql)
   }
+
+  #[cfg(feature = "postgresql")]
+  fn concat_with(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter {
+      comma,
+      lb,
+      indent,
+      space,
+    } = fmts;
+    let sql = if self._with.is_empty() == false {
+      let with = self._with.iter().fold("".to_owned(), |acc, item| {
+        let (name, query) = item;
+        let inner_lb = format!("{lb}{indent}");
+        let inner_fmts = fmt::Formatter {
+          comma,
+          lb: inner_lb.as_str(),
+          indent,
+          space,
+        };
+        let query_string = query.concat(&inner_fmts);
+
+        format!("{acc}{name}{space}AS{space}({lb}{indent}{query_string}{lb}){comma}")
+      });
+      let with = &with[..with.len() - comma.len()];
+
+      format!("WITH{space}{with}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    self.concat_raw_before_after(UpdateClause::With, query, fmts, sql)
+  }
 }
 
-impl<'a> std::fmt::Display for UpdateBuilder<'a> {
+impl Raw<'_, UpdateClause> for UpdateBuilder<'_> {
+  fn _raw(&self) -> &Vec<String> {
+    &self._raw
+  }
+
+  fn _raw_after(&self) -> &Vec<(UpdateClause, String)> {
+    &self._raw_after
+  }
+
+  fn _raw_before(&self) -> &Vec<(UpdateClause, String)> {
+    &self._raw_before
+  }
+}
+
+impl std::fmt::Display for UpdateBuilder<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl<'a> std::fmt::Debug for UpdateBuilder<'a> {
+impl std::fmt::Debug for UpdateBuilder<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let fmts = fmt::Formatter::multi_line();
     write!(f, "{}", fmt::colorize(self.concat(&fmts)))
