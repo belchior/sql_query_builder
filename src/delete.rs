@@ -1,5 +1,5 @@
 use crate::{
-  behavior::{push_unique, Concat, Query, Raw},
+  behavior::{push_unique, Concat, ConcatMethods, Query, Raw},
   fmt,
   structure::{DeleteBuilder, DeleteClause},
 };
@@ -180,6 +180,8 @@ impl<'a> DeleteBuilder<'a> {
 
 impl Query for DeleteBuilder<'_> {}
 
+impl<'a> ConcatMethods<'a, DeleteClause> for DeleteBuilder<'_> {}
+
 impl Concat for DeleteBuilder<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
@@ -187,13 +189,27 @@ impl Concat for DeleteBuilder<'_> {
     query = self.concat_raw(query, &fmts);
     #[cfg(feature = "postgresql")]
     {
-      query = self.concat_with(query, &fmts);
+      query = self.concat_with(
+        &self._with,
+        &self._raw_before,
+        &self._raw_after,
+        DeleteClause::With,
+        query,
+        &fmts,
+      );
     }
     query = self.concat_delete_from(query, &fmts);
     query = self.concat_where(query, &fmts);
     #[cfg(feature = "postgresql")]
     {
-      query = self.concat_returning(query, &fmts);
+      query = self.concat_returning(
+        &self._returning,
+        &self._raw_before,
+        &self._raw_after,
+        DeleteClause::Returning,
+        query,
+        &fmts,
+      );
     }
 
     query.trim_end().to_owned()
@@ -223,51 +239,6 @@ impl DeleteBuilder<'_> {
     };
 
     self.concat_raw_before_after(DeleteClause::Where, query, fmts, sql)
-  }
-
-  #[cfg(feature = "postgresql")]
-  fn concat_returning(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, comma, .. } = fmts;
-    let sql = if self._returning.is_empty() == false {
-      let output_names = self._returning.join(comma);
-      format!("RETURNING{space}{output_names}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    self.concat_raw_before_after(DeleteClause::Returning, query, fmts, sql)
-  }
-
-  #[cfg(feature = "postgresql")]
-  fn concat_with(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter {
-      comma,
-      lb,
-      indent,
-      space,
-    } = fmts;
-    let sql = if self._with.is_empty() == false {
-      let with = self._with.iter().fold("".to_owned(), |acc, item| {
-        let (name, query) = item;
-        let inner_lb = format!("{lb}{indent}");
-        let inner_fmts = fmt::Formatter {
-          comma,
-          lb: inner_lb.as_str(),
-          indent,
-          space,
-        };
-        let query_string = query.concat(&inner_fmts);
-
-        format!("{acc}{name}{space}AS{space}({lb}{indent}{query_string}{lb}){comma}")
-      });
-      let with = &with[..with.len() - comma.len()];
-
-      format!("WITH{space}{with}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    self.concat_raw_before_after(DeleteClause::With, query, fmts, sql)
   }
 }
 

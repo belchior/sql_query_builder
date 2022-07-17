@@ -1,5 +1,5 @@
 use crate::{
-  behavior::{push_unique, raw_queries, Concat, Query, Raw},
+  behavior::{push_unique, raw_queries, Concat, ConcatMethods, Query, Raw},
   fmt,
   structure::{Combinator, SelectBuilder, SelectClause},
 };
@@ -296,6 +296,8 @@ impl<'a> SelectBuilder<'a> {
 
 impl Query for SelectBuilder<'_> {}
 
+impl<'a> ConcatMethods<'a, SelectClause> for SelectBuilder<'_> {}
+
 impl Concat for SelectBuilder<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
@@ -303,7 +305,14 @@ impl Concat for SelectBuilder<'_> {
     query = self.concat_raw(query, &fmts);
     #[cfg(feature = "postgresql")]
     {
-      query = self.concat_with(query, &fmts);
+      query = self.concat_with(
+        &self._with,
+        &self._raw_before,
+        &self._raw_after,
+        SelectClause::With,
+        query,
+        &fmts,
+      );
     }
     query = self.concat_select(query, &fmts);
     query = self.concat_from(query, &fmts);
@@ -468,38 +477,6 @@ impl SelectBuilder<'_> {
     };
 
     self.concat_raw_before_after(SelectClause::Where, query, fmts, sql)
-  }
-
-  #[cfg(feature = "postgresql")]
-  fn concat_with(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter {
-      comma,
-      lb,
-      indent,
-      space,
-    } = fmts;
-    let sql = if self._with.is_empty() == false {
-      let with = self._with.iter().fold("".to_owned(), |acc, item| {
-        let (name, query) = item;
-        let inner_lb = format!("{lb}{indent}");
-        let inner_fmts = fmt::Formatter {
-          comma,
-          lb: inner_lb.as_str(),
-          indent,
-          space,
-        };
-        let query_string = query.concat(&inner_fmts);
-
-        format!("{acc}{name}{space}AS{space}({lb}{indent}{query_string}{lb}){comma}")
-      });
-      let with = &with[..with.len() - comma.len()];
-
-      format!("WITH{space}{with}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    self.concat_raw_before_after(SelectClause::With, query, fmts, sql)
   }
 }
 
