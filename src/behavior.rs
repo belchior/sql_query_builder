@@ -1,6 +1,5 @@
 use crate::fmt;
 use std::cmp::PartialEq;
-use std::sync::Arc;
 
 pub fn push_unique<T: Eq>(list: &mut Vec<T>, value: T) {
   let prev_item = list.iter().find(|&item| *item == value);
@@ -100,7 +99,7 @@ pub trait ConcatMethods<'a, Clause: PartialEq> {
     query: String,
     fmts: &fmt::Formatter,
     clause: Clause,
-    items: &Vec<(&'a str, Arc<dyn Query>)>,
+    items: &Vec<(&'a str, std::sync::Arc<dyn Query>)>,
   ) -> String {
     let fmt::Formatter {
       comma,

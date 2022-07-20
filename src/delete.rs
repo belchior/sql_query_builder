@@ -3,7 +3,6 @@ use crate::{
   fmt,
   structure::{DeleteBuilder, DeleteClause},
 };
-use std::sync::Arc;
 
 impl<'a> DeleteBuilder<'a> {
   /// The same as `where_clause` method, useful to write more idiomatic SQL query
@@ -173,7 +172,7 @@ impl<'a> DeleteBuilder<'a> {
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   #[cfg(feature = "postgresql")]
   pub fn with(mut self, name: &'a str, query: impl Query + 'static) -> Self {
-    self._with.push((name.trim(), Arc::new(query)));
+    self._with.push((name.trim(), std::sync::Arc::new(query)));
     self
   }
 }

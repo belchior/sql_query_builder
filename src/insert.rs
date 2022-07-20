@@ -3,7 +3,6 @@ use crate::{
   fmt,
   structure::{InsertBuilder, InsertClause, SelectBuilder},
 };
-use std::sync::Arc;
 
 impl<'a> InsertBuilder<'a> {
   /// Gets the current state of the InsertBuilder and returns it as string
@@ -187,7 +186,7 @@ impl<'a> InsertBuilder<'a> {
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   #[cfg(feature = "postgresql")]
   pub fn with(mut self, name: &'a str, query: impl Query + 'static) -> Self {
-    self._with.push((name.trim(), Arc::new(query)));
+    self._with.push((name.trim(), std::sync::Arc::new(query)));
     self
   }
 }
