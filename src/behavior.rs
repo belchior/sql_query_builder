@@ -16,7 +16,8 @@ pub fn raw_queries<'a, Clause: PartialEq>(raw_list: &'a Vec<(Clause, String)>, c
     .collect::<Vec<_>>()
 }
 
-pub trait Query: Concat {}
+/// Represents all statements that can be used in the with method
+pub trait WithQuery: Concat {}
 
 pub trait Concat {
   fn concat(&self, fmts: &fmt::Formatter) -> String;
@@ -99,7 +100,7 @@ pub trait ConcatMethods<'a, Clause: PartialEq> {
     query: String,
     fmts: &fmt::Formatter,
     clause: Clause,
-    items: &Vec<(&'a str, std::sync::Arc<dyn Query>)>,
+    items: &Vec<(&'a str, std::sync::Arc<dyn WithQuery>)>,
   ) -> String {
     let fmt::Formatter {
       comma,

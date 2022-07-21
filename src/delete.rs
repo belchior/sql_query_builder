@@ -1,5 +1,5 @@
 use crate::{
-  behavior::{concat_raw_before_after, push_unique, Concat, ConcatMethods, Query},
+  behavior::{concat_raw_before_after, push_unique, Concat, ConcatMethods, WithQuery},
   fmt,
   structure::{DeleteBuilder, DeleteClause},
 };
@@ -171,13 +171,13 @@ impl<'a> DeleteBuilder<'a> {
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   #[cfg(feature = "postgresql")]
-  pub fn with(mut self, name: &'a str, query: impl Query + 'static) -> Self {
+  pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim(), std::sync::Arc::new(query)));
     self
   }
 }
 
-impl Query for DeleteBuilder<'_> {}
+impl WithQuery for DeleteBuilder<'_> {}
 
 impl<'a> ConcatMethods<'a, DeleteClause> for DeleteBuilder<'_> {}
 
