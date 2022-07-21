@@ -170,6 +170,28 @@ impl<'a> DeleteBuilder<'a> {
   }
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
+  /// ```
+  /// use sql_query_builder::{DeleteBuilder, SelectBuilder};
+  ///
+  /// let deactivated_users = SelectBuilder::new().select("id").from("users").where_clause("ative = false");
+  /// let delete = DeleteBuilder::new()
+  ///   .with("deactivated_users", deactivated_users)
+  ///   .delete_from("users")
+  ///   .where_clause("id in (select * from deactivated_users)")
+  ///   .debug();
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// WITH deactivated_users AS (
+  ///   SELECT id
+  ///   FROM users
+  ///   WHERE ative = false
+  /// )
+  /// DELETE FROM users
+  /// WHERE id in (select * from deactivated_users)
+  /// ```
   #[cfg(feature = "postgresql")]
   pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim(), std::sync::Arc::new(query)));

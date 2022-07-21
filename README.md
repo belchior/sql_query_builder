@@ -3,6 +3,7 @@ Write SQL queries in a simple and composable way.
 The main goal is to find the best balance between write idiomatic SQL queries and manage cenarios
 of complex query composition mixed with conditional clauses.
 
+The [full documentation](https://docs.rs/sql_query_builder/)
 
 ## Quick Start
 

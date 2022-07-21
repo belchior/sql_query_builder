@@ -184,6 +184,29 @@ impl<'a> InsertBuilder<'a> {
   }
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
+  /// ```
+  /// use sql_query_builder::{InsertBuilder, SelectBuilder};
+  ///
+  /// let active_users = SelectBuilder::new().select("*").from("users_bk").where_clause("ative = true");
+  /// let insert = InsertBuilder::new()
+  ///   .with("active_users", active_users)
+  ///   .insert_into("users")
+  ///   .select(SelectBuilder::new().select("*").from("active_users"))
+  ///   .debug();
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// WITH active_users AS (
+  ///   SELECT *
+  ///   FROM users_bk
+  ///   WHERE ative = true
+  /// )
+  /// INSERT INTO users
+  /// SELECT *
+  /// FROM active_users
+  /// ```
   #[cfg(feature = "postgresql")]
   pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim(), std::sync::Arc::new(query)));

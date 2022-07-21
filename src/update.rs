@@ -178,6 +178,33 @@ impl<'a> UpdateBuilder<'a> {
   }
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
+  /// ```
+  /// use sql_query_builder::{InsertBuilder, UpdateBuilder};
+  ///
+  /// let user = InsertBuilder::new()
+  ///   .insert_into("users(login, name)")
+  ///   .values("('foo', 'Foo')")
+  ///   .returning("group_id");
+  /// let update = UpdateBuilder::new()
+  ///   .with("user", user)
+  ///   .update("user_group")
+  ///   .set("count = count + 1")
+  ///   .where_clause("id = (select group_id from user)")
+  ///   .debug();
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// WITH user AS (
+  ///   INSERT INTO users(login, name)
+  ///   VALUES ('foo', 'Foo')
+  ///   RETURNING group_id
+  /// )
+  /// UPDATE user_group
+  /// SET count = count + 1
+  /// WHERE id = (select group_id from user)
+  /// ```
   #[cfg(feature = "postgresql")]
   pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim(), std::sync::Arc::new(query)));

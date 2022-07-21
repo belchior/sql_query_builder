@@ -286,6 +286,30 @@ impl<'a> SelectBuilder<'a> {
   }
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
+  /// ```
+  /// use sql_query_builder::{InsertBuilder, SelectBuilder};
+  ///
+  /// let logins = SelectBuilder::new().select("login").from("users").where_clause("id in ($1)");
+  /// let select = SelectBuilder::new()
+  ///   .with("logins", logins)
+  ///   .select("name, price")
+  ///   .from("orders")
+  ///   .where_clause("owner_login in (select * from logins)")
+  ///   .debug();
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// WITH logins AS (
+  ///   SELECT login
+  ///   FROM users
+  ///   WHERE id in ($1)
+  /// )
+  /// SELECT name, price
+  /// FROM orders
+  /// WHERE owner_login in (select * from active_users)
+  /// ```
   #[cfg(feature = "postgresql")]
   pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim(), std::sync::Arc::new(query)));
