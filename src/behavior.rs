@@ -41,6 +41,26 @@ pub fn concat_raw_before_after<Clause: PartialEq>(
 }
 
 pub trait ConcatMethods<'a, Clause: PartialEq> {
+  fn concat_from(
+    &self,
+    items_raw_before: &Vec<(Clause, String)>,
+    items_raw_after: &Vec<(Clause, String)>,
+    query: String,
+    fmts: &fmt::Formatter,
+    clause: Clause,
+    items: &Vec<String>,
+  ) -> String {
+    let fmt::Formatter { comma, lb, space, .. } = fmts;
+    let sql = if items.is_empty() == false {
+      let tables = items.join(comma);
+      format!("FROM{space}{tables}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
+  }
+
   fn concat_raw(&self, query: String, fmts: &fmt::Formatter, items: &Vec<String>) -> String {
     if items.is_empty() {
       return query;

@@ -117,6 +117,8 @@ pub struct UpdateBuilder<'a> {
   pub(crate) _where: Vec<String>,
 
   #[cfg(feature = "postgresql")]
+  pub(crate) _from: Vec<String>,
+  #[cfg(feature = "postgresql")]
   pub(crate) _returning: Vec<String>,
   #[cfg(feature = "postgresql")]
   pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
@@ -129,6 +131,8 @@ pub enum UpdateClause {
   Update,
   Where,
 
+  #[cfg(feature = "postgresql")]
+  From,
   #[cfg(feature = "postgresql")]
   Returning,
   #[cfg(feature = "postgresql")]

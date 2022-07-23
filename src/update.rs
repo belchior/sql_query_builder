@@ -51,6 +51,13 @@ impl<'a> UpdateBuilder<'a> {
     self
   }
 
+  /// The from clause
+  #[cfg(feature = "postgresql")]
+  pub fn from(mut self, tables: &'a str) -> Self {
+    push_unique(&mut self._from, tables.trim().to_owned());
+    self
+  }
+
   /// Create UpdateBuilder's instance
   pub fn new() -> Self {
     Self::default()
@@ -234,6 +241,17 @@ impl Concat for UpdateBuilder<'_> {
     }
     query = self.concat_update(query, &fmts);
     query = self.concat_set(query, &fmts);
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_from(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::From,
+        &self._from,
+      );
+    }
     query = self.concat_where(
       &self._raw_before,
       &self._raw_after,

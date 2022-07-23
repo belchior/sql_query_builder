@@ -338,7 +338,14 @@ impl Concat for SelectBuilder<'_> {
       );
     }
     query = self.concat_select(query, &fmts);
-    query = self.concat_from(query, &fmts);
+    query = self.concat_from(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      &fmts,
+      SelectClause::From,
+      &self._from,
+    );
     query = self.concat_join(query, &fmts);
     query = self.concat_where(
       &self._raw_before,
@@ -399,25 +406,6 @@ impl SelectBuilder<'_> {
     let left_stmt = format!("({query}{raw_before}){space_before}");
 
     format!("{left_stmt}{right_stmt}{raw_after}{space_after}")
-  }
-
-  fn concat_from(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { comma, lb, space, .. } = fmts;
-    let sql = if self._from.is_empty() == false {
-      let tables = self._from.join(comma);
-      format!("FROM{space}{tables}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      SelectClause::From,
-      sql,
-    )
   }
 
   fn concat_group_by(&self, query: String, fmts: &fmt::Formatter) -> String {

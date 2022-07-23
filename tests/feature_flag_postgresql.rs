@@ -1,4 +1,74 @@
 #[cfg(feature = "postgresql")]
+mod from_clause {
+  mod update_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder::{UpdateBuilder, UpdateClause};
+
+    #[test]
+    fn method_from_should_add_the_from_clause() {
+      let query = UpdateBuilder::new().from("users").as_string();
+      let expected_query = "FROM users";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_from_should_accumulate_values_on_consecutive_calls() {
+      let query = UpdateBuilder::new().from("users").from("address").as_string();
+      let expected_query = "FROM users, address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_from_should_trim_space_of_the_argument() {
+      let query = UpdateBuilder::new().from("  users  ").as_string();
+      let expected_query = "FROM users";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_from_should_not_accumulate_arguments_with_the_same_content() {
+      let query = UpdateBuilder::new().from("address").from("address").as_string();
+      let expected_query = "FROM address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn clause_from_should_be_after_set_clause() {
+      let query = UpdateBuilder::new().set("country = 'Bar'").from("address").as_string();
+      let expected_query = "SET country = 'Bar' FROM address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_raw_before_should_add_raw_sql_before_from_clause() {
+      let query = UpdateBuilder::new()
+        .raw_before(UpdateClause::From, "set country = 'Bar'")
+        .from("address")
+        .as_string();
+      let expected_query = "set country = 'Bar' FROM address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_raw_after_should_add_raw_sql_after_from_clause() {
+      let query = UpdateBuilder::new()
+        .from("users")
+        .raw_after(UpdateClause::From, "where login = $1")
+        .as_string();
+      let expected_query = "FROM users where login = $1";
+
+      assert_eq!(query, expected_query);
+    }
+  }
+}
+
+#[cfg(feature = "postgresql")]
 mod returning_clause {
   mod delete_builder {
     use pretty_assertions::assert_eq;
