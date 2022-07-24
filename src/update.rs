@@ -51,7 +51,7 @@ impl<'a> UpdateBuilder<'a> {
     self
   }
 
-  /// The from clause
+  /// The from clause, this method can be used enabling the feature flag `postgresql`
   #[cfg(feature = "postgresql")]
   pub fn from(mut self, tables: &'a str) -> Self {
     push_unique(&mut self._from, tables.trim().to_owned());
