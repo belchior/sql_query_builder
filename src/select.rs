@@ -1,7 +1,7 @@
 use crate::{
-  behavior::{concat_raw_before_after, push_unique, raw_queries, Concat, ConcatMethods, WithQuery},
+  behavior::{concat_raw_before_after, push_unique, Concat, ConcatMethods, WithQuery},
   fmt,
-  structure::{Combinator, SelectBuilder, SelectClause},
+  structure::{SelectBuilder, SelectClause},
 };
 
 impl<'a> SelectBuilder<'a> {
@@ -70,7 +70,8 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// The except clause
+  /// The except clause, this method can be used enabling the feature flag `postgresql`
+  #[cfg(feature = "postgresql")]
   pub fn except(mut self, select: Self) -> Self {
     self._except.push(select);
     self
@@ -126,7 +127,8 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// The intersect clause
+  /// The intersect clause, this method can be used enabling the feature flag `postgresql`
+  #[cfg(feature = "postgresql")]
   pub fn intersect(mut self, select: Self) -> Self {
     self._intersect.push(select);
     self
@@ -266,7 +268,8 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// The union clause
+  /// The union clause, this method can be used enabling the feature flag `postgresql`
+  #[cfg(feature = "postgresql")]
   pub fn union(mut self, select: Self) -> Self {
     self._union.push(select);
     self
@@ -360,16 +363,24 @@ impl Concat for SelectBuilder<'_> {
     query = self.concat_order_by(query, &fmts);
     query = self.concat_limit(query, &fmts);
     query = self.concat_offset(query, &fmts);
-    query = self.concat_combinator(query, &fmts, Combinator::Except);
-    query = self.concat_combinator(query, &fmts, Combinator::Intersect);
-    query = self.concat_combinator(query, &fmts, Combinator::Union);
+    #[cfg(feature = "postgresql")]
+    {
+      use crate::structure::Combinator;
+      query = self.concat_combinator(query, &fmts, Combinator::Except);
+      query = self.concat_combinator(query, &fmts, Combinator::Intersect);
+      query = self.concat_combinator(query, &fmts, Combinator::Union);
+    }
 
     query.trim_end().to_owned()
   }
 }
 
 impl SelectBuilder<'_> {
-  fn concat_combinator(&self, query: String, fmts: &fmt::Formatter, combinator: Combinator) -> String {
+  #[cfg(feature = "postgresql")]
+  fn concat_combinator(&self, query: String, fmts: &fmt::Formatter, combinator: crate::structure::Combinator) -> String {
+    use crate::behavior::raw_queries;
+    use crate::structure::Combinator;
+
     let fmt::Formatter { lb, space, .. } = fmts;
     let (clause, clause_name, clause_list) = match combinator {
       Combinator::Except => (SelectClause::Except, "EXCEPT", &self._except),
