@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use sql_query_builder::SelectBuilder;
+use sql_query_builder::{SelectBuilder, SelectClause};
 
 #[test]
 fn select_builder_should_be_displayable() {
@@ -28,15 +28,34 @@ fn select_builder_should_be_debuggable() {
 #[test]
 fn select_builder_should_be_cloneable() {
   let select_zipcode = SelectBuilder::new()
+    .raw("/* test raw */")
     .select("zipcode")
     .from("address")
-    .where_clause("login = $1");
+    .raw_before(SelectClause::Where, "/* test raw_before */")
+    .where_clause("login = $1")
+    .raw_after(SelectClause::Where, "/* test raw_after */");
+
   let select_city = select_zipcode.clone().select("city");
+
   let query_zipcode = select_zipcode.as_string();
   let query_city = select_city.as_string();
 
-  let expected_query_zipcode = "SELECT zipcode FROM address WHERE login = $1";
-  let expected_query_city = "SELECT zipcode, city FROM address WHERE login = $1";
+  let expected_query_zipcode = "\
+    /* test raw */ \
+    SELECT zipcode \
+    FROM address \
+    /* test raw_before */ \
+    WHERE login = $1 \
+    /* test raw_after */\
+  ";
+  let expected_query_city = "\
+    /* test raw */ \
+    SELECT zipcode, city \
+    FROM address \
+    /* test raw_before */ \
+    WHERE login = $1 \
+    /* test raw_after */\
+  ";
 
   assert_eq!(query_zipcode, expected_query_zipcode);
   assert_eq!(query_city, expected_query_city);

@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use sql_query_builder::UpdateBuilder;
+use sql_query_builder::{UpdateBuilder, UpdateClause};
 
 #[test]
 fn update_builder_should_be_displayable() {
@@ -30,13 +30,30 @@ fn update_builder_should_be_debuggable() {
 
 #[test]
 fn update_builder_should_be_cloneable() {
-  let update_foo = UpdateBuilder::new().update("users").set("login = 'foo'");
+  let update_foo = UpdateBuilder::new()
+    .raw("/* test raw */")
+    .raw_before(UpdateClause::Set, "/* test raw_before */")
+    .raw_after(UpdateClause::Set, "/* test raw_after */")
+    .update("users")
+    .set("login = 'foo'");
   let update_foo_bar = update_foo.clone().set("name = 'Bar'");
   let query_foo = update_foo.as_string();
   let query_foo_bar = update_foo_bar.as_string();
 
-  let expected_query_foo = "UPDATE users SET login = 'foo'";
-  let expected_query_foo_bar = "UPDATE users SET login = 'foo', name = 'Bar'";
+  let expected_query_foo = "\
+    /* test raw */ \
+    UPDATE users \
+    /* test raw_before */ \
+    SET login = 'foo' \
+    /* test raw_after */\
+  ";
+  let expected_query_foo_bar = "\
+    /* test raw */ \
+    UPDATE users \
+    /* test raw_before */ \
+    SET login = 'foo', name = 'Bar' \
+    /* test raw_after */\
+  ";
 
   assert_eq!(query_foo, expected_query_foo);
   assert_eq!(query_foo_bar, expected_query_foo_bar);

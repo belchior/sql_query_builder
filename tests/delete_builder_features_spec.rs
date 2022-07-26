@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use sql_query_builder::DeleteBuilder;
+use sql_query_builder::{DeleteBuilder, DeleteClause};
 
 #[test]
 fn delete_builder_should_be_displayable() {
@@ -30,13 +30,32 @@ fn delete_builder_should_be_debuggable() {
 
 #[test]
 fn delete_builder_should_be_cloneable() {
-  let delete_foo = DeleteBuilder::new().delete_from("users").where_clause("login = 'foo'");
+  let delete_foo = DeleteBuilder::new()
+    .raw("/* test raw */")
+    .delete_from("users")
+    .raw_before(DeleteClause::Where, "/* test raw_before */")
+    .where_clause("login = 'foo'")
+    .raw_after(DeleteClause::Where, "/* test raw_after */");
+
   let delete_foo_bar = delete_foo.clone().where_clause("name = 'Bar'");
+
   let query_foo = delete_foo.as_string();
   let query_foo_bar = delete_foo_bar.as_string();
 
-  let expected_query_foo = "DELETE FROM users WHERE login = 'foo'";
-  let expected_query_foo_bar = "DELETE FROM users WHERE login = 'foo' AND name = 'Bar'";
+  let expected_query_foo = "\
+    /* test raw */ \
+    DELETE FROM users \
+    /* test raw_before */ \
+    WHERE login = 'foo' \
+    /* test raw_after */\
+  ";
+  let expected_query_foo_bar = "\
+    /* test raw */ \
+    DELETE FROM users \
+    /* test raw_before */ \
+    WHERE login = 'foo' AND name = 'Bar' \
+    /* test raw_after */\
+  ";
 
   assert_eq!(query_foo, expected_query_foo);
   assert_eq!(query_foo_bar, expected_query_foo_bar);

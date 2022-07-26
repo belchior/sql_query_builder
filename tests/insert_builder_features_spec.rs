@@ -1,5 +1,5 @@
 use pretty_assertions::assert_eq;
-use sql_query_builder::InsertBuilder;
+use sql_query_builder::{InsertBuilder, InsertClause};
 
 #[test]
 fn insert_builder_should_be_displayable() {
@@ -33,14 +33,29 @@ fn insert_builder_should_be_debuggable() {
 #[test]
 fn insert_builder_should_be_cloneable() {
   let insert_foo = InsertBuilder::new()
+    .raw("/* test raw */")
+    .raw_before(InsertClause::Values, "/* test raw_before */")
+    .raw_after(InsertClause::Values, "/* test raw_after */")
     .insert_into("users(login, name)")
     .values("('foo', 'Foo')");
   let insert_foo_bar = insert_foo.clone().values("('bar', 'Bar')");
   let query_foo = insert_foo.as_string();
   let query_foo_bar = insert_foo_bar.as_string();
 
-  let expected_query_foo = "INSERT INTO users(login, name) VALUES ('foo', 'Foo')";
-  let expected_query_foo_bar = "INSERT INTO users(login, name) VALUES ('foo', 'Foo'), ('bar', 'Bar')";
+  let expected_query_foo = "\
+    /* test raw */ \
+    INSERT INTO users(login, name) \
+    /* test raw_before */ \
+    VALUES ('foo', 'Foo') \
+    /* test raw_after */\
+  ";
+  let expected_query_foo_bar = "\
+    /* test raw */ \
+    INSERT INTO users(login, name) \
+    /* test raw_before */ \
+    VALUES ('foo', 'Foo'), ('bar', 'Bar') \
+    /* test raw_after */\
+  ";
 
   assert_eq!(query_foo, expected_query_foo);
   assert_eq!(query_foo_bar, expected_query_foo_bar);
