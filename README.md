@@ -3,7 +3,6 @@ Write SQL queries in a simple and composable way.
 The main goal is to find the best balance between write idiomatic SQL queries and manage cenarios
 of complex query composition mixed with conditional clauses.
 
-The [full documentation](https://docs.rs/sql_query_builder/)
 
 ## Quick Start
 
@@ -32,13 +31,26 @@ Output
 SELECT id, login FROM users WHERE login = $1 AND is_admin = true
 ```
 
+
+## Feature Flags
+
+SQL Query Builder comes with the following optional features:
+- `postgresql` enable Postgres syntax
+
+You can enable features like
+
+```toml
+# Cargo.toml
+
+sql_query_builder = { version = "0.x.x", features = ["postgresql"] }
+```
+
+
+## How it's works
 In simple terms this library will not try to understand what you are writing inside the arguments, this is good
 because it's removes a lot complexity and verbosity that other libraries needs to generate a SQL query,
 in contrast debugging tends to be more difficult and silly error can araise.
 The lib has `.debug()` method with a nice output to minimize the effort to debug a complex query.
-
-
-## How it's works
 
 Consecutive calls to the same clause will accumulates values respecting the order of the calls,
 the two select produce the same SQL query
@@ -200,15 +212,4 @@ let select = SelectBuilder::new()
 ```
 
 
-## Feature Flags
-
-SQL Query Builder comes with the following optional features:
-- `postgresql` enable Postgres syntax
-
-You can enable features like
-
-```toml
-# Cargo.toml
-
-sql_query_builder = { version = "0.x.x", features = ["postgresql"] }
-```
+See the [documentation](https://docs.rs/sql_query_builder/) for more builders like `InsertBuilder`, `UpdateBuilder` and `DeleteBuilder`
