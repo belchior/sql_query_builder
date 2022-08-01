@@ -236,7 +236,14 @@ impl Concat for InsertBuilder<'_> {
     }
     query = self.concat_insert_into(query, &fmts);
     query = self.concat_overriding(query, &fmts);
-    query = self.concat_values(query, &fmts);
+    query = self.concat_values(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      &fmts,
+      InsertClause::Values,
+      &self._values,
+    );
     query = self.concat_select(query, &fmts);
 
     #[cfg(feature = "postgresql")]
@@ -309,25 +316,6 @@ impl InsertBuilder<'_> {
       query,
       fmts,
       InsertClause::Select,
-      sql,
-    )
-  }
-
-  fn concat_values(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { comma, lb, space, .. } = fmts;
-    let sql = if self._values.is_empty() == false {
-      let values = self._values.join(comma);
-      format!("VALUES{space}{values}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      InsertClause::Values,
       sql,
     )
   }

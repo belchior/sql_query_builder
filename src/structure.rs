@@ -145,3 +145,18 @@ pub enum UpdateClause {
   #[cfg(feature = "postgresql")]
   With,
 }
+
+/// Builder to contruct a values command
+#[derive(Default, Clone)]
+pub struct ValuesBuilder {
+  pub(crate) _raw_after: Vec<(ValuesClause, String)>,
+  pub(crate) _raw_before: Vec<(ValuesClause, String)>,
+  pub(crate) _raw: Vec<String>,
+  pub(crate) _values: Vec<String>,
+}
+
+/// All available clauses to be used in `raw_before` and `raw_after` methods of the ValuesBuilder
+#[derive(PartialEq, Clone)]
+pub enum ValuesClause {
+  Values,
+}

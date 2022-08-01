@@ -289,6 +289,20 @@ mod with_clause {
     use sql_query_builder::{DeleteBuilder, DeleteClause};
 
     #[test]
+    fn method_with_should_accept_delete_builder_as_query_argument() {
+      let query = DeleteBuilder::new()
+        .with("deleted_address", DeleteBuilder::new().delete_from("address"))
+        .delete_from("orders")
+        .as_string();
+      let expected_query = "\
+        WITH deleted_address AS (DELETE FROM address) \
+        DELETE FROM orders\
+      ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
     fn method_with_should_add_the_with_clause() {
       let deleted_users = DeleteBuilder::new()
         .delete_from("users")
@@ -402,6 +416,18 @@ mod with_clause {
   mod insert_builder {
     use pretty_assertions::assert_eq;
     use sql_query_builder::{InsertBuilder, InsertClause};
+
+    #[test]
+    fn method_with_should_accept_insert_builder_as_query_argument() {
+      let query = InsertBuilder::new()
+        .with("address", InsertBuilder::new().insert_into("address"))
+        .as_string();
+      let expected_query = "\
+        WITH address AS (INSERT INTO address)\
+      ";
+
+      assert_eq!(query, expected_query);
+    }
 
     #[test]
     fn method_with_should_add_the_with_clause() {
@@ -519,6 +545,18 @@ mod with_clause {
     use sql_query_builder::{SelectBuilder, SelectClause};
 
     #[test]
+    fn method_with_should_accept_select_builder_as_query_argument() {
+      let query = SelectBuilder::new()
+        .with("address", SelectBuilder::new().select("city"))
+        .as_string();
+      let expected_query = "\
+        WITH address AS (SELECT city)\
+      ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
     fn method_with_should_add_the_with_clause() {
       let select_users = SelectBuilder::new().select("login").from("users");
       let query = SelectBuilder::new().with("user_list", select_users).as_string();
@@ -617,6 +655,18 @@ mod with_clause {
   mod update_builder {
     use pretty_assertions::assert_eq;
     use sql_query_builder::{UpdateBuilder, UpdateClause};
+
+    #[test]
+    fn method_with_should_accept_update_builder_as_query_argument() {
+      let query = UpdateBuilder::new()
+        .with("address", UpdateBuilder::new().set("city = 'foo'"))
+        .as_string();
+      let expected_query = "\
+        WITH address AS (SET city = 'foo')\
+      ";
+
+      assert_eq!(query, expected_query);
+    }
 
     #[test]
     fn method_with_should_add_the_with_clause() {
@@ -723,6 +773,23 @@ mod with_clause {
       let expected_query = "\
         WITH updated_address AS (UPDATE address) \
         UPDATE orders\
+      ";
+
+      assert_eq!(query, expected_query);
+    }
+  }
+
+  mod values_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder::{SelectBuilder, ValuesBuilder};
+
+    #[test]
+    fn method_with_should_accept_values_builder_as_query_argument() {
+      let query = SelectBuilder::new()
+        .with("address", ValuesBuilder::new().values("('foo', 'Foo')"))
+        .as_string();
+      let expected_query = "\
+        WITH address AS (VALUES ('foo', 'Foo'))\
       ";
 
       assert_eq!(query, expected_query);

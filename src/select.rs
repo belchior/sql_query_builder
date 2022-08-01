@@ -377,7 +377,12 @@ impl Concat for SelectBuilder<'_> {
 
 impl SelectBuilder<'_> {
   #[cfg(feature = "postgresql")]
-  fn concat_combinator(&self, query: String, fmts: &fmt::Formatter, combinator: crate::structure::Combinator) -> String {
+  fn concat_combinator(
+    &self,
+    query: String,
+    fmts: &fmt::Formatter,
+    combinator: crate::structure::Combinator,
+  ) -> String {
     use crate::behavior::raw_queries;
     use crate::structure::Combinator;
 
