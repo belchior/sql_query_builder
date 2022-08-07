@@ -58,6 +58,12 @@ impl<'a> InsertBuilder<'a> {
     Self::default()
   }
 
+  /// The on conflict clause. This method overrides the previous value
+  pub fn on_conflict(mut self, conflict: &'a str) -> Self {
+    self._on_conflict = conflict.trim();
+    self
+  }
+
   /// The overriding clause. This method overrides the previous value
   pub fn overriding(mut self, option: &'a str) -> Self {
     self._overriding = option.trim();
@@ -245,6 +251,7 @@ impl Concat for InsertBuilder<'_> {
       &self._values,
     );
     query = self.concat_select(query, &fmts);
+    query = self.concat_on_conflict(query, &fmts);
 
     #[cfg(feature = "postgresql")]
     {
@@ -297,6 +304,25 @@ impl InsertBuilder<'_> {
       query,
       fmts,
       InsertClause::Overriding,
+      sql,
+    )
+  }
+
+  fn concat_on_conflict(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._on_conflict.is_empty() == false {
+      let overriding = self._on_conflict;
+      format!("ON CONFLICT{space}{overriding}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::OnConflict,
       sql,
     )
   }

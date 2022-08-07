@@ -26,7 +26,7 @@ impl<'a> Formatter<'a> {
 }
 
 pub fn colorize(sql: String) -> String {
-  let keywords: [(fn(&str) -> String, &str, &str); 42] = [
+  let keywords: [(fn(&str) -> String, &str, &str); 45] = [
     (blue, "CROSS ", "cross "),
     (blue, "DELETE ", "delete "),
     (blue, "EXCEPT ", "except "),
@@ -58,11 +58,14 @@ pub fn colorize(sql: String) -> String {
     (blue, " ASC", " asc"),
     (blue, " AS", " as"),
     (blue, " BY", " by"),
+    (blue, " CONFLICT", " CONFLICT"),
     (blue, " DESC", " desc"),
+    (blue, " DO", " do"),
     (blue, " DISTINCT", " distinct"),
     (blue, " FIRST", " first"),
     (blue, " IN", " in"),
     (blue, " LAST", " last"),
+    (blue, " NOTHING", " nothing"),
     (blue, " ON", " on"),
     (blue, " OUTER", " OUTER"),
     (blue, " USING", " using"),

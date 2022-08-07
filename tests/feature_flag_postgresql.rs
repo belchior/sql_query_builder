@@ -189,6 +189,19 @@ mod returning_clause {
     }
 
     #[test]
+    fn clause_returning_should_be_after_on_conflict_clause() {
+      let query = InsertBuilder::new()
+        .insert_into("(login, name)")
+        .values("('foo', 'Foo')")
+        .on_conflict("do nothing")
+        .returning("login")
+        .as_string();
+      let expected_query = "INSERT INTO (login, name) VALUES ('foo', 'Foo') ON CONFLICT do nothing RETURNING login";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
     fn method_raw_before_should_add_raw_sql_before_returning_clause() {
       let query = InsertBuilder::new()
         .raw_before(InsertClause::Returning, "values ('foo')")

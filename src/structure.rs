@@ -36,7 +36,7 @@ pub enum DeleteClause {
 #[derive(Default, Clone)]
 pub struct InsertBuilder<'a> {
   pub(crate) _insert_into: &'a str,
-  pub(crate) _on: Vec<String>,
+  pub(crate) _on_conflict: &'a str,
   pub(crate) _overriding: &'a str,
   pub(crate) _raw_after: Vec<(InsertClause, String)>,
   pub(crate) _raw_before: Vec<(InsertClause, String)>,
@@ -54,6 +54,7 @@ pub struct InsertBuilder<'a> {
 #[derive(PartialEq, Clone)]
 pub enum InsertClause {
   InsertInto,
+  OnConflict,
   Overriding,
   Select,
   Values,
