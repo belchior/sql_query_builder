@@ -122,9 +122,9 @@ pub trait ConcatMethods<'a, Clause: PartialEq> {
     clause: Clause,
     items: &Vec<String>,
   ) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
+    let fmt::Formatter { lb, space, indent, .. } = fmts;
     let sql = if items.is_empty() == false {
-      let conditions = items.join(" AND ");
+      let conditions = items.join(&format!("{space}{lb}{indent}AND{space}"));
       format!("WHERE{space}{conditions}{space}{lb}")
     } else {
       "".to_owned()
@@ -148,6 +148,7 @@ pub trait ConcatMethods<'a, Clause: PartialEq> {
       lb,
       indent,
       space,
+      ..
     } = fmts;
     let sql = if items.is_empty() == false {
       let with = items.iter().fold("".to_owned(), |acc, item| {
@@ -158,14 +159,15 @@ pub trait ConcatMethods<'a, Clause: PartialEq> {
           lb: inner_lb.as_str(),
           indent,
           space,
+          ..*fmts
         };
         let query_string = query.concat(&inner_fmts);
 
-        format!("{acc}{name}{space}AS{space}({lb}{indent}{query_string}{lb}){comma}")
+        format!("{acc}{name}{space}AS{space}({lb}{indent}{query_string}{lb}){comma}{lb}")
       });
-      let with = &with[..with.len() - comma.len()];
+      let with = &with[..with.len() - comma.len() - lb.len()];
 
-      format!("WITH{space}{with}{space}{lb}")
+      format!("WITH{space}{lb}{with}{space}{lb}")
     } else {
       "".to_owned()
     };

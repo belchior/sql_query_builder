@@ -22,7 +22,7 @@ impl<'a> UpdateBuilder<'a> {
 
   /// Gets the current state of the UpdateBuilder and returns it as string
   pub fn as_string(&self) -> String {
-    let fmts = fmt::Formatter::one_line();
+    let fmts = fmt::one_line();
     self.concat(&fmts)
   }
 
@@ -46,8 +46,8 @@ impl<'a> UpdateBuilder<'a> {
   /// SET login = 'foo'
   /// ```
   pub fn debug(self) -> Self {
-    let fmts = fmt::Formatter::multi_line();
-    println!("{}", fmt::colorize(self.concat(&fmts)));
+    let fmts = fmt::multiline();
+    println!("{}", fmt::format(self.concat(&fmts), &fmts));
     self
   }
 
@@ -66,8 +66,8 @@ impl<'a> UpdateBuilder<'a> {
   /// Prints the current state of the UpdateBuilder into console output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
-    let fmts = fmt::Formatter::one_line();
-    println!("{}", fmt::colorize(self.concat(&fmts)));
+    let fmts = fmt::one_line();
+    println!("{}", fmt::format(self.concat(&fmts), &fmts));
     self
   }
 
@@ -229,7 +229,7 @@ impl std::fmt::Display for UpdateBuilder<'_> {
 
 impl std::fmt::Debug for UpdateBuilder<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    let fmts = fmt::Formatter::multi_line();
-    write!(f, "{}", fmt::colorize(self.concat(&fmts)))
+    let fmts = fmt::multiline();
+    write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))
   }
 }

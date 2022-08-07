@@ -21,7 +21,7 @@ impl<'a> DeleteBuilder<'a> {
 
   /// Gets the current state of the DeleteBuilder and returns it as string
   pub fn as_string(&self) -> String {
-    let fmts = fmt::Formatter::one_line();
+    let fmts = fmt::one_line();
     self.concat(&fmts)
   }
 
@@ -45,8 +45,8 @@ impl<'a> DeleteBuilder<'a> {
   /// WHERE login = 'foo'
   /// ```
   pub fn debug(self) -> Self {
-    let fmts = fmt::Formatter::multi_line();
-    println!("{}", fmt::colorize(self.concat(&fmts)));
+    let fmts = fmt::multiline();
+    println!("{}", fmt::format(self.concat(&fmts), &fmts));
     self
   }
 
@@ -75,8 +75,8 @@ impl<'a> DeleteBuilder<'a> {
   /// Prints the current state of the DeleteBuilder into console output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
-    let fmts = fmt::Formatter::one_line();
-    println!("{}", fmt::colorize(self.concat(&fmts)));
+    let fmts = fmt::one_line();
+    println!("{}", fmt::format(self.concat(&fmts), &fmts));
     self
   }
 
@@ -209,7 +209,7 @@ impl std::fmt::Display for DeleteBuilder<'_> {
 
 impl std::fmt::Debug for DeleteBuilder<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-    let fmts = fmt::Formatter::multi_line();
-    write!(f, "{}", fmt::colorize(self.concat(&fmts)))
+    let fmts = fmt::multiline();
+    write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))
   }
 }

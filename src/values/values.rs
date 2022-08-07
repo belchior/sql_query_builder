@@ -7,7 +7,7 @@ use crate::{
 impl ValuesBuilder {
   /// Gets the current state of the ValuesBuilder and returns it as string
   pub fn as_string(&self) -> String {
-    let fmts = fmt::Formatter::one_line();
+    let fmts = fmt::one_line();
     self.concat(&fmts)
   }
 
@@ -28,8 +28,8 @@ impl ValuesBuilder {
   /// VALUES (1, 'one'), (2, 'two'), (3, 'three')
   /// ```
   pub fn debug(self) -> Self {
-    let fmts = fmt::Formatter::multi_line();
-    println!("{}", fmt::colorize(self.concat(&fmts)));
+    let fmts = fmt::multiline();
+    println!("{}", fmt::format(self.concat(&fmts), &fmts));
     self
   }
 
@@ -41,8 +41,8 @@ impl ValuesBuilder {
   /// Prints the current state of the ValuesBuilder into console output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
-    let fmts = fmt::Formatter::one_line();
-    println!("{}", fmt::colorize(self.concat(&fmts)));
+    let fmts = fmt::one_line();
+    println!("{}", fmt::format(self.concat(&fmts), &fmts));
     self
   }
 
@@ -138,7 +138,7 @@ impl std::fmt::Display for ValuesBuilder {
 
 impl std::fmt::Debug for ValuesBuilder {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-    let fmts = fmt::Formatter::multi_line();
-    write!(f, "{}", fmt::colorize(self.concat(&fmts)))
+    let fmts = fmt::multiline();
+    write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))
   }
 }

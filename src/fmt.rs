@@ -1,32 +1,34 @@
 pub struct Formatter<'a> {
   pub comma: &'a str,
-  pub lb: &'a str, // line break
+  pub hr: &'a str, // horizontal rule
   pub indent: &'a str,
+  pub lb: &'a str, // line break
   pub space: &'a str,
 }
 
-impl<'a> Formatter<'a> {
-  pub fn one_line() -> Self {
-    Self {
-      comma: ", ",
-      lb: "",
-      indent: "",
-      space: " ",
-    }
-  }
-
-  pub fn multi_line() -> Self {
-    Self {
-      comma: ", ",
-      lb: "\n",
-      indent: "\t",
-      space: " ",
-    }
+pub fn one_line<'a>() -> Formatter<'a> {
+  Formatter {
+    comma: ", ",
+    hr: "",
+    indent: "",
+    lb: "",
+    space: " ",
   }
 }
 
-pub fn colorize(sql: String) -> String {
-  let keywords: [(fn(&str) -> String, &str, &str); 45] = [
+pub fn multiline<'a>() -> Formatter<'a> {
+  Formatter {
+    comma: ", ",
+    hr: "-- ------------------------------------------------------------------------------\x1b[0m",
+    indent: "  ",
+    lb: "\n",
+    space: " ",
+  }
+}
+
+pub fn colorize(query: String) -> String {
+  let sql_syntax: [(fn(&str) -> String, &str, &str); 46] = [
+    (blue, "AND ", "and "),
     (blue, "CROSS ", "cross "),
     (blue, "DELETE ", "delete "),
     (blue, "EXCEPT ", "except "),
@@ -54,7 +56,6 @@ pub fn colorize(sql: String) -> String {
     (blue, "WHERE ", "where "),
     (blue, "WITH ", "with "),
     (blue, " ALL", " all"),
-    (blue, " AND", " and"),
     (blue, " ASC", " asc"),
     (blue, " AS", " as"),
     (blue, " BY", " by"),
@@ -67,6 +68,7 @@ pub fn colorize(sql: String) -> String {
     (blue, " LAST", " last"),
     (blue, " NOTHING", " nothing"),
     (blue, " ON", " on"),
+    (blue, " OR", " or"),
     (blue, " OUTER", " OUTER"),
     (blue, " USING", " using"),
     (comment_start, "--", "--"),
@@ -74,7 +76,7 @@ pub fn colorize(sql: String) -> String {
     (comment_end, "*/", "*/"),
   ];
 
-  let mut sql = keywords.iter().fold(sql, |acc, item| {
+  let mut query = sql_syntax.iter().fold(query, |acc, item| {
     let (color_fn, text_upper, text_lower) = item;
     acc
       .replace(text_upper, &color_fn(text_upper))
@@ -83,10 +85,16 @@ pub fn colorize(sql: String) -> String {
 
   for index in 1..=10 {
     let arg_number = format!("${index}");
-    sql = sql.replace(&arg_number, &bold(&arg_number))
+    query = query.replace(&arg_number, &bold(&arg_number))
   }
 
-  sql
+  query
+}
+
+pub fn format(query: String, fmts: &Formatter) -> String {
+  let template = format!("{0}{1}{0}{query}{0}{1}{0}", fmts.lb, fmts.hr);
+  let template = colorize(template);
+  template
 }
 
 fn blue(text: &str) -> String {
@@ -98,9 +106,9 @@ fn bold(text: &str) -> String {
 }
 
 fn comment_start(text: &str) -> String {
-  format!("\x1b[32;m{text}")
+  format!("\x1b[32;2m{text}")
 }
 
 fn comment_end(text: &str) -> String {
-  format!("\x1b[32;m{text}\x1b[0m")
+  format!("\x1b[32;2m{text}\x1b[0m")
 }
