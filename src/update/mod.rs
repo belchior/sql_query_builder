@@ -1,2 +1,2 @@
-mod internal_api;
 mod update;
+mod update_internal;

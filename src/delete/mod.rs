@@ -1,2 +1,2 @@
 mod delete;
-mod internal_api;
+mod delete_internal;
