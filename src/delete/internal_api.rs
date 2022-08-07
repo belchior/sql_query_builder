@@ -1,10 +1,8 @@
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatMethods, WithQuery},
+  behavior::{concat_raw_before_after, Concat, ConcatMethods},
   fmt,
   structure::{DeleteBuilder, DeleteClause},
 };
-
-impl WithQuery for DeleteBuilder<'_> {}
 
 impl<'a> ConcatMethods<'a, DeleteClause> for DeleteBuilder<'_> {}
 

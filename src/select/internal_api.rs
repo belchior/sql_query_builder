@@ -1,10 +1,8 @@
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatMethods, WithQuery},
+  behavior::{concat_raw_before_after, Concat, ConcatMethods},
   fmt,
   structure::{SelectBuilder, SelectClause},
 };
-
-impl WithQuery for SelectBuilder<'_> {}
 
 impl<'a> ConcatMethods<'a, SelectClause> for SelectBuilder<'_> {}
 

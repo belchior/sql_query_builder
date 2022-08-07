@@ -320,6 +320,8 @@ impl<'a> SelectBuilder<'a> {
   }
 }
 
+impl WithQuery for SelectBuilder<'_> {}
+
 impl std::fmt::Display for SelectBuilder<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", self.as_string())

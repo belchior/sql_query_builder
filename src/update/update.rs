@@ -219,6 +219,8 @@ impl<'a> UpdateBuilder<'a> {
   }
 }
 
+impl WithQuery for UpdateBuilder<'_> {}
+
 impl std::fmt::Display for UpdateBuilder<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", self.as_string())

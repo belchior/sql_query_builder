@@ -220,6 +220,8 @@ impl<'a> InsertBuilder<'a> {
   }
 }
 
+impl WithQuery for InsertBuilder<'_> {}
+
 impl std::fmt::Display for InsertBuilder<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", self.as_string())

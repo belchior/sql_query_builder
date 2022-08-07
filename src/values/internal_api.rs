@@ -1,10 +1,8 @@
 use crate::{
-  behavior::{Concat, ConcatMethods, WithQuery},
+  behavior::{Concat, ConcatMethods},
   fmt,
   structure::{ValuesBuilder, ValuesClause},
 };
-
-impl WithQuery for ValuesBuilder {}
 
 impl<'a> ConcatMethods<'a, ValuesClause> for ValuesBuilder {}
 

@@ -128,6 +128,8 @@ impl ValuesBuilder {
   }
 }
 
+impl WithQuery for ValuesBuilder {}
+
 impl std::fmt::Display for ValuesBuilder {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(f, "{}", self.as_string())

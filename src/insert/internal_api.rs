@@ -1,10 +1,8 @@
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatMethods, WithQuery},
+  behavior::{concat_raw_before_after, Concat, ConcatMethods},
   fmt,
   structure::{InsertBuilder, InsertClause},
 };
-
-impl WithQuery for InsertBuilder<'_> {}
 
 impl<'a> ConcatMethods<'a, InsertClause> for InsertBuilder<'_> {}
 
