@@ -9,4 +9,7 @@
   "rust-analyzer.inlayHints.typeHints.enable": false,
   "rust-analyzer.inlayHints.parameterHints.enable": false,
   "editor.formatOnSave": true,
+  "rust-analyzer.diagnostics.disabled": [
+    "inactive-code"
+  ]
 }
