@@ -1,15 +1,16 @@
 use crate::{
   behavior::{push_unique, Concat, WithQuery},
   fmt,
-  structure::{SelectBuilder, SelectClause},
+  structure::{Select, SelectClause},
 };
 
-impl<'a> SelectBuilder<'a> {
+impl<'a> Select<'a> {
   /// The same as `where_clause` method, useful to write more idiomatic SQL query
-  /// ```
-  /// use sql_query_builder::SelectBuilder;
   ///
-  /// let select = SelectBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let select = sql::Select::new()
   ///   .where_clause("login = foo")
   ///   .and("active = true");
   /// ```
@@ -18,18 +19,19 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// Gets the current state of the SelectBuilder returns it as string
+  /// Gets the current state of the Select returns it as string
   pub fn as_string(&self) -> String {
     let fmts = fmt::one_line();
     self.concat(&fmts)
   }
 
-  /// Prints the current state of the SelectBuilder into console output in a more ease to read version.
+  /// Prints the current state of the Select into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
-  /// ```
-  /// use sql_query_builder::SelectBuilder;
   ///
-  /// let select = SelectBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let select = sql::Select::new()
   ///   .select("*")
   ///   .from("users")
   ///   .where_clause("login = foo")
@@ -46,10 +48,11 @@ impl<'a> SelectBuilder<'a> {
   /// ```
   ///
   /// You can debug different parts of the select putting it in another position
-  /// ```
-  /// use sql_query_builder::SelectBuilder;
   ///
-  /// let select_query = SelectBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let select_query = sql::Select::new()
   ///   .select("*")
   ///   .from("users")
   ///   .debug()
@@ -137,12 +140,12 @@ impl<'a> SelectBuilder<'a> {
   /// The limit clause. This method overrides the previous value
   ///
   /// ```
-  /// use sql_query_builder::SelectBuilder;
+  /// use sql_query_builder as sql;
   ///
-  /// let select = SelectBuilder::new()
+  /// let select = sql::Select::new()
   ///   .limit("123");
   ///
-  /// let select = SelectBuilder::new()
+  /// let select = sql::Select::new()
   ///   .limit("1000")
   ///   .limit("123");
   /// ```
@@ -151,7 +154,7 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// Create SelectBuilder's instance
+  /// Create Select's instance
   pub fn new() -> Self {
     Self::default()
   }
@@ -159,12 +162,12 @@ impl<'a> SelectBuilder<'a> {
   /// The offset clause. This method overrides the previous value
   ///
   /// ```
-  /// use sql_query_builder::SelectBuilder;
+  /// use sql_query_builder as sql;
   ///
-  /// let select = SelectBuilder::new()
+  /// let select = sql::Select::new()
   ///   .offset("1500");
   ///
-  /// let select = SelectBuilder::new()
+  /// let select = sql::Select::new()
   ///   .offset("1000")
   ///   .offset("1500");
   /// ```
@@ -179,7 +182,7 @@ impl<'a> SelectBuilder<'a> {
     self
   }
 
-  /// Prints the current state of the SelectBuilder into console output similar to debug method,
+  /// Prints the current state of the Select into console output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::one_line();
@@ -190,10 +193,10 @@ impl<'a> SelectBuilder<'a> {
   /// Adds at the beginning a raw SQL query.
   ///
   /// ```
-  /// use sql_query_builder::SelectBuilder;
+  /// use sql_query_builder as sql;
   ///
   /// let raw_query = "select * from users u inner join address addr on u.login = addr.owner_login";
-  /// let select_query = SelectBuilder::new()
+  /// let select_query = sql::Select::new()
   ///   .raw(raw_query)
   ///   .where_clause("u.login = foo")
   ///   .as_string();
@@ -213,13 +216,13 @@ impl<'a> SelectBuilder<'a> {
   /// Adds a raw SQL query after a specified clause.
   ///
   /// ```
-  /// use sql_query_builder::{SelectClause, SelectBuilder};
+  /// use sql_query_builder as sql;
   ///
   /// let raw_join = "inner join address addr on u.login = addr.owner_login";
-  /// let select_query = SelectBuilder::new()
+  /// let select_query = sql::Select::new()
   ///   .select("*")
   ///   .from("users u")
-  ///   .raw_after(SelectClause::From, raw_join)
+  ///   .raw_after(sql::SelectClause::From, raw_join)
   ///   .where_clause("u.login = foo")
   ///   .as_string();
   /// ```
@@ -240,12 +243,12 @@ impl<'a> SelectBuilder<'a> {
   /// Adds a raw SQL query before a specified clause.
   ///
   /// ```
-  /// use sql_query_builder::{SelectClause, SelectBuilder};
+  /// use sql_query_builder as sql;
   ///
   /// let raw_query = "from users u inner join address addr on u.login = addr.owner_login";
-  /// let select_query = SelectBuilder::new()
+  /// let select_query = sql::Select::new()
   ///   .select("*")
-  ///   .raw_before(SelectClause::Where, raw_query)
+  ///   .raw_before(sql::SelectClause::Where, raw_query)
   ///   .where_clause("u.login = foo")
   ///   .as_string();
   /// ```
@@ -276,10 +279,11 @@ impl<'a> SelectBuilder<'a> {
   }
 
   /// The where clause
-  /// ```
-  /// use sql_query_builder::SelectBuilder;
   ///
-  /// let select = SelectBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let select = sql::Select::new()
   ///   .from("users")
   ///   .where_clause("login = $1");
   /// ```
@@ -289,11 +293,12 @@ impl<'a> SelectBuilder<'a> {
   }
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
-  /// ```
-  /// use sql_query_builder::{InsertBuilder, SelectBuilder};
   ///
-  /// let logins = SelectBuilder::new().select("login").from("users").where_clause("id in ($1)");
-  /// let select = SelectBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let logins = sql::Select::new().select("login").from("users").where_clause("id in ($1)");
+  /// let select = sql::Select::new()
   ///   .with("logins", logins)
   ///   .select("name, price")
   ///   .from("orders")
@@ -320,15 +325,15 @@ impl<'a> SelectBuilder<'a> {
   }
 }
 
-impl WithQuery for SelectBuilder<'_> {}
+impl WithQuery for Select<'_> {}
 
-impl std::fmt::Display for SelectBuilder<'_> {
+impl std::fmt::Display for Select<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl std::fmt::Debug for SelectBuilder<'_> {
+impl std::fmt::Debug for Select<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let fmts = fmt::multiline();
     write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))

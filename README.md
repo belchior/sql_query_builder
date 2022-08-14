@@ -7,9 +7,9 @@ of complex query composition mixed with conditional clauses.
 ## Quick Start
 
 ```rust
-use sql_query_builder::SelectBuilder;
+use sql_query_builder as sql;
 
-let mut select = SelectBuilder::new()
+let mut select = sql::Select::new()
   .select("id, login")
   .from("users")
   .where_clause("login = $1");
@@ -56,12 +56,12 @@ Consecutive calls to the same clause will accumulates values respecting the orde
 the two select produce the same SQL query
 
 ```rust
-use sql_query_builder::SelectBuilder;
+use sql_query_builder as sql;
 
-let select = SelectBuilder::new()
+let select = sql::Select::new()
   .select("id, login");
 
-let select = SelectBuilder::new()
+let select = sql::Select::new()
   .select("id")
   .select("login");
 ```
@@ -69,12 +69,12 @@ let select = SelectBuilder::new()
 Methods like `limit` and `offset` will override the previous value, the two select produce the same SQL query
 
 ```rust
-use sql_query_builder::SelectBuilder;
+use sql_query_builder as sql;
 
-let select = SelectBuilder::new()
+let select = sql::Select::new()
   .limit("123");
 
-let select = SelectBuilder::new()
+let select = sql::Select::new()
   .limit("1000")
   .limit("123");
 ```
@@ -82,14 +82,14 @@ let select = SelectBuilder::new()
 The library ignores the order between clauses so the two selects produce the same SQL query
 
 ```rust
-use sql_query_builder::SelectBuilder;
+use sql_query_builder as sql;
 
-let select = SelectBuilder::new()
+let select = sql::Select::new()
   .select("id, login")
   .from("users")
   .where_clause("login = $1");
 
-let select = SelectBuilder::new()
+let select = sql::Select::new()
   .from("users")
   .where_clause("login = $1")
   .select("id, login");
@@ -98,9 +98,9 @@ let select = SelectBuilder::new()
 You can conditionally add a clause mutating the select
 
 ```rust
-use sql_query_builder::SelectBuilder;
+use sql_query_builder as sql;
 
-let mut select = SelectBuilder::new()
+let mut select = sql::Select::new()
   .select("id, login")
   .from("users")
   .where_clause("login = $1");
@@ -118,33 +118,33 @@ if shouldIncludesAddress {
 Composition is very welcome to write complex queries, this feature makes the library shine
 
 ```rust
-use sql_query_builder::SelectBuilder;
+use sql_query_builder as sql;
 
-fn project(select: SelectBuilder) -> SelectBuilder {
+fn project(select: sql::Select) -> sql::Select {
 select
     .select("u.id, u.name as user_name, u.login")
     .select("a.name as address_name")
     .select("o.name as product_name")
 }
 
-fn relations(select: SelectBuilder) -> SelectBuilder {
+fn relations(select: sql::Select) -> sql::Select {
   select
     .from("users u")
     .inner_join("address a ON a.user_login = u.login")
     .inner_join("orders o ON o.user_login = u.login")
 }
 
-fn conditions(select: SelectBuilder) -> SelectBuilder {
+fn conditions(select: sql::Select) -> sql::Select {
   select
     .where_clause("u.login = $1")
     .and("o.id = $2")
 }
 
-fn as_string(select: SelectBuilder) -> String {
+fn as_string(select: sql::Select) -> String {
   select.as_string()
 }
 
-let query = Some(SelectBuilder::new())
+let query = Some(sql::Select::new())
   .map(project)
   .map(relations)
   .map(conditions)
@@ -167,18 +167,18 @@ WHERE u.login = $1 AND o.id = $2
 
 ## Raw queries
 
-You can use the raw method to accomplish some edge cases that are hard to rewrite into the SelectBuilder syntax.
+You can use the raw method to accomplish some edge cases that are hard to rewrite into the Select syntax.
 The `select.raw()` method will put any SQL you define at top of the output
 
 ```rust
-use sql_query_builder::SelectBuilder;
+use sql_query_builder as sql;
 
 let raw_query = "\
   select u.id as user_id, addr.* \
   from users u \
   inner join address addr on u.login = addr.owner_login\
 ";
-let select = SelectBuilder::new()
+let select = sql::Select::new()
   .raw(raw_query)
   .where_clause("login = $1");
 ```
@@ -186,30 +186,30 @@ let select = SelectBuilder::new()
 To a more precisely use case your can use the `select.raw_before()` and `select.raw_after()`
 
 ```rust
-use sql_query_builder::{SelectBuilder, SelectClause};
+use sql_query_builder as sql;
 
 let raw_query = "\
   from users u \
   inner join address addr on u.login = addr.owner_login\
 ";
-let select = SelectBuilder::new()
+let select = sql::Select::new()
   .select("u.id as user_id, addr.*")
-  .raw_before(SelectClause::Where, raw_query)
+  .raw_before(sql::SelectClause::Where, raw_query)
   .where_clause("login = $1");
 ```
 
 ```rust
-use sql_query_builder::{SelectBuilder, SelectClause};
+use sql_query_builder as sql;
 
 let raw_query = "\
   from users u \
   inner join address addr on u.login = addr.owner_login\
 ";
-let select = SelectBuilder::new()
+let select = sql::Select::new()
   .select("u.id as user_id, addr.*")
-  .raw_after(SelectClause::Select, raw_query)
+  .raw_after(sql::SelectClause::Select, raw_query)
   .where_clause("login = $1");
 ```
 
 
-See the [documentation](https://docs.rs/sql_query_builder/) for more builders like `InsertBuilder`, `UpdateBuilder` and `DeleteBuilder`
+See the [documentation](https://docs.rs/sql_query_builder/) for more builders like `Insert`, `Update` and `Delete`

@@ -1,9 +1,9 @@
 use pretty_assertions::assert_eq;
-use sql_query_builder::{InsertBuilder, InsertClause};
+use sql_query_builder as sql;
 
 #[test]
 fn insert_builder_should_be_displayable() {
-  let insert = InsertBuilder::new()
+  let insert = sql::Insert::new()
     .insert_into("users(login, name)")
     .values("('foo', 'Foo')");
 
@@ -17,7 +17,7 @@ fn insert_builder_should_be_displayable() {
 
 #[test]
 fn insert_builder_should_be_debuggable() {
-  let insert = InsertBuilder::new()
+  let insert = sql::Insert::new()
     .insert_into("users(login, name)")
     .values("('foo', 'Foo')")
     .overriding("user value");
@@ -32,10 +32,10 @@ fn insert_builder_should_be_debuggable() {
 
 #[test]
 fn insert_builder_should_be_cloneable() {
-  let insert_foo = InsertBuilder::new()
+  let insert_foo = sql::Insert::new()
     .raw("/* test raw */")
-    .raw_before(InsertClause::Values, "/* test raw_before */")
-    .raw_after(InsertClause::Values, "/* test raw_after */")
+    .raw_before(sql::InsertClause::Values, "/* test raw_before */")
+    .raw_after(sql::InsertClause::Values, "/* test raw_after */")
     .insert_into("users(login, name)")
     .values("('foo', 'Foo')");
   let insert_foo_bar = insert_foo.clone().values("('bar', 'Bar')");
@@ -63,7 +63,7 @@ fn insert_builder_should_be_cloneable() {
 
 #[test]
 fn insert_builder_should_be_able_to_conditionally_add_clauses() {
-  let mut insert = InsertBuilder::new()
+  let mut insert = sql::Insert::new()
     .insert_into("users(login, name)")
     .values("('bar', 'Bar')");
 
@@ -79,26 +79,22 @@ fn insert_builder_should_be_able_to_conditionally_add_clauses() {
 
 #[test]
 fn insert_builder_should_be_composable() {
-  fn insert(insert: InsertBuilder) -> InsertBuilder {
+  fn insert(insert: sql::Insert) -> sql::Insert {
     insert.insert_into("users (login, name)")
   }
 
-  fn values(insert: InsertBuilder) -> InsertBuilder {
+  fn values(insert: sql::Insert) -> sql::Insert {
     insert
       .values("('foo', 'Foo')")
       .values("('bar', 'Bar')")
       .values("('max', 'Max')")
   }
 
-  fn as_string(insert: InsertBuilder) -> String {
+  fn as_string(insert: sql::Insert) -> String {
     insert.as_string()
   }
 
-  let query = Some(InsertBuilder::new())
-    .map(insert)
-    .map(values)
-    .map(as_string)
-    .unwrap();
+  let query = Some(sql::Insert::new()).map(insert).map(values).map(as_string).unwrap();
 
   let expected_query = "\
       INSERT INTO users (login, name) \

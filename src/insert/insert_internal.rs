@@ -1,12 +1,12 @@
 use crate::{
   behavior::{concat_raw_before_after, Concat, ConcatMethods},
   fmt,
-  structure::{InsertBuilder, InsertClause},
+  structure::{Insert, InsertClause},
 };
 
-impl<'a> ConcatMethods<'a, InsertClause> for InsertBuilder<'_> {}
+impl<'a> ConcatMethods<'a, InsertClause> for Insert<'_> {}
 
-impl Concat for InsertBuilder<'_> {
+impl Concat for Insert<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
@@ -51,7 +51,7 @@ impl Concat for InsertBuilder<'_> {
   }
 }
 
-impl InsertBuilder<'_> {
+impl Insert<'_> {
   fn concat_insert_into(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._insert_into.is_empty() == false {

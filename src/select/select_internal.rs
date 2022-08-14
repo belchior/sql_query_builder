@@ -1,12 +1,12 @@
 use crate::{
   behavior::{concat_raw_before_after, Concat, ConcatMethods},
   fmt,
-  structure::{SelectBuilder, SelectClause},
+  structure::{Select, SelectClause},
 };
 
-impl<'a> ConcatMethods<'a, SelectClause> for SelectBuilder<'_> {}
+impl<'a> ConcatMethods<'a, SelectClause> for Select<'_> {}
 
-impl Concat for SelectBuilder<'_> {
+impl Concat for Select<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
@@ -57,7 +57,7 @@ impl Concat for SelectBuilder<'_> {
   }
 }
 
-impl SelectBuilder<'_> {
+impl Select<'_> {
   #[cfg(feature = "postgresql")]
   fn concat_combinator(
     &self,

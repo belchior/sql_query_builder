@@ -1,15 +1,16 @@
 use crate::{
   behavior::{push_unique, Concat, WithQuery},
   fmt,
-  structure::{UpdateBuilder, UpdateClause},
+  structure::{Update, UpdateClause},
 };
 
-impl<'a> UpdateBuilder<'a> {
+impl<'a> Update<'a> {
   /// The same as `where_clause` method, useful to write more idiomatic SQL query
-  /// ```
-  /// use sql_query_builder::UpdateBuilder;
   ///
-  /// let update = UpdateBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let update = sql::Update::new()
   ///   .update("users")
   ///   .set("name = $1")
   ///   .where_clause("login = $2")
@@ -20,18 +21,19 @@ impl<'a> UpdateBuilder<'a> {
     self
   }
 
-  /// Gets the current state of the UpdateBuilder and returns it as string
+  /// Gets the current state of the Update and returns it as string
   pub fn as_string(&self) -> String {
     let fmts = fmt::one_line();
     self.concat(&fmts)
   }
 
-  /// Prints the current state of the UpdateBuilder into console output in a more ease to read version.
+  /// Prints the current state of the Update into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
-  /// ```
-  /// use sql_query_builder::UpdateBuilder;
   ///
-  /// let update_query = UpdateBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let update_query = sql::Update::new()
   ///   .update("users")
   ///   .set("login = 'foo'")
   ///   .debug()
@@ -58,12 +60,12 @@ impl<'a> UpdateBuilder<'a> {
     self
   }
 
-  /// Create UpdateBuilder's instance
+  /// Create Update's instance
   pub fn new() -> Self {
     Self::default()
   }
 
-  /// Prints the current state of the UpdateBuilder into console output similar to debug method,
+  /// Prints the current state of the Update into console output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::one_line();
@@ -74,10 +76,10 @@ impl<'a> UpdateBuilder<'a> {
   /// Adds at the beginning a raw SQL query.
   ///
   /// ```
-  /// use sql_query_builder::UpdateBuilder;
+  /// use sql_query_builder as sql;
   ///
   /// let raw_query = "update users";
-  /// let update_query = UpdateBuilder::new()
+  /// let update_query = sql::Update::new()
   ///   .raw(raw_query)
   ///   .set("login = 'foo'")
   ///   .as_string();
@@ -97,12 +99,12 @@ impl<'a> UpdateBuilder<'a> {
   /// Adds a raw SQL query after a specified clause.
   ///
   /// ```
-  /// use sql_query_builder::{UpdateClause, UpdateBuilder};
+  /// use sql_query_builder as sql;
   ///
   /// let raw = "set name = 'Foo'";
-  /// let update_query = UpdateBuilder::new()
+  /// let update_query = sql::Update::new()
   ///   .update("users")
-  ///   .raw_after(UpdateClause::Update, raw)
+  ///   .raw_after(sql::UpdateClause::Update, raw)
   ///   .as_string();
   /// ```
   ///
@@ -120,11 +122,11 @@ impl<'a> UpdateBuilder<'a> {
   /// Adds a raw SQL query before a specified clause.
   ///
   /// ```
-  /// use sql_query_builder::{UpdateClause, UpdateBuilder};
+  /// use sql_query_builder as sql;
   ///
   /// let raw = "update users";
-  /// let update_query = UpdateBuilder::new()
-  ///   .raw_before(UpdateClause::Set, raw)
+  /// let update_query = sql::Update::new()
+  ///   .raw_before(sql::UpdateClause::Set, raw)
   ///   .set("name = 'Bar'")
   ///   .as_string();
   /// ```
@@ -156,12 +158,12 @@ impl<'a> UpdateBuilder<'a> {
   /// The update clause. This method overrides the previous value
   ///
   /// ```
-  /// use sql_query_builder::UpdateBuilder;
+  /// use sql_query_builder as sql;
   ///
-  /// let update = UpdateBuilder::new()
+  /// let update = sql::Update::new()
   ///   .update("orders");
   ///
-  /// let update = UpdateBuilder::new()
+  /// let update = sql::Update::new()
   ///   .update("address")
   ///   .update("orders");
   /// ```
@@ -171,10 +173,11 @@ impl<'a> UpdateBuilder<'a> {
   }
 
   /// The where clause
-  /// ```
-  /// use sql_query_builder::UpdateBuilder;
   ///
-  /// let update = UpdateBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let update = sql::Update::new()
   ///   .update("users")
   ///   .set("name = $1")
   ///   .where_clause("login = $2");
@@ -185,14 +188,15 @@ impl<'a> UpdateBuilder<'a> {
   }
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
-  /// ```
-  /// use sql_query_builder::{InsertBuilder, UpdateBuilder};
   ///
-  /// let user = InsertBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let user = sql::Insert::new()
   ///   .insert_into("users(login, name)")
   ///   .values("('foo', 'Foo')")
   ///   .returning("group_id");
-  /// let update = UpdateBuilder::new()
+  /// let update = sql::Update::new()
   ///   .with("user", user)
   ///   .update("user_group")
   ///   .set("count = count + 1")
@@ -219,15 +223,15 @@ impl<'a> UpdateBuilder<'a> {
   }
 }
 
-impl WithQuery for UpdateBuilder<'_> {}
+impl WithQuery for Update<'_> {}
 
-impl std::fmt::Display for UpdateBuilder<'_> {
+impl std::fmt::Display for Update<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl std::fmt::Debug for UpdateBuilder<'_> {
+impl std::fmt::Debug for Update<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let fmts = fmt::multiline();
     write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))

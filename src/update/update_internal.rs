@@ -1,12 +1,12 @@
 use crate::{
   behavior::{concat_raw_before_after, Concat, ConcatMethods},
   fmt,
-  structure::{UpdateBuilder, UpdateClause},
+  structure::{Update, UpdateClause},
 };
 
-impl<'a> ConcatMethods<'a, UpdateClause> for UpdateBuilder<'_> {}
+impl<'a> ConcatMethods<'a, UpdateClause> for Update<'_> {}
 
-impl Concat for UpdateBuilder<'_> {
+impl Concat for Update<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
@@ -60,7 +60,7 @@ impl Concat for UpdateBuilder<'_> {
   }
 }
 
-impl UpdateBuilder<'_> {
+impl Update<'_> {
   fn concat_set(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._set.is_empty() == false {

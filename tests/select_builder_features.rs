@@ -1,9 +1,9 @@
 use pretty_assertions::assert_eq;
-use sql_query_builder::{SelectBuilder, SelectClause};
+use sql_query_builder as sql;
 
 #[test]
 fn select_builder_should_be_displayable() {
-  let select = SelectBuilder::new().select("id, login").from("users");
+  let select = sql::Select::new().select("id, login").from("users");
 
   println!("{}", select);
 
@@ -15,7 +15,7 @@ fn select_builder_should_be_displayable() {
 
 #[test]
 fn select_builder_should_be_debuggable() {
-  let select = SelectBuilder::new().select("*").from("orders").where_clause("id = $1");
+  let select = sql::Select::new().select("*").from("orders").where_clause("id = $1");
 
   println!("{:?}", select);
 
@@ -27,13 +27,13 @@ fn select_builder_should_be_debuggable() {
 
 #[test]
 fn select_builder_should_be_cloneable() {
-  let select_zipcode = SelectBuilder::new()
+  let select_zipcode = sql::Select::new()
     .raw("/* test raw */")
     .select("zipcode")
     .from("address")
-    .raw_before(SelectClause::Where, "/* test raw_before */")
+    .raw_before(sql::SelectClause::Where, "/* test raw_before */")
     .where_clause("login = $1")
-    .raw_after(SelectClause::Where, "/* test raw_after */");
+    .raw_after(sql::SelectClause::Where, "/* test raw_after */");
 
   let select_city = select_zipcode.clone().select("city");
 
@@ -63,7 +63,7 @@ fn select_builder_should_be_cloneable() {
 
 #[test]
 fn select_builder_should_be_able_to_conditionally_add_clauses() {
-  let mut select = SelectBuilder::new().select("zipcode").from("address");
+  let mut select = sql::Select::new().select("zipcode").from("address");
 
   if true {
     select = select.where_clause("login = $1").limit("$2");
@@ -77,29 +77,29 @@ fn select_builder_should_be_able_to_conditionally_add_clauses() {
 
 #[test]
 fn select_builder_should_be_composable() {
-  fn project(select: SelectBuilder) -> SelectBuilder {
+  fn project(select: sql::Select) -> sql::Select {
     select
       .select("u.id, u.name as user_name, u.login")
       .select("a.name as address_name")
       .select("o.name as product_name")
   }
 
-  fn joins(select: SelectBuilder) -> SelectBuilder {
+  fn joins(select: sql::Select) -> sql::Select {
     select
       .from("users u")
       .inner_join("address a ON a.user_login = u.login")
       .inner_join("orders o ON o.user_login = u.login")
   }
 
-  fn conditions(select: SelectBuilder) -> SelectBuilder {
+  fn conditions(select: sql::Select) -> sql::Select {
     select.where_clause("u.login = $1").and("o.id = $2")
   }
 
-  fn as_string(select: SelectBuilder) -> String {
+  fn as_string(select: sql::Select) -> String {
     select.as_string()
   }
 
-  let query = Some(SelectBuilder::new())
+  let query = Some(sql::Select::new())
     .map(project)
     .map(joins)
     .map(conditions)

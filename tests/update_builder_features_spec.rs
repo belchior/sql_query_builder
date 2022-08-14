@@ -1,9 +1,9 @@
 use pretty_assertions::assert_eq;
-use sql_query_builder::{UpdateBuilder, UpdateClause};
+use sql_query_builder as sql;
 
 #[test]
 fn update_builder_should_be_displayable() {
-  let update = UpdateBuilder::new().update("users").set("login = 'foo'");
+  let update = sql::Update::new().update("users").set("login = 'foo'");
 
   println!("{}", update);
 
@@ -15,7 +15,7 @@ fn update_builder_should_be_displayable() {
 
 #[test]
 fn update_builder_should_be_debuggable() {
-  let update = UpdateBuilder::new()
+  let update = sql::Update::new()
     .update("users")
     .set("name = 'Foo'")
     .where_clause("login = 'foo'");
@@ -30,10 +30,10 @@ fn update_builder_should_be_debuggable() {
 
 #[test]
 fn update_builder_should_be_cloneable() {
-  let update_foo = UpdateBuilder::new()
+  let update_foo = sql::Update::new()
     .raw("/* test raw */")
-    .raw_before(UpdateClause::Set, "/* test raw_before */")
-    .raw_after(UpdateClause::Set, "/* test raw_after */")
+    .raw_before(sql::UpdateClause::Set, "/* test raw_before */")
+    .raw_after(sql::UpdateClause::Set, "/* test raw_after */")
     .update("users")
     .set("login = 'foo'");
   let update_foo_bar = update_foo.clone().set("name = 'Bar'");
@@ -61,7 +61,7 @@ fn update_builder_should_be_cloneable() {
 
 #[test]
 fn update_builder_should_be_able_to_conditionally_add_clauses() {
-  let mut update = UpdateBuilder::new().update("users").set("name = 'Bar'");
+  let mut update = sql::Update::new().update("users").set("name = 'Bar'");
 
   if true {
     update = update.set("login = 'bar'");
@@ -75,26 +75,26 @@ fn update_builder_should_be_able_to_conditionally_add_clauses() {
 
 #[test]
 fn update_builder_should_be_composable() {
-  fn update(update: UpdateBuilder) -> UpdateBuilder {
+  fn update(update: sql::Update) -> sql::Update {
     update.update("users")
   }
 
-  fn sets(update: UpdateBuilder) -> UpdateBuilder {
+  fn sets(update: sql::Update) -> sql::Update {
     update.set("login = 'foo'").set("name = 'Bar'").set("age = 42")
   }
 
-  fn conditions(update: UpdateBuilder) -> UpdateBuilder {
+  fn conditions(update: sql::Update) -> sql::Update {
     update
       .where_clause("id = $1")
       .where_clause("active = true")
       .where_clause("created_at::date = current_date")
   }
 
-  fn as_string(update: UpdateBuilder) -> String {
+  fn as_string(update: sql::Update) -> String {
     update.as_string()
   }
 
-  let query = Some(UpdateBuilder::new())
+  let query = Some(sql::Update::new())
     .map(update)
     .map(sets)
     .map(conditions)

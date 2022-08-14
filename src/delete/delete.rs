@@ -1,15 +1,16 @@
 use crate::{
   behavior::{push_unique, Concat, WithQuery},
   fmt,
-  structure::{DeleteBuilder, DeleteClause},
+  structure::{Delete, DeleteClause},
 };
 
-impl<'a> DeleteBuilder<'a> {
+impl<'a> Delete<'a> {
   /// The same as `where_clause` method, useful to write more idiomatic SQL query
-  /// ```
-  /// use sql_query_builder::DeleteBuilder;
   ///
-  /// let delete = DeleteBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let delete = sql::Delete::new()
   ///   .delete_from("users")
   ///   .where_clause("created_at < $1")
   ///   .and("active = false");
@@ -19,18 +20,19 @@ impl<'a> DeleteBuilder<'a> {
     self
   }
 
-  /// Gets the current state of the DeleteBuilder and returns it as string
+  /// Gets the current state of the Delete and returns it as string
   pub fn as_string(&self) -> String {
     let fmts = fmt::one_line();
     self.concat(&fmts)
   }
 
-  /// Prints the current state of the DeleteBuilder into console output in a more ease to read version.
+  /// Prints the current state of the Delete into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
-  /// ```
-  /// use sql_query_builder::DeleteBuilder;
   ///
-  /// let delete_query = DeleteBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let delete_query = sql::Delete::new()
   ///   .delete_from("users")
   ///   .where_clause("login = 'foo'")
   ///   .debug()
@@ -53,12 +55,12 @@ impl<'a> DeleteBuilder<'a> {
   /// The delete clause. This method overrides the previous value
   ///
   /// ```
-  /// use sql_query_builder::DeleteBuilder;
+  /// use sql_query_builder as sql;
   ///
-  /// let delete = DeleteBuilder::new()
+  /// let delete = sql::Delete::new()
   ///   .delete_from("orders");
   ///
-  /// let delete = DeleteBuilder::new()
+  /// let delete = sql::Delete::new()
   ///   .delete_from("address")
   ///   .delete_from("orders");
   /// ```
@@ -67,12 +69,12 @@ impl<'a> DeleteBuilder<'a> {
     self
   }
 
-  /// Create DeleteBuilder's instance
+  /// Create Delete's instance
   pub fn new() -> Self {
     Self::default()
   }
 
-  /// Prints the current state of the DeleteBuilder into console output similar to debug method,
+  /// Prints the current state of the Delete into console output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::one_line();
@@ -83,10 +85,10 @@ impl<'a> DeleteBuilder<'a> {
   /// Adds at the beginning a raw SQL query.
   ///
   /// ```
-  /// use sql_query_builder::DeleteBuilder;
+  /// use sql_query_builder as sql;
   ///
   /// let raw_query = "delete from users";
-  /// let delete_query = DeleteBuilder::new()
+  /// let delete_query = sql::Delete::new()
   ///   .raw(raw_query)
   ///   .where_clause("login = 'foo'")
   ///   .as_string();
@@ -106,12 +108,12 @@ impl<'a> DeleteBuilder<'a> {
   /// Adds a raw SQL query after a specified clause.
   ///
   /// ```
-  /// use sql_query_builder::{DeleteClause, DeleteBuilder};
+  /// use sql_query_builder as sql;
   ///
   /// let raw = "where name = 'Foo'";
-  /// let delete_query = DeleteBuilder::new()
+  /// let delete_query = sql::Delete::new()
   ///   .delete_from("users")
-  ///   .raw_after(DeleteClause::DeleteFrom, raw)
+  ///   .raw_after(sql::DeleteClause::DeleteFrom, raw)
   ///   .as_string();
   /// ```
   ///
@@ -129,11 +131,11 @@ impl<'a> DeleteBuilder<'a> {
   /// Adds a raw SQL query before a specified clause.
   ///
   /// ```
-  /// use sql_query_builder::{DeleteClause, DeleteBuilder};
+  /// use sql_query_builder as sql;
   ///
   /// let raw = "delete from users";
-  /// let delete_query = DeleteBuilder::new()
-  ///   .raw_before(DeleteClause::Where, raw)
+  /// let delete_query = sql::Delete::new()
+  ///   .raw_before(sql::DeleteClause::Where, raw)
   ///   .where_clause("name = 'Bar'")
   ///   .as_string();
   /// ```
@@ -157,10 +159,11 @@ impl<'a> DeleteBuilder<'a> {
   }
 
   /// The where clause
-  /// ```
-  /// use sql_query_builder::DeleteBuilder;
   ///
-  /// let delete = DeleteBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let delete = sql::Delete::new()
   ///   .delete_from("users")
   ///   .where_clause("login = 'foo'");
   /// ```
@@ -170,11 +173,12 @@ impl<'a> DeleteBuilder<'a> {
   }
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
-  /// ```
-  /// use sql_query_builder::{DeleteBuilder, SelectBuilder};
   ///
-  /// let deactivated_users = SelectBuilder::new().select("id").from("users").where_clause("ative = false");
-  /// let delete = DeleteBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let deactivated_users = sql::Select::new().select("id").from("users").where_clause("ative = false");
+  /// let delete = sql::Delete::new()
   ///   .with("deactivated_users", deactivated_users)
   ///   .delete_from("users")
   ///   .where_clause("id in (select * from deactivated_users)")
@@ -199,15 +203,15 @@ impl<'a> DeleteBuilder<'a> {
   }
 }
 
-impl WithQuery for DeleteBuilder<'_> {}
+impl WithQuery for Delete<'_> {}
 
-impl std::fmt::Display for DeleteBuilder<'_> {
+impl std::fmt::Display for Delete<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl std::fmt::Debug for DeleteBuilder<'_> {
+impl std::fmt::Debug for Delete<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let fmts = fmt::multiline();
     write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))

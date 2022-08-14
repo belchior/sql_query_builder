@@ -10,6 +10,5 @@ mod update;
 mod values;
 
 pub use crate::structure::{
-  DeleteBuilder, DeleteClause, InsertBuilder, InsertClause, SelectBuilder, SelectClause, UpdateBuilder, UpdateClause,
-  ValuesBuilder, ValuesClause,
+  Delete, DeleteClause, Insert, InsertClause, Select, SelectClause, Update, UpdateClause, Values, ValuesClause,
 };

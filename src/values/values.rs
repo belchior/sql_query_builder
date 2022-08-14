@@ -1,22 +1,23 @@
 use crate::{
   behavior::{push_unique, Concat, WithQuery},
   fmt,
-  structure::{ValuesBuilder, ValuesClause},
+  structure::{Values, ValuesClause},
 };
 
-impl ValuesBuilder {
-  /// Gets the current state of the ValuesBuilder and returns it as string
+impl Values {
+  /// Gets the current state of the Values and returns it as string
   pub fn as_string(&self) -> String {
     let fmts = fmt::one_line();
     self.concat(&fmts)
   }
 
-  /// Prints the current state of the ValuesBuilder into console output in a more ease to read version.
+  /// Prints the current state of the Values into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
-  /// ```
-  /// use sql_query_builder::ValuesBuilder;
   ///
-  /// let values = ValuesBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let values = sql::Values::new()
   ///   .values("(1, 'one'), (2, 'two')")
   ///   .values("(3, 'three')")
   ///   .debug();
@@ -33,12 +34,12 @@ impl ValuesBuilder {
     self
   }
 
-  /// Create ValuesBuilder's instance
+  /// Create Values's instance
   pub fn new() -> Self {
     Self::default()
   }
 
-  /// Prints the current state of the ValuesBuilder into console output similar to debug method,
+  /// Prints the current state of the Values into console output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::one_line();
@@ -49,10 +50,10 @@ impl ValuesBuilder {
   /// Adds at the beginning a raw SQL query.
   ///
   /// ```
-  /// use sql_query_builder::ValuesBuilder;
+  /// use sql_query_builder as sql;
   ///
   /// let raw_query = "insert into my_table(nun, txt)";
-  /// let values = ValuesBuilder::new()
+  /// let values = sql::Values::new()
   ///   .raw(raw_query)
   ///   .values("(1, 'one'), (2, 'two')")
   ///   .debug();
@@ -72,12 +73,12 @@ impl ValuesBuilder {
   /// Adds a raw SQL query after a specified clause.
   ///
   /// ```
-  /// use sql_query_builder::{ValuesBuilder, ValuesClause};
+  /// use sql_query_builder as sql;
   ///
   /// let raw_query = ", (3, 'three')";
-  /// let values = ValuesBuilder::new()
+  /// let values = sql::Values::new()
   ///   .values("(1, 'one'), (2, 'two')")
-  ///   .raw_after(ValuesClause::Values, raw_query)
+  ///   .raw_after(sql::ValuesClause::Values, raw_query)
   ///   .debug();
   /// ```
   ///
@@ -94,11 +95,11 @@ impl ValuesBuilder {
   /// Adds a raw SQL query before a specified clause.
   ///
   /// ```
-  /// use sql_query_builder::{ValuesBuilder, ValuesClause};
+  /// use sql_query_builder as sql;
   ///
   /// let raw_query = "/* the values command */";
-  /// let values = ValuesBuilder::new()
-  ///   .raw_before(ValuesClause::Values, raw_query)
+  /// let values = sql::Values::new()
+  ///   .raw_before(sql::ValuesClause::Values, raw_query)
   ///   .values("(1, 'one'), (2, 'two')")
   ///   .debug();
   /// ```
@@ -115,10 +116,11 @@ impl ValuesBuilder {
   }
 
   /// The values clause
-  /// ```
-  /// use sql_query_builder::ValuesBuilder;
   ///
-  /// let values = ValuesBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let values = sql::Values::new()
   ///   .values("(1, 'one'), (2, 'two')")
   ///   .values("(3, 'three')");
   /// ```
@@ -128,15 +130,15 @@ impl ValuesBuilder {
   }
 }
 
-impl WithQuery for ValuesBuilder {}
+impl WithQuery for Values {}
 
-impl std::fmt::Display for ValuesBuilder {
+impl std::fmt::Display for Values {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl std::fmt::Debug for ValuesBuilder {
+impl std::fmt::Debug for Values {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     let fmts = fmt::multiline();
     write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))

@@ -1,12 +1,12 @@
 use crate::{
   behavior::{Concat, ConcatMethods},
   fmt,
-  structure::{ValuesBuilder, ValuesClause},
+  structure::{Values, ValuesClause},
 };
 
-impl<'a> ConcatMethods<'a, ValuesClause> for ValuesBuilder {}
+impl<'a> ConcatMethods<'a, ValuesClause> for Values {}
 
-impl Concat for ValuesBuilder {
+impl Concat for Values {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 

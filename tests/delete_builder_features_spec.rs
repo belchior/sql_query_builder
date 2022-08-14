@@ -1,9 +1,9 @@
 use pretty_assertions::assert_eq;
-use sql_query_builder::{DeleteBuilder, DeleteClause};
+use sql_query_builder as sql;
 
 #[test]
 fn delete_builder_should_be_displayable() {
-  let delete = DeleteBuilder::new().delete_from("users").where_clause("login = 'foo'");
+  let delete = sql::Delete::new().delete_from("users").where_clause("login = 'foo'");
 
   println!("{}", delete);
 
@@ -15,7 +15,7 @@ fn delete_builder_should_be_displayable() {
 
 #[test]
 fn delete_builder_should_be_debuggable() {
-  let delete = DeleteBuilder::new()
+  let delete = sql::Delete::new()
     .delete_from("users")
     .where_clause("name = 'Foo'")
     .where_clause("login = 'foo'");
@@ -30,12 +30,12 @@ fn delete_builder_should_be_debuggable() {
 
 #[test]
 fn delete_builder_should_be_cloneable() {
-  let delete_foo = DeleteBuilder::new()
+  let delete_foo = sql::Delete::new()
     .raw("/* test raw */")
     .delete_from("users")
-    .raw_before(DeleteClause::Where, "/* test raw_before */")
+    .raw_before(sql::DeleteClause::Where, "/* test raw_before */")
     .where_clause("login = 'foo'")
-    .raw_after(DeleteClause::Where, "/* test raw_after */");
+    .raw_after(sql::DeleteClause::Where, "/* test raw_after */");
 
   let delete_foo_bar = delete_foo.clone().where_clause("name = 'Bar'");
 
@@ -63,7 +63,7 @@ fn delete_builder_should_be_cloneable() {
 
 #[test]
 fn delete_builder_should_be_able_to_conditionally_add_clauses() {
-  let mut delete = DeleteBuilder::new().delete_from("users").where_clause("name = 'Bar'");
+  let mut delete = sql::Delete::new().delete_from("users").where_clause("name = 'Bar'");
 
   if true {
     delete = delete.where_clause("login = 'bar'");
@@ -77,22 +77,22 @@ fn delete_builder_should_be_able_to_conditionally_add_clauses() {
 
 #[test]
 fn delete_builder_should_be_composable() {
-  fn delete(delete: DeleteBuilder) -> DeleteBuilder {
+  fn delete(delete: sql::Delete) -> sql::Delete {
     delete.delete_from("users")
   }
 
-  fn conditions(delete: DeleteBuilder) -> DeleteBuilder {
+  fn conditions(delete: sql::Delete) -> sql::Delete {
     delete
       .where_clause("id = $1")
       .where_clause("active = true")
       .where_clause("created_at::date = current_date")
   }
 
-  fn as_string(delete: DeleteBuilder) -> String {
+  fn as_string(delete: sql::Delete) -> String {
     delete.as_string()
   }
 
-  let query = Some(DeleteBuilder::new())
+  let query = Some(sql::Delete::new())
     .map(delete)
     .map(conditions)
     .map(as_string)

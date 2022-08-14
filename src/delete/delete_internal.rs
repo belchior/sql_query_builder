@@ -1,12 +1,12 @@
 use crate::{
   behavior::{concat_raw_before_after, Concat, ConcatMethods},
   fmt,
-  structure::{DeleteBuilder, DeleteClause},
+  structure::{Delete, DeleteClause},
 };
 
-impl<'a> ConcatMethods<'a, DeleteClause> for DeleteBuilder<'_> {}
+impl<'a> ConcatMethods<'a, DeleteClause> for Delete<'_> {}
 
-impl Concat for DeleteBuilder<'_> {
+impl Concat for Delete<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 
@@ -47,7 +47,7 @@ impl Concat for DeleteBuilder<'_> {
   }
 }
 
-impl DeleteBuilder<'_> {
+impl Delete<'_> {
   fn concat_delete_from(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._delete_from.is_empty() == false {

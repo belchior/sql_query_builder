@@ -1,22 +1,23 @@
 use crate::{
   behavior::{push_unique, Concat, WithQuery},
   fmt,
-  structure::{InsertBuilder, InsertClause, SelectBuilder},
+  structure::{Insert, InsertClause, Select},
 };
 
-impl<'a> InsertBuilder<'a> {
-  /// Gets the current state of the InsertBuilder and returns it as string
+impl<'a> Insert<'a> {
+  /// Gets the current state of the Insert and returns it as string
   pub fn as_string(&self) -> String {
     let fmts = fmt::one_line();
     self.concat(&fmts)
   }
 
-  /// Prints the current state of the InsertBuilder into console output in a more ease to read version.
+  /// Prints the current state of the Insert into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
-  /// ```
-  /// use sql_query_builder::InsertBuilder;
   ///
-  /// let insert_query = InsertBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let insert_query = sql::Insert::new()
   ///   .insert_into("users (login, name)")
   ///   .values("('foo', 'Foo')")
   ///   .debug()
@@ -39,12 +40,12 @@ impl<'a> InsertBuilder<'a> {
   /// The insert into clause. This method overrides the previous value
   ///
   /// ```
-  /// use sql_query_builder::InsertBuilder;
+  /// use sql_query_builder as sql;
   ///
-  /// let insert = InsertBuilder::new()
+  /// let insert = sql::Insert::new()
   ///   .insert_into("users (login, name)");
   ///
-  /// let insert = InsertBuilder::new()
+  /// let insert = sql::Insert::new()
   ///   .insert_into("address (state, country)")
   ///   .insert_into("users (login, name)");
   /// ```
@@ -53,7 +54,7 @@ impl<'a> InsertBuilder<'a> {
     self
   }
 
-  /// Create InsertBuilder's instance
+  /// Create Insert's instance
   pub fn new() -> Self {
     Self::default()
   }
@@ -70,7 +71,7 @@ impl<'a> InsertBuilder<'a> {
     self
   }
 
-  /// Prints the current state of the InsertBuilder into console output similar to debug method,
+  /// Prints the current state of the Insert into console output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::one_line();
@@ -81,12 +82,12 @@ impl<'a> InsertBuilder<'a> {
   /// The select clause. This method overrides the previous value
   ///
   /// ```
-  /// use sql_query_builder::{InsertClause, InsertBuilder, SelectBuilder};
+  /// use sql_query_builder as sql;
   ///
-  /// let insert_query = InsertBuilder::new()
+  /// let insert_query = sql::Insert::new()
   ///   .insert_into("users (login, name)")
   ///   .select(
-  ///     SelectBuilder::new()
+  ///     sql::Select::new()
   ///       .select("login, name")
   ///       .from("users_bk")
   ///       .where_clause("active = true"),
@@ -102,7 +103,7 @@ impl<'a> InsertBuilder<'a> {
   /// FROM users_bk
   /// WHERE active = true
   /// ```
-  pub fn select(mut self, select: SelectBuilder<'a>) -> Self {
+  pub fn select(mut self, select: Select<'a>) -> Self {
     self._select = Some(select);
     self
   }
@@ -110,10 +111,10 @@ impl<'a> InsertBuilder<'a> {
   /// Adds at the beginning a raw SQL query.
   ///
   /// ```
-  /// use sql_query_builder::InsertBuilder;
+  /// use sql_query_builder as sql;
   ///
   /// let raw_query = "insert into users (login, name)";
-  /// let insert_query = InsertBuilder::new()
+  /// let insert_query = sql::Insert::new()
   ///   .raw(raw_query)
   ///   .values("('foo', 'Foo')")
   ///   .as_string();
@@ -133,12 +134,12 @@ impl<'a> InsertBuilder<'a> {
   /// Adds a raw SQL query after a specified clause.
   ///
   /// ```
-  /// use sql_query_builder::{InsertClause, InsertBuilder};
+  /// use sql_query_builder as sql;
   ///
   /// let raw = "values ('foo', 'Foo')";
-  /// let insert_query = InsertBuilder::new()
+  /// let insert_query = sql::Insert::new()
   ///   .insert_into("users (login, name)")
-  ///   .raw_after(InsertClause::InsertInto, raw)
+  ///   .raw_after(sql::InsertClause::InsertInto, raw)
   ///   .as_string();
   /// ```
   ///
@@ -156,11 +157,11 @@ impl<'a> InsertBuilder<'a> {
   /// Adds a raw SQL query before a specified clause.
   ///
   /// ```
-  /// use sql_query_builder::{InsertClause, InsertBuilder};
+  /// use sql_query_builder as sql;
   ///
   /// let raw = "insert into users (login, name)";
-  /// let insert_query = InsertBuilder::new()
-  ///   .raw_before(InsertClause::Values, raw)
+  /// let insert_query = sql::Insert::new()
+  ///   .raw_before(sql::InsertClause::Values, raw)
   ///   .values("('bar', 'Bar')")
   ///   .as_string();
   /// ```
@@ -190,14 +191,15 @@ impl<'a> InsertBuilder<'a> {
   }
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
-  /// ```
-  /// use sql_query_builder::{InsertBuilder, SelectBuilder};
   ///
-  /// let active_users = SelectBuilder::new().select("*").from("users_bk").where_clause("ative = true");
-  /// let insert = InsertBuilder::new()
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let active_users = sql::Select::new().select("*").from("users_bk").where_clause("ative = true");
+  /// let insert = sql::Insert::new()
   ///   .with("active_users", active_users)
   ///   .insert_into("users")
-  ///   .select(SelectBuilder::new().select("*").from("active_users"))
+  ///   .select(sql::Select::new().select("*").from("active_users"))
   ///   .debug();
   /// ```
   ///
@@ -220,15 +222,15 @@ impl<'a> InsertBuilder<'a> {
   }
 }
 
-impl WithQuery for InsertBuilder<'_> {}
+impl WithQuery for Insert<'_> {}
 
-impl std::fmt::Display for InsertBuilder<'_> {
+impl std::fmt::Display for Insert<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl std::fmt::Debug for InsertBuilder<'_> {
+impl std::fmt::Debug for Insert<'_> {
   fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
     let fmts = fmt::multiline();
     write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))

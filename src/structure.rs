@@ -7,7 +7,7 @@ pub enum Combinator {
 
 /// Builder to contruct a delete command
 #[derive(Default, Clone)]
-pub struct DeleteBuilder<'a> {
+pub struct Delete<'a> {
   pub(crate) _delete_from: &'a str,
   pub(crate) _raw_after: Vec<(DeleteClause, String)>,
   pub(crate) _raw_before: Vec<(DeleteClause, String)>,
@@ -20,7 +20,7 @@ pub struct DeleteBuilder<'a> {
   pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
-/// All available clauses to be used in `raw_before` and `raw_after` methods of the DeleteBuilder
+/// All available clauses to be used in `raw_before` and `raw_after` methods of the Delete
 #[derive(PartialEq, Clone)]
 pub enum DeleteClause {
   DeleteFrom,
@@ -34,14 +34,14 @@ pub enum DeleteClause {
 
 /// Builder to contruct a insert command
 #[derive(Default, Clone)]
-pub struct InsertBuilder<'a> {
+pub struct Insert<'a> {
   pub(crate) _insert_into: &'a str,
   pub(crate) _on_conflict: &'a str,
   pub(crate) _overriding: &'a str,
   pub(crate) _raw_after: Vec<(InsertClause, String)>,
   pub(crate) _raw_before: Vec<(InsertClause, String)>,
   pub(crate) _raw: Vec<String>,
-  pub(crate) _select: Option<SelectBuilder<'a>>,
+  pub(crate) _select: Option<Select<'a>>,
   pub(crate) _values: Vec<String>,
 
   #[cfg(feature = "postgresql")]
@@ -50,7 +50,7 @@ pub struct InsertBuilder<'a> {
   pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
-/// All available clauses to be used in `raw_before` and `raw_after` methods of the InsertBuilder
+/// All available clauses to be used in `raw_before` and `raw_after` methods of the Insert
 #[derive(PartialEq, Clone)]
 pub enum InsertClause {
   InsertInto,
@@ -67,7 +67,7 @@ pub enum InsertClause {
 
 /// Builder to contruct a select command
 #[derive(Default, Clone)]
-pub struct SelectBuilder<'a> {
+pub struct Select<'a> {
   pub(crate) _from: Vec<String>,
   pub(crate) _group_by: Vec<String>,
   pub(crate) _having: Vec<String>,
@@ -91,7 +91,7 @@ pub struct SelectBuilder<'a> {
   pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
-/// All available clauses to be used in `raw_before` and `raw_after` methods of the SelectBuilder
+/// All available clauses to be used in `raw_before` and `raw_after` methods of the Select
 #[derive(Clone, PartialEq)]
 pub enum SelectClause {
   From,
@@ -116,7 +116,7 @@ pub enum SelectClause {
 
 /// Builder to contruct a update command
 #[derive(Default, Clone)]
-pub struct UpdateBuilder<'a> {
+pub struct Update<'a> {
   pub(crate) _raw_after: Vec<(UpdateClause, String)>,
   pub(crate) _raw_before: Vec<(UpdateClause, String)>,
   pub(crate) _raw: Vec<String>,
@@ -132,7 +132,7 @@ pub struct UpdateBuilder<'a> {
   pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
-/// All available clauses to be used in `raw_before` and `raw_after` methods of the UpdateBuilder
+/// All available clauses to be used in `raw_before` and `raw_after` methods of the Update
 #[derive(PartialEq, Clone)]
 pub enum UpdateClause {
   Set,
@@ -149,14 +149,14 @@ pub enum UpdateClause {
 
 /// Builder to contruct a values command
 #[derive(Default, Clone)]
-pub struct ValuesBuilder {
+pub struct Values {
   pub(crate) _raw_after: Vec<(ValuesClause, String)>,
   pub(crate) _raw_before: Vec<(ValuesClause, String)>,
   pub(crate) _raw: Vec<String>,
   pub(crate) _values: Vec<String>,
 }
 
-/// All available clauses to be used in `raw_before` and `raw_after` methods of the ValuesBuilder
+/// All available clauses to be used in `raw_before` and `raw_after` methods of the Values
 #[derive(PartialEq, Clone)]
 pub enum ValuesClause {
   Values,

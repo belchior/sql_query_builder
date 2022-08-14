@@ -1,9 +1,9 @@
 use pretty_assertions::assert_eq;
-use sql_query_builder::{ValuesBuilder, ValuesClause};
+use sql_query_builder as sql;
 
 #[test]
 fn values_builder_should_be_displayable() {
-  let values = ValuesBuilder::new().values("('foo', 'Foo')").values("('bar', 'Bar')");
+  let values = sql::Values::new().values("('foo', 'Foo')").values("('bar', 'Bar')");
 
   println!("{}", values);
 
@@ -15,7 +15,7 @@ fn values_builder_should_be_displayable() {
 
 #[test]
 fn values_builder_should_be_debuggable() {
-  let values = ValuesBuilder::new().values("('foo', 'Foo')").values("('bar', 'Bar')");
+  let values = sql::Values::new().values("('foo', 'Foo')").values("('bar', 'Bar')");
 
   println!("{:?}", values);
 
@@ -27,11 +27,11 @@ fn values_builder_should_be_debuggable() {
 
 #[test]
 fn values_builder_should_be_cloneable() {
-  let values_foo = ValuesBuilder::new()
+  let values_foo = sql::Values::new()
     .raw("/* test raw */")
-    .raw_before(ValuesClause::Values, "/* test raw_before */")
+    .raw_before(sql::ValuesClause::Values, "/* test raw_before */")
     .values("('foo', 'Foo')")
-    .raw_after(ValuesClause::Values, "/* test raw_after */");
+    .raw_after(sql::ValuesClause::Values, "/* test raw_after */");
 
   let values_foo_bar = values_foo.clone().values("('bar', 'Bar')");
 
@@ -57,7 +57,7 @@ fn values_builder_should_be_cloneable() {
 
 #[test]
 fn values_builder_should_be_able_to_conditionally_add_clauses() {
-  let mut values = ValuesBuilder::new().values("('foo', 'Foo')");
+  let mut values = sql::Values::new().values("('foo', 'Foo')");
 
   if true {
     values = values.values("('bar', 'Bar')");
@@ -71,19 +71,19 @@ fn values_builder_should_be_able_to_conditionally_add_clauses() {
 
 #[test]
 fn values_builder_should_be_composable() {
-  fn value_foo(values: ValuesBuilder) -> ValuesBuilder {
+  fn value_foo(values: sql::Values) -> sql::Values {
     values.values("('foo', 'Foo')")
   }
 
-  fn value_bar(values: ValuesBuilder) -> ValuesBuilder {
+  fn value_bar(values: sql::Values) -> sql::Values {
     values.values("('bar', 'Bar')")
   }
 
-  fn as_string(values: ValuesBuilder) -> String {
+  fn as_string(values: sql::Values) -> String {
     values.as_string()
   }
 
-  let query = Some(ValuesBuilder::new())
+  let query = Some(sql::Values::new())
     .map(value_foo)
     .map(value_bar)
     .map(as_string)
