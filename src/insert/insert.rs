@@ -6,6 +6,21 @@ use crate::{
 
 impl<'a> Insert<'a> {
   /// Gets the current state of the Insert and returns it as string
+  ///
+  /// # Examples
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let query = sql::Insert::new()
+  ///   .insert_into("users (login)")
+  ///   .values("('foo')")
+  ///   .as_string();
+  /// ```
+  ///
+  /// Output
+  /// ```sql
+  /// INSERT INTO users (login) VALUES ('foo')
+  /// ```
   pub fn as_string(&self) -> String {
     let fmts = fmt::one_line();
     self.concat(&fmts)
@@ -14,6 +29,7 @@ impl<'a> Insert<'a> {
   /// Prints the current state of the Insert into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -39,6 +55,7 @@ impl<'a> Insert<'a> {
 
   /// The insert into clause. This method overrides the previous value
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -81,6 +98,7 @@ impl<'a> Insert<'a> {
 
   /// The select clause. This method overrides the previous value
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -110,6 +128,7 @@ impl<'a> Insert<'a> {
 
   /// Adds at the beginning a raw SQL query.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -133,6 +152,7 @@ impl<'a> Insert<'a> {
 
   /// Adds a raw SQL query after a specified clause.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -156,6 +176,7 @@ impl<'a> Insert<'a> {
 
   /// Adds a raw SQL query before a specified clause.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -192,6 +213,7 @@ impl<'a> Insert<'a> {
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///

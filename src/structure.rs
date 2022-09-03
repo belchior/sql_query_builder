@@ -5,7 +5,7 @@ pub enum Combinator {
   Union,
 }
 
-/// Builder to contruct a delete command
+/// Builder to contruct a [Delete] command
 #[derive(Default, Clone)]
 pub struct Delete<'a> {
   pub(crate) _delete_from: &'a str,
@@ -20,7 +20,18 @@ pub struct Delete<'a> {
   pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
-/// All available clauses to be used in `raw_before` and `raw_after` methods of the Delete
+/// All available clauses to be used in `raw_before` and `raw_after` methods on [Delete] builder
+///
+/// # Examples
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let raw = "where name = 'Foo'";
+/// let delete_query = sql::Delete::new()
+///   .delete_from("users")
+///   .raw_after(sql::DeleteClause::DeleteFrom, raw)
+///   .as_string();
+/// ```
 #[derive(PartialEq, Clone)]
 pub enum DeleteClause {
   DeleteFrom,
@@ -32,7 +43,7 @@ pub enum DeleteClause {
   With,
 }
 
-/// Builder to contruct a insert command
+/// Builder to contruct a [Insert] command
 #[derive(Default, Clone)]
 pub struct Insert<'a> {
   pub(crate) _insert_into: &'a str,
@@ -50,7 +61,18 @@ pub struct Insert<'a> {
   pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
-/// All available clauses to be used in `raw_before` and `raw_after` methods of the Insert
+/// All available clauses to be used in `raw_before` and `raw_after` methods on [Insert] builder
+///
+/// # Examples
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let raw = "values ('foo', 'Foo')";
+/// let insert_query = sql::Insert::new()
+///   .insert_into("users (login, name)")
+///   .raw_after(sql::InsertClause::InsertInto, raw)
+///   .as_string();
+/// ```
 #[derive(PartialEq, Clone)]
 pub enum InsertClause {
   InsertInto,
@@ -65,7 +87,7 @@ pub enum InsertClause {
   With,
 }
 
-/// Builder to contruct a select command
+/// Builder to contruct a [Select] command
 #[derive(Default, Clone)]
 pub struct Select<'a> {
   pub(crate) _from: Vec<String>,
@@ -91,7 +113,20 @@ pub struct Select<'a> {
   pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
-/// All available clauses to be used in `raw_before` and `raw_after` methods of the Select
+/// All available clauses to be used in `raw_before` and `raw_after` methods on [Select] builder
+///
+/// # Examples
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let raw_join = "inner join address addr on u.login = addr.owner_login";
+/// let select_query = sql::Select::new()
+///   .select("*")
+///   .from("users u")
+///   .raw_after(sql::SelectClause::From, raw_join)
+///   .where_clause("u.login = foo")
+///   .as_string();
+/// ```
 #[derive(Clone, PartialEq)]
 pub enum SelectClause {
   From,
@@ -114,7 +149,7 @@ pub enum SelectClause {
   With,
 }
 
-/// Builder to contruct a update command
+/// Builder to contruct a [Update] command
 #[derive(Default, Clone)]
 pub struct Update<'a> {
   pub(crate) _raw_after: Vec<(UpdateClause, String)>,
@@ -132,7 +167,18 @@ pub struct Update<'a> {
   pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
-/// All available clauses to be used in `raw_before` and `raw_after` methods of the Update
+/// All available clauses to be used in `raw_before` and `raw_after` methods on [Update] builder
+///
+/// # Examples
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let raw = "set name = 'Foo'";
+/// let update_query = sql::Update::new()
+///   .update("users")
+///   .raw_after(sql::UpdateClause::Update, raw)
+///   .as_string();
+/// ```
 #[derive(PartialEq, Clone)]
 pub enum UpdateClause {
   Set,
@@ -147,7 +193,7 @@ pub enum UpdateClause {
   With,
 }
 
-/// Builder to contruct a values command
+/// Builder to contruct a [Values] command
 #[derive(Default, Clone)]
 pub struct Values {
   pub(crate) _raw_after: Vec<(ValuesClause, String)>,
@@ -156,7 +202,18 @@ pub struct Values {
   pub(crate) _values: Vec<String>,
 }
 
-/// All available clauses to be used in `raw_before` and `raw_after` methods of the Values
+/// All available clauses to be used in `raw_before` and `raw_after` methods on [Values] builder
+///
+/// # Examples
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let raw_query = ", (3, 'three')";
+/// let values = sql::Values::new()
+///   .values("(1, 'one'), (2, 'two')")
+///   .raw_after(sql::ValuesClause::Values, raw_query)
+///   .debug();
+/// ```
 #[derive(PartialEq, Clone)]
 pub enum ValuesClause {
   Values,

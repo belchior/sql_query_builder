@@ -5,8 +5,9 @@ use crate::{
 };
 
 impl<'a> Update<'a> {
-  /// The same as `where_clause` method, useful to write more idiomatic SQL query
+  /// The same as [where_clause](Update::where_clause) method, useful to write more idiomatic SQL query
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -22,6 +23,21 @@ impl<'a> Update<'a> {
   }
 
   /// Gets the current state of the Update and returns it as string
+  ///
+  /// # Examples
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let query = sql::Update::new()
+  ///   .update("users")
+  ///   .set("login = 'foo'")
+  ///   .as_string();
+  /// ```
+  ///
+  /// Output
+  /// ```sql
+  ///  UPDATE users SET login = 'foo'
+  /// ```
   pub fn as_string(&self) -> String {
     let fmts = fmt::one_line();
     self.concat(&fmts)
@@ -30,6 +46,7 @@ impl<'a> Update<'a> {
   /// Prints the current state of the Update into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -75,6 +92,7 @@ impl<'a> Update<'a> {
 
   /// Adds at the beginning a raw SQL query.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -98,6 +116,7 @@ impl<'a> Update<'a> {
 
   /// Adds a raw SQL query after a specified clause.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -121,6 +140,7 @@ impl<'a> Update<'a> {
 
   /// Adds a raw SQL query before a specified clause.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -157,6 +177,7 @@ impl<'a> Update<'a> {
 
   /// The update clause. This method overrides the previous value
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -174,6 +195,7 @@ impl<'a> Update<'a> {
 
   /// The where clause
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -189,6 +211,7 @@ impl<'a> Update<'a> {
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///

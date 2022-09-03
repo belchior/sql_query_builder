@@ -40,7 +40,7 @@ SQL Query Builder comes with the following optional features:
 You can enable features like
 
 ```toml
-# Cargo.toml
+## Cargo.toml
 
 sql_query_builder = { version = "0.x.x", features = ["postgresql"] }
 ```
@@ -212,4 +212,4 @@ let select = sql::Select::new()
 ```
 
 
-See the [documentation](https://docs.rs/sql_query_builder/) for more builders like `Insert`, `Update` and `Delete`
+See the [documentation](https://docs.rs/sql_query_builder/) for more builders like [Insert], [Update] and [Delete]

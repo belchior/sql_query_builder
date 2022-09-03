@@ -5,8 +5,9 @@ use crate::{
 };
 
 impl<'a> Delete<'a> {
-  /// The same as `where_clause` method, useful to write more idiomatic SQL query
+  /// The same as [where_clause](Delete::where_clause) method, useful to write more idiomatic SQL query
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -20,15 +21,31 @@ impl<'a> Delete<'a> {
     self
   }
 
-  /// Gets the current state of the Delete and returns it as string
+  /// Gets the current state of the [Delete] and returns it as string
+  ///
+  /// # Examples
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let query = sql::Delete::new()
+  ///   .delete_from("users")
+  ///   .where_clause("id = $1")
+  ///   .as_string();
+  /// ```
+  ///
+  /// Output
+  /// ```sql
+  /// DELETE FROM users WHERE id = $1
+  /// ```
   pub fn as_string(&self) -> String {
     let fmts = fmt::one_line();
     self.concat(&fmts)
   }
 
-  /// Prints the current state of the Delete into console output in a more ease to read version.
+  /// Prints the current state of the [Delete] into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -54,6 +71,7 @@ impl<'a> Delete<'a> {
 
   /// The delete clause. This method overrides the previous value
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -74,7 +92,7 @@ impl<'a> Delete<'a> {
     Self::default()
   }
 
-  /// Prints the current state of the Delete into console output similar to debug method,
+  /// Prints the current state of the [Delete] into console output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::one_line();
@@ -84,6 +102,7 @@ impl<'a> Delete<'a> {
 
   /// Adds at the beginning a raw SQL query.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -107,6 +126,7 @@ impl<'a> Delete<'a> {
 
   /// Adds a raw SQL query after a specified clause.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -130,6 +150,7 @@ impl<'a> Delete<'a> {
 
   /// Adds a raw SQL query before a specified clause.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -160,6 +181,7 @@ impl<'a> Delete<'a> {
 
   /// The where clause
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -174,6 +196,7 @@ impl<'a> Delete<'a> {
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
