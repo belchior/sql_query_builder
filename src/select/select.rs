@@ -5,8 +5,9 @@ use crate::{
 };
 
 impl<'a> Select<'a> {
-  /// The same as `where_clause` method, useful to write more idiomatic SQL query
+  /// The same as [where_clause](Select::where_clause) method, useful to write more idiomatic SQL query
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -20,6 +21,22 @@ impl<'a> Select<'a> {
   }
 
   /// Gets the current state of the Select returns it as string
+  ///
+  /// # Examples
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let query = sql::Select::new()
+  ///   .select("id")
+  ///   .from("users")
+  ///   .where_clause("login = 'foo'")
+  ///   .as_string();
+  /// ```
+  ///
+  /// Output
+  /// ```sql
+  /// SELECT id FROM users WHERE login = 'foo'
+  /// ```
   pub fn as_string(&self) -> String {
     let fmts = fmt::one_line();
     self.concat(&fmts)
@@ -28,6 +45,7 @@ impl<'a> Select<'a> {
   /// Prints the current state of the Select into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -49,6 +67,7 @@ impl<'a> Select<'a> {
   ///
   /// You can debug different parts of the select putting it in another position
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -139,6 +158,7 @@ impl<'a> Select<'a> {
 
   /// The limit clause. This method overrides the previous value
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -161,6 +181,7 @@ impl<'a> Select<'a> {
 
   /// The offset clause. This method overrides the previous value
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -192,6 +213,7 @@ impl<'a> Select<'a> {
 
   /// Adds at the beginning a raw SQL query.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -215,6 +237,7 @@ impl<'a> Select<'a> {
 
   /// Adds a raw SQL query after a specified clause.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -242,6 +265,7 @@ impl<'a> Select<'a> {
 
   /// Adds a raw SQL query before a specified clause.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -280,6 +304,7 @@ impl<'a> Select<'a> {
 
   /// The where clause
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -294,6 +319,7 @@ impl<'a> Select<'a> {
 
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///

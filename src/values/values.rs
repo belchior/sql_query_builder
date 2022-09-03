@@ -6,6 +6,20 @@ use crate::{
 
 impl Values {
   /// Gets the current state of the Values and returns it as string
+  ///
+  /// # Examples
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let query = sql::Values::new()
+  ///   .values("('foo', 'Foo')")
+  ///   .as_string();
+  /// ```
+  ///
+  /// Output
+  /// ```sql
+  /// VALUES ('foo', 'Foo')
+  /// ```
   pub fn as_string(&self) -> String {
     let fmts = fmt::one_line();
     self.concat(&fmts)
@@ -14,6 +28,7 @@ impl Values {
   /// Prints the current state of the Values into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -49,6 +64,7 @@ impl Values {
 
   /// Adds at the beginning a raw SQL query.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -72,6 +88,7 @@ impl Values {
 
   /// Adds a raw SQL query after a specified clause.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -94,6 +111,7 @@ impl Values {
 
   /// Adds a raw SQL query before a specified clause.
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -117,6 +135,7 @@ impl Values {
 
   /// The values clause
   ///
+  /// # Examples
   /// ```
   /// use sql_query_builder as sql;
   ///
