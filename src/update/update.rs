@@ -71,7 +71,7 @@ impl<'a> Update<'a> {
   }
 
   /// The from clause, this method can be used enabling the feature flag `postgresql`
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(doc, feature = "postgresql"))]
   pub fn from(mut self, tables: &'a str) -> Self {
     push_unique(&mut self._from, tables.trim().to_owned());
     self
@@ -163,7 +163,7 @@ impl<'a> Update<'a> {
   }
 
   /// The returning clause, this method can be used enabling the feature flag `postgresql`
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(doc, feature = "postgresql"))]
   pub fn returning(mut self, output_name: &'a str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
@@ -239,7 +239,7 @@ impl<'a> Update<'a> {
   /// SET count = count + 1
   /// WHERE id = (select group_id from user)
   /// ```
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(doc, feature = "postgresql"))]
   pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim(), std::sync::Arc::new(query)));
     self

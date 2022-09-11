@@ -199,7 +199,7 @@ impl<'a> Insert<'a> {
   }
 
   /// The returning clause, this method can be used enabling the feature flag `postgresql`
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(doc, feature = "postgresql"))]
   pub fn returning(mut self, output_name: &'a str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
@@ -237,7 +237,7 @@ impl<'a> Insert<'a> {
   /// SELECT *
   /// FROM active_users
   /// ```
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(doc, feature = "postgresql"))]
   pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim(), std::sync::Arc::new(query)));
     self

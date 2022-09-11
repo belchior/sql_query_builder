@@ -93,7 +93,7 @@ impl<'a> Select<'a> {
   }
 
   /// The except clause, this method can be used enabling the feature flag `postgresql`
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(doc, feature = "postgresql"))]
   pub fn except(mut self, select: Self) -> Self {
     self._except.push(select);
     self
@@ -150,7 +150,7 @@ impl<'a> Select<'a> {
   }
 
   /// The intersect clause, this method can be used enabling the feature flag `postgresql`
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(doc, feature = "postgresql"))]
   pub fn intersect(mut self, select: Self) -> Self {
     self._intersect.push(select);
     self
@@ -296,7 +296,7 @@ impl<'a> Select<'a> {
   }
 
   /// The union clause, this method can be used enabling the feature flag `postgresql`
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(doc, feature = "postgresql"))]
   pub fn union(mut self, select: Self) -> Self {
     self._union.push(select);
     self
@@ -344,7 +344,7 @@ impl<'a> Select<'a> {
   /// FROM orders
   /// WHERE owner_login in (select * from active_users)
   /// ```
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(doc, feature = "postgresql"))]
   pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim(), std::sync::Arc::new(query)));
     self

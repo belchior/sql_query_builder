@@ -1,6 +1,6 @@
 Write SQL queries in a simple and composable way.
 
-The main goal is to find the best balance between write idiomatic SQL queries and manage cenarios
+The main goal is to find the best balance between write idiomatic SQL queries and manage scenarios
 of complex query composition mixed with conditional clauses.
 
 
@@ -42,7 +42,7 @@ You can enable features like
 ```toml
 ## Cargo.toml
 
-sql_query_builder = { version = "0.x.x", features = ["postgresql"] }
+sql_query_builder = { version = "1.x.x", features = ["postgresql"] }
 ```
 
 
@@ -168,7 +168,7 @@ WHERE u.login = $1 AND o.id = $2
 ## Raw queries
 
 You can use the raw method to accomplish some edge cases that are hard to rewrite into the Select syntax.
-The `select.raw()` method will put any SQL you define at top of the output
+The `select.raw()` method will put any SQL you define on top of the output
 
 ```rust
 use sql_query_builder as sql;
@@ -212,4 +212,4 @@ let select = sql::Select::new()
 ```
 
 
-See the [documentation](https://docs.rs/sql_query_builder/) for more builders like [Insert], [Update] and [Delete]
+See the [documentation](https://docs.rs/sql_query_builder/) for more builders like [Insert](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Insert.html), [Update](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Update.html) and [Delete](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Delete.html)
