@@ -15,7 +15,7 @@ impl<'a> Select<'a> {
   ///   .where_clause("login = foo")
   ///   .and("active = true");
   /// ```
-  pub fn and(mut self, condition: &'a str) -> Self {
+  pub fn and(mut self, condition: &str) -> Self {
     self = self.where_clause(condition);
     self
   }
@@ -100,25 +100,25 @@ impl<'a> Select<'a> {
   }
 
   /// The from clause
-  pub fn from(mut self, tables: &'a str) -> Self {
+  pub fn from(mut self, tables: &str) -> Self {
     push_unique(&mut self._from, tables.trim().to_owned());
     self
   }
 
   /// The group by clause
-  pub fn group_by(mut self, column: &'a str) -> Self {
+  pub fn group_by(mut self, column: &str) -> Self {
     push_unique(&mut self._group_by, column.trim().to_owned());
     self
   }
 
   /// The having clause
-  pub fn having(mut self, condition: &'a str) -> Self {
+  pub fn having(mut self, condition: &str) -> Self {
     push_unique(&mut self._having, condition.trim().to_owned());
     self
   }
 
   /// The cross join clause
-  pub fn cross_join(mut self, table: &'a str) -> Self {
+  pub fn cross_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("CROSS JOIN {table}");
     push_unique(&mut self._join, table);
@@ -126,7 +126,7 @@ impl<'a> Select<'a> {
   }
 
   /// The inner join clause
-  pub fn inner_join(mut self, table: &'a str) -> Self {
+  pub fn inner_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("INNER JOIN {table}");
     push_unique(&mut self._join, table);
@@ -134,7 +134,7 @@ impl<'a> Select<'a> {
   }
 
   /// The left join clause
-  pub fn left_join(mut self, table: &'a str) -> Self {
+  pub fn left_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("LEFT JOIN {table}");
     push_unique(&mut self._join, table);
@@ -142,7 +142,7 @@ impl<'a> Select<'a> {
   }
 
   /// The right join clause
-  pub fn right_join(mut self, table: &'a str) -> Self {
+  pub fn right_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("RIGHT JOIN {table}");
     push_unique(&mut self._join, table);
@@ -198,7 +198,7 @@ impl<'a> Select<'a> {
   }
 
   /// The order by clause
-  pub fn order_by(mut self, column: &'a str) -> Self {
+  pub fn order_by(mut self, column: &str) -> Self {
     push_unique(&mut self._order_by, column.trim().to_owned());
     self
   }
@@ -230,7 +230,7 @@ impl<'a> Select<'a> {
   /// select * from users u inner join address addr on u.login = addr.owner_login
   /// WHERE u.login = foo
   /// ```
-  pub fn raw(mut self, raw_sql: &'a str) -> Self {
+  pub fn raw(mut self, raw_sql: &str) -> Self {
     push_unique(&mut self._raw, raw_sql.trim().to_owned());
     self
   }
@@ -258,7 +258,7 @@ impl<'a> Select<'a> {
   /// inner join address addr on u.login = addr.owner_login
   /// WHERE u.login = foo
   /// ```
-  pub fn raw_after(mut self, clause: SelectClause, raw_sql: &'a str) -> Self {
+  pub fn raw_after(mut self, clause: SelectClause, raw_sql: &str) -> Self {
     self._raw_after.push((clause, raw_sql.trim().to_owned()));
     self
   }
@@ -284,13 +284,13 @@ impl<'a> Select<'a> {
   /// from users u inner join address addr on u.login = addr.owner_login
   /// WHERE u.login = foo
   /// ```
-  pub fn raw_before(mut self, clause: SelectClause, raw_sql: &'a str) -> Self {
+  pub fn raw_before(mut self, clause: SelectClause, raw_sql: &str) -> Self {
     self._raw_before.push((clause, raw_sql.trim().to_owned()));
     self
   }
 
   /// The select clause
-  pub fn select(mut self, column: &'a str) -> Self {
+  pub fn select(mut self, column: &str) -> Self {
     push_unique(&mut self._select, column.trim().to_owned());
     self
   }
@@ -312,7 +312,7 @@ impl<'a> Select<'a> {
   ///   .from("users")
   ///   .where_clause("login = $1");
   /// ```
-  pub fn where_clause(mut self, condition: &'a str) -> Self {
+  pub fn where_clause(mut self, condition: &str) -> Self {
     push_unique(&mut self._where, condition.trim().to_owned());
     self
   }

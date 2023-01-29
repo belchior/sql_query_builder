@@ -16,7 +16,7 @@ impl<'a> Delete<'a> {
   ///   .where_clause("created_at < $1")
   ///   .and("active = false");
   /// ```
-  pub fn and(mut self, condition: &'a str) -> Self {
+  pub fn and(mut self, condition: &str) -> Self {
     self = self.where_clause(condition);
     self
   }
@@ -119,7 +119,7 @@ impl<'a> Delete<'a> {
   /// delete from users
   /// WHERE login = 'foo'
   /// ```
-  pub fn raw(mut self, raw_sql: &'a str) -> Self {
+  pub fn raw(mut self, raw_sql: &str) -> Self {
     push_unique(&mut self._raw, raw_sql.trim().to_owned());
     self
   }
@@ -143,7 +143,7 @@ impl<'a> Delete<'a> {
   /// DELETE FROM users
   /// where name = 'Foo'
   /// ```
-  pub fn raw_after(mut self, clause: DeleteClause, raw_sql: &'a str) -> Self {
+  pub fn raw_after(mut self, clause: DeleteClause, raw_sql: &str) -> Self {
     self._raw_after.push((clause, raw_sql.trim().to_owned()));
     self
   }
@@ -167,14 +167,14 @@ impl<'a> Delete<'a> {
   /// delete from users
   /// WHERE name = 'Bar'
   /// ```
-  pub fn raw_before(mut self, clause: DeleteClause, raw_sql: &'a str) -> Self {
+  pub fn raw_before(mut self, clause: DeleteClause, raw_sql: &str) -> Self {
     self._raw_before.push((clause, raw_sql.trim().to_owned()));
     self
   }
 
   /// The returning clause, this method can be used enabling the feature flag `postgresql`
   #[cfg(any(doc, feature = "postgresql"))]
-  pub fn returning(mut self, output_name: &'a str) -> Self {
+  pub fn returning(mut self, output_name: &str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
   }
@@ -189,7 +189,7 @@ impl<'a> Delete<'a> {
   ///   .delete_from("users")
   ///   .where_clause("login = 'foo'");
   /// ```
-  pub fn where_clause(mut self, condition: &'a str) -> Self {
+  pub fn where_clause(mut self, condition: &str) -> Self {
     push_unique(&mut self._where, condition.trim().to_owned());
     self
   }

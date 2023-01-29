@@ -17,7 +17,7 @@ impl<'a> Update<'a> {
   ///   .where_clause("login = $2")
   ///   .and("active = true");
   /// ```
-  pub fn and(mut self, condition: &'a str) -> Self {
+  pub fn and(mut self, condition: &str) -> Self {
     self = self.where_clause(condition);
     self
   }
@@ -72,7 +72,7 @@ impl<'a> Update<'a> {
 
   /// The from clause, this method can be used enabling the feature flag `postgresql`
   #[cfg(any(doc, feature = "postgresql"))]
-  pub fn from(mut self, tables: &'a str) -> Self {
+  pub fn from(mut self, tables: &str) -> Self {
     push_unique(&mut self._from, tables.trim().to_owned());
     self
   }
@@ -109,7 +109,7 @@ impl<'a> Update<'a> {
   /// update users
   /// SET login = 'foo'
   /// ```
-  pub fn raw(mut self, raw_sql: &'a str) -> Self {
+  pub fn raw(mut self, raw_sql: &str) -> Self {
     push_unique(&mut self._raw, raw_sql.trim().to_owned());
     self
   }
@@ -133,7 +133,7 @@ impl<'a> Update<'a> {
   /// UPDATE users
   /// set name = 'Foo'
   /// ```
-  pub fn raw_after(mut self, clause: UpdateClause, raw_sql: &'a str) -> Self {
+  pub fn raw_after(mut self, clause: UpdateClause, raw_sql: &str) -> Self {
     self._raw_after.push((clause, raw_sql.trim().to_owned()));
     self
   }
@@ -157,20 +157,20 @@ impl<'a> Update<'a> {
   /// update users
   /// SET name = 'Bar'
   /// ```
-  pub fn raw_before(mut self, clause: UpdateClause, raw_sql: &'a str) -> Self {
+  pub fn raw_before(mut self, clause: UpdateClause, raw_sql: &str) -> Self {
     self._raw_before.push((clause, raw_sql.trim().to_owned()));
     self
   }
 
   /// The returning clause, this method can be used enabling the feature flag `postgresql`
   #[cfg(any(doc, feature = "postgresql"))]
-  pub fn returning(mut self, output_name: &'a str) -> Self {
+  pub fn returning(mut self, output_name: &str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
   }
 
   /// The set clause
-  pub fn set(mut self, value: &'a str) -> Self {
+  pub fn set(mut self, value: &str) -> Self {
     push_unique(&mut self._set, value.trim().to_owned());
     self
   }
@@ -204,7 +204,7 @@ impl<'a> Update<'a> {
   ///   .set("name = $1")
   ///   .where_clause("login = $2");
   /// ```
-  pub fn where_clause(mut self, condition: &'a str) -> Self {
+  pub fn where_clause(mut self, condition: &str) -> Self {
     push_unique(&mut self._where, condition.trim().to_owned());
     self
   }

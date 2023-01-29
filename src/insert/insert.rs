@@ -145,7 +145,7 @@ impl<'a> Insert<'a> {
   /// insert into users (login, name)
   /// VALUES ('bar', 'Bar')
   /// ```
-  pub fn raw(mut self, raw_sql: &'a str) -> Self {
+  pub fn raw(mut self, raw_sql: &str) -> Self {
     push_unique(&mut self._raw, raw_sql.trim().to_owned());
     self
   }
@@ -169,7 +169,7 @@ impl<'a> Insert<'a> {
   /// INSERT INTO users (login, name)
   /// values ('foo', 'Foo')
   /// ```
-  pub fn raw_after(mut self, clause: InsertClause, raw_sql: &'a str) -> Self {
+  pub fn raw_after(mut self, clause: InsertClause, raw_sql: &str) -> Self {
     self._raw_after.push((clause, raw_sql.trim().to_owned()));
     self
   }
@@ -193,20 +193,20 @@ impl<'a> Insert<'a> {
   /// insert into users (login, name)
   /// VALUES ('bar', 'Bar')
   /// ```
-  pub fn raw_before(mut self, clause: InsertClause, raw_sql: &'a str) -> Self {
+  pub fn raw_before(mut self, clause: InsertClause, raw_sql: &str) -> Self {
     self._raw_before.push((clause, raw_sql.trim().to_owned()));
     self
   }
 
   /// The returning clause, this method can be used enabling the feature flag `postgresql`
   #[cfg(any(doc, feature = "postgresql"))]
-  pub fn returning(mut self, output_name: &'a str) -> Self {
+  pub fn returning(mut self, output_name: &str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
   }
 
   /// The values clause
-  pub fn values(mut self, value: &'a str) -> Self {
+  pub fn values(mut self, value: &str) -> Self {
     push_unique(&mut self._values, value.trim().to_owned());
     self
   }
