@@ -197,7 +197,7 @@ impl<'a> Delete<'a> {
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   ///
   /// # Examples
-  /// ```
+  /// ```text
   /// use sql_query_builder as sql;
   ///
   /// let deactivated_users = sql::Select::new().select("id").from("users").where_clause("ative = false");

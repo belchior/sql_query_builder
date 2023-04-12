@@ -214,7 +214,7 @@ impl<'a> Insert<'a> {
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   ///
   /// # Examples
-  /// ```
+  /// ```text
   /// use sql_query_builder as sql;
   ///
   /// let active_users = sql::Select::new().select("*").from("users_bk").where_clause("ative = true");

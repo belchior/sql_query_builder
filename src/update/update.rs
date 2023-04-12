@@ -212,7 +212,7 @@ impl<'a> Update<'a> {
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   ///
   /// # Examples
-  /// ```
+  /// ```text
   /// use sql_query_builder as sql;
   ///
   /// let user = sql::Insert::new()
