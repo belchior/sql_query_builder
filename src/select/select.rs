@@ -320,7 +320,7 @@ impl<'a> Select<'a> {
   /// The with clause, this method can be used enabling the feature flag `postgresql`
   ///
   /// # Examples
-  /// ```
+  /// ```text
   /// use sql_query_builder as sql;
   ///
   /// let logins = sql::Select::new().select("login").from("users").where_clause("id in ($1)");
