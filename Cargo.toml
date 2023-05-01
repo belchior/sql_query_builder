@@ -4,8 +4,9 @@ description = "Write SQL queries in a simple and composable way"
 documentation = "https://docs.rs/sql_query_builder"
 repository = "https://github.com/belchior/sql_query_builder"
 authors = ["Belchior Oliveira <belchior@outlook.com>"]
-version = "1.0.2"
+version = "1.0.3"
 edition = "2021"
+rust-version = "1.58"
 license = "MIT"
 keywords = ["sql", "query", "postgres"]
 
