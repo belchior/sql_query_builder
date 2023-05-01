@@ -92,13 +92,6 @@ impl<'a> Select<'a> {
     self
   }
 
-  /// The except clause, this method can be used enabling the feature flag `postgresql`
-  #[cfg(any(doc, feature = "postgresql"))]
-  pub fn except(mut self, select: Self) -> Self {
-    self._except.push(select);
-    self
-  }
-
   /// The from clause
   pub fn from(mut self, tables: &str) -> Self {
     push_unique(&mut self._from, tables.trim().to_owned());
@@ -146,13 +139,6 @@ impl<'a> Select<'a> {
     let table = table.trim();
     let table = format!("RIGHT JOIN {table}");
     push_unique(&mut self._join, table);
-    self
-  }
-
-  /// The intersect clause, this method can be used enabling the feature flag `postgresql`
-  #[cfg(any(doc, feature = "postgresql"))]
-  pub fn intersect(mut self, select: Self) -> Self {
-    self._intersect.push(select);
     self
   }
 
@@ -295,13 +281,6 @@ impl<'a> Select<'a> {
     self
   }
 
-  /// The union clause, this method can be used enabling the feature flag `postgresql`
-  #[cfg(any(doc, feature = "postgresql"))]
-  pub fn union(mut self, select: Self) -> Self {
-    self._union.push(select);
-    self
-  }
-
   /// The where clause
   ///
   /// # Examples
@@ -314,6 +293,27 @@ impl<'a> Select<'a> {
   /// ```
   pub fn where_clause(mut self, condition: &str) -> Self {
     push_unique(&mut self._where, condition.trim().to_owned());
+    self
+  }
+}
+
+#[cfg(any(doc, feature = "postgresql"))]
+impl<'a> Select<'a> {
+  /// The except clause, this method can be used enabling the feature flag `postgresql`
+  pub fn except(mut self, select: Self) -> Self {
+    self._except.push(select);
+    self
+  }
+
+  /// The intersect clause, this method can be used enabling the feature flag `postgresql`
+  pub fn intersect(mut self, select: Self) -> Self {
+    self._intersect.push(select);
+    self
+  }
+
+  /// The union clause, this method can be used enabling the feature flag `postgresql`
+  pub fn union(mut self, select: Self) -> Self {
+    self._union.push(select);
     self
   }
 
@@ -344,7 +344,6 @@ impl<'a> Select<'a> {
   /// FROM orders
   /// WHERE owner_login in (select * from active_users)
   /// ```
-  #[cfg(any(doc, feature = "postgresql"))]
   pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim(), std::sync::Arc::new(query)));
     self

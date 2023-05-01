@@ -1,10 +1,10 @@
 use crate::{
-  behavior::{Concat, ConcatMethods},
+  behavior::{Concat, ConcatSqlStandard},
   fmt,
   structure::{Values, ValuesClause},
 };
 
-impl<'a> ConcatMethods<'a, ValuesClause> for Values {}
+impl<'a> ConcatSqlStandard<'a, ValuesClause> for Values {}
 
 impl Concat for Values {
   fn concat(&self, fmts: &fmt::Formatter) -> String {

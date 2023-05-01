@@ -1,10 +1,48 @@
+#[cfg(feature = "postgresql")]
+use crate::behavior::ConcatPostgres;
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatMethods},
+  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
   fmt,
   structure::{Update, UpdateClause},
 };
 
-impl<'a> ConcatMethods<'a, UpdateClause> for Update<'_> {}
+impl<'a> ConcatSqlStandard<'a, UpdateClause> for Update<'_> {}
+
+#[cfg(feature = "postgresql")]
+impl<'a> ConcatPostgres<'a, UpdateClause> for Update<'_> {}
+
+impl Update<'_> {
+  fn concat_set(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { comma, lb, space, .. } = fmts;
+    let sql = if self._set.is_empty() == false {
+      let values = self._set.join(comma);
+      format!("SET{space}{values}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    concat_raw_before_after(&self._raw_before, &self._raw_after, query, fmts, UpdateClause::Set, sql)
+  }
+
+  fn concat_update(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._update.is_empty() == false {
+      let table_name = self._update;
+      format!("UPDATE{space}{table_name}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      UpdateClause::Update,
+      sql,
+    )
+  }
+}
 
 impl Concat for Update<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
@@ -57,38 +95,5 @@ impl Concat for Update<'_> {
     }
 
     query.trim_end().to_owned()
-  }
-}
-
-impl Update<'_> {
-  fn concat_set(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { comma, lb, space, .. } = fmts;
-    let sql = if self._set.is_empty() == false {
-      let values = self._set.join(comma);
-      format!("SET{space}{values}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    concat_raw_before_after(&self._raw_before, &self._raw_after, query, fmts, UpdateClause::Set, sql)
-  }
-
-  fn concat_update(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._update.is_empty() == false {
-      let table_name = self._update;
-      format!("UPDATE{space}{table_name}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      UpdateClause::Update,
-      sql,
-    )
   }
 }

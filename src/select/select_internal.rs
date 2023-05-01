@@ -1,64 +1,18 @@
+#[cfg(feature = "postgresql")]
+use crate::behavior::ConcatPostgres;
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatMethods},
+  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
   fmt,
   structure::{Select, SelectClause},
 };
 
-impl<'a> ConcatMethods<'a, SelectClause> for Select<'_> {}
+impl<'a> ConcatSqlStandard<'a, SelectClause> for Select<'_> {}
 
-impl Concat for Select<'_> {
-  fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_owned();
+#[cfg(feature = "postgresql")]
+impl<'a> ConcatPostgres<'a, SelectClause> for Select<'_> {}
 
-    query = self.concat_raw(query, &fmts, &self._raw);
-    #[cfg(feature = "postgresql")]
-    {
-      query = self.concat_with(
-        &self._raw_before,
-        &self._raw_after,
-        query,
-        &fmts,
-        SelectClause::With,
-        &self._with,
-      );
-    }
-    query = self.concat_select(query, &fmts);
-    query = self.concat_from(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      &fmts,
-      SelectClause::From,
-      &self._from,
-    );
-    query = self.concat_join(query, &fmts);
-    query = self.concat_where(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      &fmts,
-      SelectClause::Where,
-      &self._where,
-    );
-    query = self.concat_group_by(query, &fmts);
-    query = self.concat_having(query, &fmts);
-    query = self.concat_order_by(query, &fmts);
-    query = self.concat_limit(query, &fmts);
-    query = self.concat_offset(query, &fmts);
-    #[cfg(feature = "postgresql")]
-    {
-      use crate::structure::Combinator;
-      query = self.concat_combinator(query, &fmts, Combinator::Except);
-      query = self.concat_combinator(query, &fmts, Combinator::Intersect);
-      query = self.concat_combinator(query, &fmts, Combinator::Union);
-    }
-
-    query.trim_end().to_owned()
-  }
-}
-
+#[cfg(feature = "postgresql")]
 impl Select<'_> {
-  #[cfg(feature = "postgresql")]
   fn concat_combinator(
     &self,
     query: String,
@@ -105,7 +59,9 @@ impl Select<'_> {
 
     format!("{left_stmt}{right_stmt}{raw_after}{space_after}")
   }
+}
 
+impl Select<'_> {
   fn concat_group_by(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._group_by.is_empty() == false {
@@ -237,5 +193,58 @@ impl Select<'_> {
       SelectClause::Select,
       sql,
     )
+  }
+}
+
+impl Concat for Select<'_> {
+  fn concat(&self, fmts: &fmt::Formatter) -> String {
+    let mut query = "".to_owned();
+
+    query = self.concat_raw(query, &fmts, &self._raw);
+
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_with(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::With,
+        &self._with,
+      );
+    }
+    query = self.concat_select(query, &fmts);
+    query = self.concat_from(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      &fmts,
+      SelectClause::From,
+      &self._from,
+    );
+    query = self.concat_join(query, &fmts);
+    query = self.concat_where(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      &fmts,
+      SelectClause::Where,
+      &self._where,
+    );
+    query = self.concat_group_by(query, &fmts);
+    query = self.concat_having(query, &fmts);
+    query = self.concat_order_by(query, &fmts);
+    query = self.concat_limit(query, &fmts);
+    query = self.concat_offset(query, &fmts);
+
+    #[cfg(feature = "postgresql")]
+    {
+      use crate::structure::Combinator;
+      query = self.concat_combinator(query, &fmts, Combinator::Except);
+      query = self.concat_combinator(query, &fmts, Combinator::Intersect);
+      query = self.concat_combinator(query, &fmts, Combinator::Union);
+    }
+
+    query.trim_end().to_owned()
   }
 }

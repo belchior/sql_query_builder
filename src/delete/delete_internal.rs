@@ -1,10 +1,36 @@
+#[cfg(feature = "postgresql")]
+use crate::behavior::ConcatPostgres;
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatMethods},
+  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
   fmt,
   structure::{Delete, DeleteClause},
 };
 
-impl<'a> ConcatMethods<'a, DeleteClause> for Delete<'_> {}
+impl<'a> ConcatSqlStandard<'a, DeleteClause> for Delete<'_> {}
+
+#[cfg(feature = "postgresql")]
+impl<'a> ConcatPostgres<'a, DeleteClause> for Delete<'_> {}
+
+impl Delete<'_> {
+  fn concat_delete_from(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._delete_from.is_empty() == false {
+      let table_name = self._delete_from;
+      format!("DELETE FROM{space}{table_name}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      DeleteClause::DeleteFrom,
+      sql,
+    )
+  }
+}
 
 impl Concat for Delete<'_> {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
@@ -44,26 +70,5 @@ impl Concat for Delete<'_> {
     }
 
     query.trim_end().to_owned()
-  }
-}
-
-impl Delete<'_> {
-  fn concat_delete_from(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._delete_from.is_empty() == false {
-      let table_name = self._delete_from;
-      format!("DELETE FROM{space}{table_name}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      DeleteClause::DeleteFrom,
-      sql,
-    )
   }
 }

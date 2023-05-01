@@ -172,13 +172,6 @@ impl<'a> Delete<'a> {
     self
   }
 
-  /// The returning clause, this method can be used enabling the feature flag `postgresql`
-  #[cfg(any(doc, feature = "postgresql"))]
-  pub fn returning(mut self, output_name: &str) -> Self {
-    push_unique(&mut self._returning, output_name.trim().to_owned());
-    self
-  }
-
   /// The where clause
   ///
   /// # Examples
@@ -191,6 +184,15 @@ impl<'a> Delete<'a> {
   /// ```
   pub fn where_clause(mut self, condition: &str) -> Self {
     push_unique(&mut self._where, condition.trim().to_owned());
+    self
+  }
+}
+
+#[cfg(any(doc, feature = "postgresql"))]
+impl<'a> Delete<'a> {
+  /// The returning clause, this method can be used enabling the feature flag `postgresql`
+  pub fn returning(mut self, output_name: &str) -> Self {
+    push_unique(&mut self._returning, output_name.trim().to_owned());
     self
   }
 
@@ -219,7 +221,6 @@ impl<'a> Delete<'a> {
   /// DELETE FROM users
   /// WHERE id in (select * from deactivated_users)
   /// ```
-  #[cfg(any(doc, feature = "postgresql"))]
   pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim(), std::sync::Arc::new(query)));
     self

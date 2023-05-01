@@ -1,55 +1,15 @@
+#[cfg(feature = "postgresql")]
+use crate::behavior::ConcatPostgres;
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatMethods},
+  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
   fmt,
   structure::{Insert, InsertClause},
 };
 
-impl<'a> ConcatMethods<'a, InsertClause> for Insert<'_> {}
+impl<'a> ConcatSqlStandard<'a, InsertClause> for Insert<'_> {}
 
-impl Concat for Insert<'_> {
-  fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_owned();
-
-    query = self.concat_raw(query, &fmts, &self._raw);
-    #[cfg(feature = "postgresql")]
-    {
-      query = self.concat_with(
-        &self._raw_before,
-        &self._raw_after,
-        query,
-        &fmts,
-        InsertClause::With,
-        &self._with,
-      );
-    }
-    query = self.concat_insert_into(query, &fmts);
-    query = self.concat_overriding(query, &fmts);
-    query = self.concat_values(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      &fmts,
-      InsertClause::Values,
-      &self._values,
-    );
-    query = self.concat_select(query, &fmts);
-    query = self.concat_on_conflict(query, &fmts);
-
-    #[cfg(feature = "postgresql")]
-    {
-      query = self.concat_returning(
-        &self._raw_before,
-        &self._raw_after,
-        query,
-        &fmts,
-        InsertClause::Returning,
-        &self._returning,
-      );
-    }
-
-    query.trim_end().to_owned()
-  }
-}
+#[cfg(feature = "postgresql")]
+impl<'a> ConcatPostgres<'a, InsertClause> for Insert<'_> {}
 
 impl Insert<'_> {
   fn concat_insert_into(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -126,5 +86,50 @@ impl Insert<'_> {
       InsertClause::Select,
       sql,
     )
+  }
+}
+
+impl Concat for Insert<'_> {
+  fn concat(&self, fmts: &fmt::Formatter) -> String {
+    let mut query = "".to_owned();
+
+    query = self.concat_raw(query, &fmts, &self._raw);
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_with(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        InsertClause::With,
+        &self._with,
+      );
+    }
+    query = self.concat_insert_into(query, &fmts);
+    query = self.concat_overriding(query, &fmts);
+    query = self.concat_values(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      &fmts,
+      InsertClause::Values,
+      &self._values,
+    );
+    query = self.concat_select(query, &fmts);
+    query = self.concat_on_conflict(query, &fmts);
+
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_returning(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        InsertClause::Returning,
+        &self._returning,
+      );
+    }
+
+    query.trim_end().to_owned()
   }
 }
