@@ -48,9 +48,8 @@ sql_query_builder = { version = "1.x.x", features = ["postgresql"] }
 
 ## How it's works
 In simple terms this library will not try to understand what you are writing inside the arguments, this is good
-because it's removes a lot complexity and verbosity that other libraries needs to generate a SQL query,
-in contrast debugging tends to be more difficult and silly error can araise.
-The lib has `.debug()` method with a nice output to minimize the effort to debug a complex query.
+because it's removes a lot of complexity and verbosity to generate a SQL query, in contrast debugging tends to be more difficult and silly error can araise.
+The lib has the [debug()](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Select.html#method.debug) method with a nice output to minimize the effort to debug a complex query.
 
 Consecutive calls to the same clause will accumulates values respecting the order of the calls,
 the two select produce the same SQL query
@@ -66,20 +65,20 @@ let select = sql::Select::new()
   .select("login");
 ```
 
-Methods like `limit` and `offset` will override the previous value, the two select produce the same SQL query
+Methods like `limit` and `offset` will override the previous value, the two select is equivalent
 
 ```rust
 use sql_query_builder as sql;
 
 let select = sql::Select::new()
+  .limit("1000")
   .limit("123");
 
 let select = sql::Select::new()
-  .limit("1000")
   .limit("123");
 ```
 
-The library ignores the order between clauses so the two selects produce the same SQL query
+The library ignores the order between clauses so the two selects are the same
 
 ```rust
 use sql_query_builder as sql;
@@ -211,5 +210,25 @@ let select = sql::Select::new()
   .where_clause("login = $1");
 ```
 
+## Debugging queries
+
+Sometimes it's more ease just print de current state of the query builder, to do this just add the .debug() method at any part of the builder, note that the where clause will not be printed because the debug was added before
+
+```rust
+use sql_query_builder as sql;
+
+let mut select = sql::Select::new()
+  .select("id, login")
+  .from("users")
+  .debug()
+  .where_clause("login = $1");
+```
+
+Output
+
+```sql
+SELECT id, login
+FROM users
+```
 
 See the [documentation](https://docs.rs/sql_query_builder/) for more builders like [Insert](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Insert.html), [Update](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Update.html) and [Delete](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Delete.html)
