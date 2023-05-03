@@ -4,7 +4,7 @@ use crate::{
   structure::{Select, SelectClause},
 };
 
-impl<'a> Select<'a> {
+impl Select<'_> {
   /// The same as [where_clause](Select::where_clause) method, useful to write more idiomatic SQL query
   ///
   /// # Examples
@@ -142,45 +142,9 @@ impl<'a> Select<'a> {
     self
   }
 
-  /// The limit clause. This method overrides the previous value
-  ///
-  /// # Examples
-  /// ```
-  /// use sql_query_builder as sql;
-  ///
-  /// let select = sql::Select::new()
-  ///   .limit("123");
-  ///
-  /// let select = sql::Select::new()
-  ///   .limit("1000")
-  ///   .limit("123");
-  /// ```
-  pub fn limit(mut self, num: &'a str) -> Self {
-    self._limit = num.trim();
-    self
-  }
-
   /// Create Select's instance
   pub fn new() -> Self {
     Self::default()
-  }
-
-  /// The offset clause. This method overrides the previous value
-  ///
-  /// # Examples
-  /// ```
-  /// use sql_query_builder as sql;
-  ///
-  /// let select = sql::Select::new()
-  ///   .offset("1500");
-  ///
-  /// let select = sql::Select::new()
-  ///   .offset("1000")
-  ///   .offset("1500");
-  /// ```
-  pub fn offset(mut self, num: &'a str) -> Self {
-    self._offset = num.trim();
-    self
   }
 
   /// The order by clause
@@ -308,6 +272,42 @@ impl<'a> Select<'a> {
   /// The intersect clause, this method can be used enabling the feature flag `postgresql`
   pub fn intersect(mut self, select: Self) -> Self {
     self._intersect.push(select);
+    self
+  }
+
+  /// The limit clause. This method overrides the previous value, this method can be used enabling the feature flag `postgresql`
+  ///
+  /// # Examples
+  /// ```text
+  /// use sql_query_builder as sql;
+  ///
+  /// let select = sql::Select::new()
+  ///   .limit("123");
+  ///
+  /// let select = sql::Select::new()
+  ///   .limit("1000")
+  ///   .limit("123");
+  /// ```
+  pub fn limit(mut self, num: &'a str) -> Self {
+    self._limit = num.trim();
+    self
+  }
+
+  /// The offset clause. This method overrides the previous value, this method can be used enabling the feature flag `postgresql`
+  ///
+  /// # Examples
+  /// ```text
+  /// use sql_query_builder as sql;
+  ///
+  /// let select = sql::Select::new()
+  ///   .offset("1500");
+  ///
+  /// let select = sql::Select::new()
+  ///   .offset("1000")
+  ///   .offset("1500");
+  /// ```
+  pub fn offset(mut self, num: &'a str) -> Self {
+    self._offset = num.trim();
     self
   }
 

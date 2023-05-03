@@ -59,6 +59,44 @@ impl Select<'_> {
 
     format!("{left_stmt}{right_stmt}{raw_after}{space_after}")
   }
+
+  fn concat_limit(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._limit.is_empty() == false {
+      let count = self._limit;
+      format!("LIMIT{space}{count}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::Limit,
+      sql,
+    )
+  }
+
+  fn concat_offset(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._offset.is_empty() == false {
+      let start = self._offset;
+      format!("OFFSET{space}{start}{space}{lb}")
+    } else {
+      "".to_owned()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::Offset,
+      sql,
+    )
+  }
 }
 
 impl Select<'_> {
@@ -115,44 +153,6 @@ impl Select<'_> {
       query,
       fmts,
       SelectClause::Join,
-      sql,
-    )
-  }
-
-  fn concat_limit(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._limit.is_empty() == false {
-      let count = self._limit;
-      format!("LIMIT{space}{count}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      SelectClause::Limit,
-      sql,
-    )
-  }
-
-  fn concat_offset(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._offset.is_empty() == false {
-      let start = self._offset;
-      format!("OFFSET{space}{start}{space}{lb}")
-    } else {
-      "".to_owned()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      SelectClause::Offset,
       sql,
     )
   }
@@ -234,8 +234,12 @@ impl Concat for Select<'_> {
     query = self.concat_group_by(query, &fmts);
     query = self.concat_having(query, &fmts);
     query = self.concat_order_by(query, &fmts);
-    query = self.concat_limit(query, &fmts);
-    query = self.concat_offset(query, &fmts);
+
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_limit(query, &fmts);
+      query = self.concat_offset(query, &fmts);
+    }
 
     #[cfg(feature = "postgresql")]
     {

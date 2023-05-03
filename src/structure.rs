@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 #[cfg(feature = "postgresql")]
 pub enum Combinator {
   Except,
@@ -94,19 +96,22 @@ pub struct Select<'a> {
   pub(crate) _group_by: Vec<String>,
   pub(crate) _having: Vec<String>,
   pub(crate) _join: Vec<String>,
-  pub(crate) _limit: &'a str,
-  pub(crate) _offset: &'a str,
   pub(crate) _order_by: Vec<String>,
   pub(crate) _raw_after: Vec<(SelectClause, String)>,
   pub(crate) _raw_before: Vec<(SelectClause, String)>,
   pub(crate) _raw: Vec<String>,
   pub(crate) _select: Vec<String>,
   pub(crate) _where: Vec<String>,
+  _not_used: PhantomData<&'a ()>, // exist only to accept a lifetime without feature flag
 
   #[cfg(feature = "postgresql")]
   pub(crate) _except: Vec<Self>,
   #[cfg(feature = "postgresql")]
   pub(crate) _intersect: Vec<Self>,
+  #[cfg(feature = "postgresql")]
+  pub(crate) _limit: &'a str,
+  #[cfg(feature = "postgresql")]
+  pub(crate) _offset: &'a str,
   #[cfg(feature = "postgresql")]
   pub(crate) _union: Vec<Self>,
   #[cfg(feature = "postgresql")]
