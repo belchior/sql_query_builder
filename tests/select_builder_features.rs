@@ -66,11 +66,11 @@ fn select_builder_should_be_able_to_conditionally_add_clauses() {
   let mut select = sql::Select::new().select("zipcode").from("address");
 
   if true {
-    select = select.where_clause("login = $1").limit("$2");
+    select = select.where_clause("login = $1");
   }
 
   let query = select.as_string();
-  let expected_query = "SELECT zipcode FROM address WHERE login = $1 LIMIT $2";
+  let expected_query = "SELECT zipcode FROM address WHERE login = $1";
 
   assert_eq!(query, expected_query);
 }

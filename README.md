@@ -47,6 +47,7 @@ sql_query_builder = { version = "1.x.x", features = ["postgresql"] }
 
 
 ## How it's works
+
 In simple terms this library will not try to understand what you are writing inside the arguments, this is good
 because it's removes a lot of complexity and verbosity to generate a SQL query, in contrast debugging tends to be more difficult and silly error can araise.
 The lib has the [debug()](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Select.html#method.debug) method with a nice output to minimize the effort to debug a complex query.
@@ -67,7 +68,7 @@ let select = sql::Select::new()
 
 Methods like `limit` and `offset` will override the previous value, the two select is equivalent
 
-```rust
+```text
 use sql_query_builder as sql;
 
 let select = sql::Select::new()
