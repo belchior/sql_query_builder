@@ -4,7 +4,7 @@ use crate::{
   structure::{Select, SelectClause},
 };
 
-impl Select<'_> {
+impl Select {
   /// The same as [where_clause](Select::where_clause) method, useful to write more idiomatic SQL query
   ///
   /// # Examples
@@ -262,7 +262,7 @@ impl Select<'_> {
 }
 
 #[cfg(any(doc, feature = "postgresql"))]
-impl<'a> Select<'a> {
+impl Select {
   /// The except clause, this method can be used enabling the feature flag `postgresql`
   pub fn except(mut self, select: Self) -> Self {
     self._except.push(select);
@@ -288,8 +288,8 @@ impl<'a> Select<'a> {
   ///   .limit("1000")
   ///   .limit("123");
   /// ```
-  pub fn limit(mut self, num: &'a str) -> Self {
-    self._limit = num.trim();
+  pub fn limit(mut self, num: &str) -> Self {
+    self._limit = num.trim().to_owned();
     self
   }
 
@@ -306,8 +306,8 @@ impl<'a> Select<'a> {
   ///   .offset("1000")
   ///   .offset("1500");
   /// ```
-  pub fn offset(mut self, num: &'a str) -> Self {
-    self._offset = num.trim();
+  pub fn offset(mut self, num: &str) -> Self {
+    self._offset = num.trim().to_owned();
     self
   }
 
@@ -344,22 +344,24 @@ impl<'a> Select<'a> {
   /// FROM orders
   /// WHERE owner_login in (select * from active_users)
   /// ```
-  pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
-    self._with.push((name.trim(), std::sync::Arc::new(query)));
+  pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
+    self._with.push((name.trim().to_owned(), std::sync::Arc::new(query)));
     self
   }
 }
 
-impl WithQuery for Select<'_> {}
+impl WithQuery for Select {}
 
-impl std::fmt::Display for Select<'_> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl TransactionQuery for Select {}
+
+impl std::fmt::Display for Select {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl std::fmt::Debug for Select<'_> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Debug for Select {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     let fmts = fmt::multiline();
     write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))
   }

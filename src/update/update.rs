@@ -4,7 +4,7 @@ use crate::{
   structure::{Update, UpdateClause},
 };
 
-impl<'a> Update<'a> {
+impl Update {
   /// The same as [where_clause](Update::where_clause) method, useful to write more idiomatic SQL query
   ///
   /// # Examples
@@ -174,8 +174,8 @@ impl<'a> Update<'a> {
   ///   .update("address")
   ///   .update("orders");
   /// ```
-  pub fn update(mut self, table_name: &'a str) -> Self {
-    self._update = table_name.trim();
+  pub fn update(mut self, table_name: &str) -> Self {
+    self._update = table_name.trim().to_owned();
     self
   }
 
@@ -197,7 +197,7 @@ impl<'a> Update<'a> {
 }
 
 #[cfg(any(doc, feature = "postgresql"))]
-impl<'a> Update<'a> {
+impl Update {
   /// The from clause, this method can be used enabling the feature flag `postgresql`
   pub fn from(mut self, tables: &str) -> Self {
     push_unique(&mut self._from, tables.trim().to_owned());
@@ -240,22 +240,22 @@ impl<'a> Update<'a> {
   /// SET count = count + 1
   /// WHERE id = (select group_id from user)
   /// ```
-  pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
-    self._with.push((name.trim(), std::sync::Arc::new(query)));
+  pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
+    self._with.push((name.trim().to_owned(), std::sync::Arc::new(query)));
     self
   }
 }
 
-impl WithQuery for Update<'_> {}
+impl WithQuery for Update {}
 
-impl std::fmt::Display for Update<'_> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Display for Update {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl std::fmt::Debug for Update<'_> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Debug for Update {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     let fmts = fmt::multiline();
     write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))
   }

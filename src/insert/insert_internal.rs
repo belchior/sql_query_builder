@@ -6,16 +6,16 @@ use crate::{
   structure::{Insert, InsertClause},
 };
 
-impl<'a> ConcatSqlStandard<'a, InsertClause> for Insert<'_> {}
+impl ConcatSqlStandard<InsertClause> for Insert {}
 
 #[cfg(feature = "postgresql")]
-impl<'a> ConcatPostgres<'a, InsertClause> for Insert<'_> {}
+impl ConcatPostgres<InsertClause> for Insert {}
 
-impl Insert<'_> {
+impl Insert {
   fn concat_insert_into(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._insert_into.is_empty() == false {
-      let insert_into = self._insert_into;
+      let insert_into = &self._insert_into;
       format!("INSERT INTO{space}{insert_into}{space}{lb}")
     } else {
       "".to_owned()
@@ -34,7 +34,7 @@ impl Insert<'_> {
   fn concat_overriding(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._overriding.is_empty() == false {
-      let overriding = self._overriding;
+      let overriding = &self._overriding;
       format!("OVERRIDING{space}{overriding}{space}{lb}")
     } else {
       "".to_owned()
@@ -53,7 +53,7 @@ impl Insert<'_> {
   fn concat_on_conflict(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._on_conflict.is_empty() == false {
-      let overriding = self._on_conflict;
+      let overriding = &self._on_conflict;
       format!("ON CONFLICT{space}{overriding}{space}{lb}")
     } else {
       "".to_owned()
@@ -89,7 +89,7 @@ impl Insert<'_> {
   }
 }
 
-impl Concat for Insert<'_> {
+impl Concat for Insert {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 

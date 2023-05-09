@@ -6,12 +6,12 @@ use crate::{
   structure::{Update, UpdateClause},
 };
 
-impl<'a> ConcatSqlStandard<'a, UpdateClause> for Update<'_> {}
+impl ConcatSqlStandard<UpdateClause> for Update {}
 
 #[cfg(feature = "postgresql")]
-impl<'a> ConcatPostgres<'a, UpdateClause> for Update<'_> {}
+impl ConcatPostgres<UpdateClause> for Update {}
 
-impl Update<'_> {
+impl Update {
   fn concat_set(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._set.is_empty() == false {
@@ -27,7 +27,7 @@ impl Update<'_> {
   fn concat_update(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._update.is_empty() == false {
-      let table_name = self._update;
+      let table_name = &self._update;
       format!("UPDATE{space}{table_name}{space}{lb}")
     } else {
       "".to_owned()
@@ -44,7 +44,7 @@ impl Update<'_> {
   }
 }
 
-impl Concat for Update<'_> {
+impl Concat for Update {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 

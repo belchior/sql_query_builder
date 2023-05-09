@@ -4,7 +4,7 @@ use crate::{
   structure::{Values, ValuesClause},
 };
 
-impl<'a> ConcatSqlStandard<'a, ValuesClause> for Values {}
+impl ConcatSqlStandard<ValuesClause> for Values {}
 
 impl Concat for Values {
   fn concat(&self, fmts: &fmt::Formatter) -> String {

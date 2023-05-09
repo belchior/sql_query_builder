@@ -114,7 +114,7 @@ pub trait ConcatSqlStandard<'a, Clause: PartialEq> {
 }
 
 #[cfg(feature = "postgresql")]
-pub trait ConcatPostgres<'a, Clause: PartialEq> {
+pub trait ConcatPostgres<Clause: PartialEq> {
   fn concat_returning(
     &self,
     items_raw_before: &Vec<(Clause, String)>,
@@ -142,7 +142,7 @@ pub trait ConcatPostgres<'a, Clause: PartialEq> {
     query: String,
     fmts: &fmt::Formatter,
     clause: Clause,
-    items: &Vec<(&'a str, std::sync::Arc<dyn WithQuery>)>,
+    items: &Vec<(String, std::sync::Arc<dyn WithQuery>)>,
   ) -> String {
     let fmt::Formatter {
       comma,

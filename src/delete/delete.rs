@@ -4,7 +4,7 @@ use crate::{
   structure::{Delete, DeleteClause},
 };
 
-impl<'a> Delete<'a> {
+impl Delete {
   /// The same as [where_clause](Delete::where_clause) method, useful to write more idiomatic SQL query
   ///
   /// # Examples
@@ -82,8 +82,8 @@ impl<'a> Delete<'a> {
   ///   .delete_from("address")
   ///   .delete_from("orders");
   /// ```
-  pub fn delete_from(mut self, table_name: &'a str) -> Self {
-    self._delete_from = table_name.trim();
+  pub fn delete_from(mut self, table_name: &str) -> Self {
+    self._delete_from = table_name.trim().to_owned();
     self
   }
 
@@ -189,7 +189,7 @@ impl<'a> Delete<'a> {
 }
 
 #[cfg(any(doc, feature = "postgresql"))]
-impl<'a> Delete<'a> {
+impl Delete {
   /// The returning clause, this method can be used enabling the feature flag `postgresql`
   pub fn returning(mut self, output_name: &str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
@@ -221,22 +221,22 @@ impl<'a> Delete<'a> {
   /// DELETE FROM users
   /// WHERE id in (select * from deactivated_users)
   /// ```
-  pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
-    self._with.push((name.trim(), std::sync::Arc::new(query)));
+  pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
+    self._with.push((name.trim().to_owned(), std::sync::Arc::new(query)));
     self
   }
 }
 
-impl WithQuery for Delete<'_> {}
+impl WithQuery for Delete {}
 
-impl std::fmt::Display for Delete<'_> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Display for Delete {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl std::fmt::Debug for Delete<'_> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Debug for Delete {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     let fmts = fmt::multiline();
     write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))
   }
