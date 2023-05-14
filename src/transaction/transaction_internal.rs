@@ -10,6 +10,19 @@ use crate::{
 
 impl ConcatSqlStandard<TransactionCommand> for Transaction {}
 
+#[cfg(feature = "postgresql")]
+impl Transaction {
+  fn concat_begin(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = match &self._begin {
+      Some(cmd) => format!("{0};{space}{lb}", cmd.concat(fmts)),
+      None => "".to_owned(),
+    };
+
+    format!("{query}{sql}")
+  }
+}
+
 impl Transaction {
   fn concat_commit(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
@@ -56,6 +69,10 @@ impl Concat for Transaction {
     let mut query = "".to_owned();
 
     query = self.concat_raw(query, &fmts, &self._raw);
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_begin(query, &fmts);
+    }
     query = self.concat_start_transaction(query, &fmts);
     query = self.concat_set_transaction(query, &fmts);
     query = self.concat_ordered_commands(query, &fmts);
@@ -88,6 +105,9 @@ impl Concat for TransactionCommand {
       Savepoint => format!("SAVEPOINT{arg}"),
       SetTransaction => format!("SET TRANSACTION{arg}"),
       StartTransaction => format!("START TRANSACTION{arg}"),
+
+      #[cfg(feature = "postgresql")]
+      Begin => format!("BEGIN{arg}"),
     }
   }
 }

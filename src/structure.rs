@@ -157,7 +157,7 @@ pub enum SelectClause {
   With,
 }
 
-/// Builder to contruct a [Transaction] command
+/// Builder to contruct a [Transaction] block
 #[derive(Default)]
 pub struct Transaction {
   pub(crate) _commit: Option<TransactionCommand>,
@@ -165,6 +165,9 @@ pub struct Transaction {
   pub(crate) _raw: Vec<String>,
   pub(crate) _set_transaction: Option<TransactionCommand>,
   pub(crate) _start_transaction: Option<TransactionCommand>,
+
+  #[cfg(feature = "postgresql")]
+  pub(crate) _begin: Option<TransactionCommand>,
 }
 
 /// Commands used in to build a [Transaction]
@@ -176,6 +179,9 @@ pub(crate) enum TrCmd {
   Savepoint,
   SetTransaction,
   StartTransaction,
+
+  #[cfg(feature = "postgresql")]
+  Begin,
 }
 
 #[derive(PartialEq)]

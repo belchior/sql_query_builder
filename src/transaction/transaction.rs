@@ -401,6 +401,36 @@ impl Transaction {
   }
 }
 
+#[cfg(any(doc, feature = "postgresql"))]
+impl Transaction {
+  /// The `begin` command, this method will be always added at the beginning of the transation and
+  /// all consecutive call will override the previous value. The method can be used enabling the feature flag `postgresql`
+  ///
+  /// # Example
+  ///
+  /// ```text
+  /// use sql_query_builder as sql;
+  ///
+  /// let query = sql::Transaction::new()
+  ///   .commit("")
+  ///   .begin("isolation level serializable")
+  ///   .begin("")
+  ///   .as_string();
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// BEGIN;
+  /// COMMIT;
+  /// ```
+  pub fn begin(mut self, mode: &str) -> Self {
+    let cmd = TransactionCommand::new(Begin, mode.trim().to_owned());
+    self._begin = Some(cmd);
+    self
+  }
+}
+
 impl std::fmt::Display for Transaction {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
