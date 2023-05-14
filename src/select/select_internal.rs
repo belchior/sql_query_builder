@@ -6,13 +6,13 @@ use crate::{
   structure::{Select, SelectClause},
 };
 
-impl<'a> ConcatSqlStandard<'a, SelectClause> for Select<'_> {}
+impl ConcatSqlStandard<SelectClause> for Select {}
 
 #[cfg(feature = "postgresql")]
-impl<'a> ConcatPostgres<'a, SelectClause> for Select<'_> {}
+impl ConcatPostgres<SelectClause> for Select {}
 
 #[cfg(feature = "postgresql")]
-impl Select<'_> {
+impl Select {
   fn concat_combinator(
     &self,
     query: String,
@@ -63,7 +63,7 @@ impl Select<'_> {
   fn concat_limit(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._limit.is_empty() == false {
-      let count = self._limit;
+      let count = &self._limit;
       format!("LIMIT{space}{count}{space}{lb}")
     } else {
       "".to_owned()
@@ -82,7 +82,7 @@ impl Select<'_> {
   fn concat_offset(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._offset.is_empty() == false {
-      let start = self._offset;
+      let start = &self._offset;
       format!("OFFSET{space}{start}{space}{lb}")
     } else {
       "".to_owned()
@@ -99,7 +99,7 @@ impl Select<'_> {
   }
 }
 
-impl Select<'_> {
+impl Select {
   fn concat_group_by(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._group_by.is_empty() == false {
@@ -196,7 +196,7 @@ impl Select<'_> {
   }
 }
 
-impl Concat for Select<'_> {
+impl Concat for Select {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 

@@ -1,13 +1,14 @@
 use crate::{
-  behavior::{push_unique, Concat, WithQuery},
+  behavior::{push_unique, Concat, TransactionQuery, WithQuery},
   fmt,
   structure::{Select, SelectClause},
 };
 
-impl Select<'_> {
+impl Select {
   /// The same as [where_clause](Select::where_clause) method, useful to write more idiomatic SQL query
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -20,9 +21,10 @@ impl Select<'_> {
     self
   }
 
-  /// Gets the current state of the Select returns it as string
+  /// Gets the current state of the [Select] and returns it as string
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -34,6 +36,7 @@ impl Select<'_> {
   /// ```
   ///
   /// Output
+  ///
   /// ```sql
   /// SELECT id FROM users WHERE login = 'foo'
   /// ```
@@ -45,7 +48,8 @@ impl Select<'_> {
   /// Prints the current state of the Select into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -67,7 +71,8 @@ impl Select<'_> {
   ///
   /// You can debug different parts of the select putting it in another position
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -92,25 +97,25 @@ impl Select<'_> {
     self
   }
 
-  /// The from clause
+  /// The `from` clause
   pub fn from(mut self, tables: &str) -> Self {
     push_unique(&mut self._from, tables.trim().to_owned());
     self
   }
 
-  /// The group by clause
+  /// The `group by` clause
   pub fn group_by(mut self, column: &str) -> Self {
     push_unique(&mut self._group_by, column.trim().to_owned());
     self
   }
 
-  /// The having clause
+  /// The `having` clause
   pub fn having(mut self, condition: &str) -> Self {
     push_unique(&mut self._having, condition.trim().to_owned());
     self
   }
 
-  /// The cross join clause
+  /// The `cross join` clause
   pub fn cross_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("CROSS JOIN {table}");
@@ -118,7 +123,7 @@ impl Select<'_> {
     self
   }
 
-  /// The inner join clause
+  /// The `inner join` clause
   pub fn inner_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("INNER JOIN {table}");
@@ -126,7 +131,7 @@ impl Select<'_> {
     self
   }
 
-  /// The left join clause
+  /// The `left join` clause
   pub fn left_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("LEFT JOIN {table}");
@@ -134,7 +139,7 @@ impl Select<'_> {
     self
   }
 
-  /// The right join clause
+  /// The `right join` clause
   pub fn right_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("RIGHT JOIN {table}");
@@ -147,7 +152,7 @@ impl Select<'_> {
     Self::default()
   }
 
-  /// The order by clause
+  /// The `order by` clause
   pub fn order_by(mut self, column: &str) -> Self {
     push_unique(&mut self._order_by, column.trim().to_owned());
     self
@@ -163,7 +168,8 @@ impl Select<'_> {
 
   /// Adds at the beginning a raw SQL query.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -187,7 +193,8 @@ impl Select<'_> {
 
   /// Adds a raw SQL query after a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -215,7 +222,8 @@ impl Select<'_> {
 
   /// Adds a raw SQL query before a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -239,15 +247,16 @@ impl Select<'_> {
     self
   }
 
-  /// The select clause
+  /// The `select` clause
   pub fn select(mut self, column: &str) -> Self {
     push_unique(&mut self._select, column.trim().to_owned());
     self
   }
 
-  /// The where clause
+  /// The `where` clause
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -262,22 +271,23 @@ impl Select<'_> {
 }
 
 #[cfg(any(doc, feature = "postgresql"))]
-impl<'a> Select<'a> {
-  /// The except clause, this method can be used enabling the feature flag `postgresql`
+impl Select {
+  /// The `except` clause, this method can be used enabling the feature flag `postgresql`
   pub fn except(mut self, select: Self) -> Self {
     self._except.push(select);
     self
   }
 
-  /// The intersect clause, this method can be used enabling the feature flag `postgresql`
+  /// The `intersect` clause, this method can be used enabling the feature flag `postgresql`
   pub fn intersect(mut self, select: Self) -> Self {
     self._intersect.push(select);
     self
   }
 
-  /// The limit clause. This method overrides the previous value, this method can be used enabling the feature flag `postgresql`
+  /// The `limit` clause, this method overrides the previous value, this method can be used enabling the feature flag `postgresql`
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```text
   /// use sql_query_builder as sql;
   ///
@@ -288,14 +298,15 @@ impl<'a> Select<'a> {
   ///   .limit("1000")
   ///   .limit("123");
   /// ```
-  pub fn limit(mut self, num: &'a str) -> Self {
-    self._limit = num.trim();
+  pub fn limit(mut self, num: &str) -> Self {
+    self._limit = num.trim().to_owned();
     self
   }
 
-  /// The offset clause. This method overrides the previous value, this method can be used enabling the feature flag `postgresql`
+  /// The `offset` clause, this method overrides the previous value, this method can be used enabling the feature flag `postgresql`
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```text
   /// use sql_query_builder as sql;
   ///
@@ -306,20 +317,21 @@ impl<'a> Select<'a> {
   ///   .offset("1000")
   ///   .offset("1500");
   /// ```
-  pub fn offset(mut self, num: &'a str) -> Self {
-    self._offset = num.trim();
+  pub fn offset(mut self, num: &str) -> Self {
+    self._offset = num.trim().to_owned();
     self
   }
 
-  /// The union clause, this method can be used enabling the feature flag `postgresql`
+  /// The `union` clause, this method can be used enabling the feature flag `postgresql`
   pub fn union(mut self, select: Self) -> Self {
     self._union.push(select);
     self
   }
 
-  /// The with clause, this method can be used enabling the feature flag `postgresql`
+  /// The `with` clause, this method can be used enabling the feature flag `postgresql`
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```text
   /// use sql_query_builder as sql;
   ///
@@ -344,22 +356,24 @@ impl<'a> Select<'a> {
   /// FROM orders
   /// WHERE owner_login in (select * from active_users)
   /// ```
-  pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
-    self._with.push((name.trim(), std::sync::Arc::new(query)));
+  pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
+    self._with.push((name.trim().to_owned(), std::sync::Arc::new(query)));
     self
   }
 }
 
-impl WithQuery for Select<'_> {}
+impl WithQuery for Select {}
 
-impl std::fmt::Display for Select<'_> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl TransactionQuery for Select {}
+
+impl std::fmt::Display for Select {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl std::fmt::Debug for Select<'_> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Debug for Select {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     let fmts = fmt::multiline();
     write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))
   }

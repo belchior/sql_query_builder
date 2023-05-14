@@ -6,16 +6,16 @@ use crate::{
   structure::{Delete, DeleteClause},
 };
 
-impl<'a> ConcatSqlStandard<'a, DeleteClause> for Delete<'_> {}
+impl ConcatSqlStandard<DeleteClause> for Delete {}
 
 #[cfg(feature = "postgresql")]
-impl<'a> ConcatPostgres<'a, DeleteClause> for Delete<'_> {}
+impl ConcatPostgres<DeleteClause> for Delete {}
 
-impl Delete<'_> {
+impl Delete {
   fn concat_delete_from(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._delete_from.is_empty() == false {
-      let table_name = self._delete_from;
+      let table_name = &self._delete_from;
       format!("DELETE FROM{space}{table_name}{space}{lb}")
     } else {
       "".to_owned()
@@ -32,7 +32,7 @@ impl Delete<'_> {
   }
 }
 
-impl Concat for Delete<'_> {
+impl Concat for Delete {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_owned();
 

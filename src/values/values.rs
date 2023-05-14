@@ -5,9 +5,10 @@ use crate::{
 };
 
 impl Values {
-  /// Gets the current state of the Values and returns it as string
+  /// Gets the current state of the [Values] and returns it as string
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -17,6 +18,7 @@ impl Values {
   /// ```
   ///
   /// Output
+  ///
   /// ```sql
   /// VALUES ('foo', 'Foo')
   /// ```
@@ -28,7 +30,8 @@ impl Values {
   /// Prints the current state of the Values into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -64,7 +67,8 @@ impl Values {
 
   /// Adds at the beginning a raw SQL query.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -88,7 +92,8 @@ impl Values {
 
   /// Adds a raw SQL query after a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -111,7 +116,8 @@ impl Values {
 
   /// Adds a raw SQL query before a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -133,9 +139,10 @@ impl Values {
     self
   }
 
-  /// The values clause
+  /// The `values` clause
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///

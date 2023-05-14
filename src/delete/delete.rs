@@ -1,13 +1,14 @@
 use crate::{
-  behavior::{push_unique, Concat, WithQuery},
+  behavior::{push_unique, Concat, TransactionQuery, WithQuery},
   fmt,
   structure::{Delete, DeleteClause},
 };
 
-impl<'a> Delete<'a> {
+impl Delete {
   /// The same as [where_clause](Delete::where_clause) method, useful to write more idiomatic SQL query
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -23,7 +24,8 @@ impl<'a> Delete<'a> {
 
   /// Gets the current state of the [Delete] and returns it as string
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -34,6 +36,7 @@ impl<'a> Delete<'a> {
   /// ```
   ///
   /// Output
+  ///
   /// ```sql
   /// DELETE FROM users WHERE id = $1
   /// ```
@@ -45,7 +48,8 @@ impl<'a> Delete<'a> {
   /// Prints the current state of the [Delete] into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -69,9 +73,10 @@ impl<'a> Delete<'a> {
     self
   }
 
-  /// The delete clause. This method overrides the previous value
+  /// The `delete` clause. This method overrides the previous value
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -82,8 +87,8 @@ impl<'a> Delete<'a> {
   ///   .delete_from("address")
   ///   .delete_from("orders");
   /// ```
-  pub fn delete_from(mut self, table_name: &'a str) -> Self {
-    self._delete_from = table_name.trim();
+  pub fn delete_from(mut self, table_name: &str) -> Self {
+    self._delete_from = table_name.trim().to_owned();
     self
   }
 
@@ -102,7 +107,8 @@ impl<'a> Delete<'a> {
 
   /// Adds at the beginning a raw SQL query.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -126,7 +132,8 @@ impl<'a> Delete<'a> {
 
   /// Adds a raw SQL query after a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -150,7 +157,8 @@ impl<'a> Delete<'a> {
 
   /// Adds a raw SQL query before a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -172,9 +180,10 @@ impl<'a> Delete<'a> {
     self
   }
 
-  /// The where clause
+  /// The `where` clause
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -189,16 +198,17 @@ impl<'a> Delete<'a> {
 }
 
 #[cfg(any(doc, feature = "postgresql"))]
-impl<'a> Delete<'a> {
-  /// The returning clause, this method can be used enabling the feature flag `postgresql`
+impl Delete {
+  /// The `returning` clause, this method can be used enabling the feature flag `postgresql`
   pub fn returning(mut self, output_name: &str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
   }
 
-  /// The with clause, this method can be used enabling the feature flag `postgresql`
+  /// The `with` clause, this method can be used enabling the feature flag `postgresql`
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```text
   /// use sql_query_builder as sql;
   ///
@@ -221,22 +231,24 @@ impl<'a> Delete<'a> {
   /// DELETE FROM users
   /// WHERE id in (select * from deactivated_users)
   /// ```
-  pub fn with(mut self, name: &'a str, query: impl WithQuery + 'static) -> Self {
-    self._with.push((name.trim(), std::sync::Arc::new(query)));
+  pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
+    self._with.push((name.trim().to_owned(), std::sync::Arc::new(query)));
     self
   }
 }
 
-impl WithQuery for Delete<'_> {}
+impl WithQuery for Delete {}
 
-impl std::fmt::Display for Delete<'_> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl TransactionQuery for Delete {}
+
+impl std::fmt::Display for Delete {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(f, "{}", self.as_string())
   }
 }
 
-impl std::fmt::Debug for Delete<'_> {
-  fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl std::fmt::Debug for Delete {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     let fmts = fmt::multiline();
     write!(f, "{}", fmt::format(self.concat(&fmts), &fmts))
   }

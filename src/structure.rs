@@ -1,4 +1,8 @@
-use std::marker::PhantomData;
+use crate::behavior::TransactionQuery;
+#[cfg(feature = "postgresql")]
+use crate::behavior::WithQuery;
+#[cfg(feature = "postgresql")]
+use std::sync::Arc;
 
 #[cfg(feature = "postgresql")]
 pub enum Combinator {
@@ -9,8 +13,8 @@ pub enum Combinator {
 
 /// Builder to contruct a [Delete] command
 #[derive(Default, Clone)]
-pub struct Delete<'a> {
-  pub(crate) _delete_from: &'a str,
+pub struct Delete {
+  pub(crate) _delete_from: String,
   pub(crate) _raw_after: Vec<(DeleteClause, String)>,
   pub(crate) _raw_before: Vec<(DeleteClause, String)>,
   pub(crate) _raw: Vec<String>,
@@ -19,12 +23,12 @@ pub struct Delete<'a> {
   #[cfg(feature = "postgresql")]
   pub(crate) _returning: Vec<String>,
   #[cfg(feature = "postgresql")]
-  pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
+  pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Delete] builder
 ///
-/// # Examples
+/// # Example
 /// ```
 /// use sql_query_builder as sql;
 ///
@@ -47,25 +51,25 @@ pub enum DeleteClause {
 
 /// Builder to contruct a [Insert] command
 #[derive(Default, Clone)]
-pub struct Insert<'a> {
-  pub(crate) _insert_into: &'a str,
-  pub(crate) _on_conflict: &'a str,
-  pub(crate) _overriding: &'a str,
+pub struct Insert {
+  pub(crate) _insert_into: String,
+  pub(crate) _on_conflict: String,
+  pub(crate) _overriding: String,
   pub(crate) _raw_after: Vec<(InsertClause, String)>,
   pub(crate) _raw_before: Vec<(InsertClause, String)>,
   pub(crate) _raw: Vec<String>,
-  pub(crate) _select: Option<Select<'a>>,
+  pub(crate) _select: Option<Select>,
   pub(crate) _values: Vec<String>,
 
   #[cfg(feature = "postgresql")]
   pub(crate) _returning: Vec<String>,
   #[cfg(feature = "postgresql")]
-  pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
+  pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Insert] builder
 ///
-/// # Examples
+/// # Example
 /// ```
 /// use sql_query_builder as sql;
 ///
@@ -91,7 +95,7 @@ pub enum InsertClause {
 
 /// Builder to contruct a [Select] command
 #[derive(Default, Clone)]
-pub struct Select<'a> {
+pub struct Select {
   pub(crate) _from: Vec<String>,
   pub(crate) _group_by: Vec<String>,
   pub(crate) _having: Vec<String>,
@@ -102,25 +106,24 @@ pub struct Select<'a> {
   pub(crate) _raw: Vec<String>,
   pub(crate) _select: Vec<String>,
   pub(crate) _where: Vec<String>,
-  _not_used: PhantomData<&'a ()>, // exist only to accept a lifetime without feature flag
 
   #[cfg(feature = "postgresql")]
   pub(crate) _except: Vec<Self>,
   #[cfg(feature = "postgresql")]
   pub(crate) _intersect: Vec<Self>,
   #[cfg(feature = "postgresql")]
-  pub(crate) _limit: &'a str,
+  pub(crate) _limit: String,
   #[cfg(feature = "postgresql")]
-  pub(crate) _offset: &'a str,
+  pub(crate) _offset: String,
   #[cfg(feature = "postgresql")]
   pub(crate) _union: Vec<Self>,
   #[cfg(feature = "postgresql")]
-  pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
+  pub(crate) _with: Vec<(String, Arc<dyn WithQuery>)>,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Select] builder
 ///
-/// # Examples
+/// # Example
 /// ```
 /// use sql_query_builder as sql;
 ///
@@ -154,14 +157,44 @@ pub enum SelectClause {
   With,
 }
 
+/// Builder to contruct a [Transaction] block
+#[derive(Default)]
+pub struct Transaction {
+  pub(crate) _commit: Option<TransactionCommand>,
+  pub(crate) _ordered_commands: Vec<Box<dyn TransactionQuery>>,
+  pub(crate) _raw: Vec<String>,
+  pub(crate) _set_transaction: Option<TransactionCommand>,
+  pub(crate) _start_transaction: Option<TransactionCommand>,
+
+  #[cfg(feature = "postgresql")]
+  pub(crate) _begin: Option<TransactionCommand>,
+}
+
+/// Commands used in to build a [Transaction]
+#[derive(PartialEq)]
+pub(crate) enum TrCmd {
+  Commit,
+  ReleaseSavepoint,
+  Rollback,
+  Savepoint,
+  SetTransaction,
+  StartTransaction,
+
+  #[cfg(feature = "postgresql")]
+  Begin,
+}
+
+#[derive(PartialEq)]
+pub(crate) struct TransactionCommand(pub(crate) TrCmd, pub(crate) String);
+
 /// Builder to contruct a [Update] command
 #[derive(Default, Clone)]
-pub struct Update<'a> {
+pub struct Update {
   pub(crate) _raw_after: Vec<(UpdateClause, String)>,
   pub(crate) _raw_before: Vec<(UpdateClause, String)>,
   pub(crate) _raw: Vec<String>,
   pub(crate) _set: Vec<String>,
-  pub(crate) _update: &'a str,
+  pub(crate) _update: String,
   pub(crate) _where: Vec<String>,
 
   #[cfg(feature = "postgresql")]
@@ -169,12 +202,12 @@ pub struct Update<'a> {
   #[cfg(feature = "postgresql")]
   pub(crate) _returning: Vec<String>,
   #[cfg(feature = "postgresql")]
-  pub(crate) _with: Vec<(&'a str, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
+  pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Update] builder
 ///
-/// # Examples
+/// # Example
 /// ```
 /// use sql_query_builder as sql;
 ///
@@ -209,7 +242,7 @@ pub struct Values {
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Values] builder
 ///
-/// # Examples
+/// # Example
 /// ```
 /// use sql_query_builder as sql;
 ///

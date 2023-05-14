@@ -43,7 +43,7 @@ mod builder_methods {
   }
 
   #[test]
-  fn method_raw_should_add_raw_sql() {
+  fn method_raw_should_add_raw_sql_on_top_of_the_command() {
     let query = sql::Values::new()
       .raw("/* the values command */")
       .values("(1, 'one')")
@@ -64,8 +64,8 @@ mod builder_methods {
   #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
     let query = sql::Values::new()
-      .raw("insert into my_table(num, txt)")
       .values("(1, 'one')")
+      .raw("insert into my_table(num, txt)")
       .as_string();
     let expected_query = "insert into my_table(num, txt) VALUES (1, 'one')";
 
@@ -83,10 +83,10 @@ mod builder_methods {
   #[test]
   fn method_raw_should_not_accumulate_arguments_with_the_same_content() {
     let query = sql::Values::new()
-      .raw("insert into my_table(num, txt)")
-      .raw("insert into my_table(num, txt)")
+      .raw("/* should not be repeat */")
+      .raw("/* should not be repeat */")
       .as_string();
-    let expected_query = "insert into my_table(num, txt)";
+    let expected_query = "/* should not be repeat */";
 
     assert_eq!(query, expected_query);
   }
