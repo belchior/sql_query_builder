@@ -1,5 +1,5 @@
 use crate::{
-  behavior::{push_unique, Concat, WithQuery},
+  behavior::{push_unique, Concat, TransactionQuery, WithQuery},
   fmt,
   structure::{Delete, DeleteClause},
 };
@@ -7,7 +7,8 @@ use crate::{
 impl Delete {
   /// The same as [where_clause](Delete::where_clause) method, useful to write more idiomatic SQL query
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -23,7 +24,8 @@ impl Delete {
 
   /// Gets the current state of the [Delete] and returns it as string
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -34,6 +36,7 @@ impl Delete {
   /// ```
   ///
   /// Output
+  ///
   /// ```sql
   /// DELETE FROM users WHERE id = $1
   /// ```
@@ -45,7 +48,8 @@ impl Delete {
   /// Prints the current state of the [Delete] into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -69,9 +73,10 @@ impl Delete {
     self
   }
 
-  /// The delete clause. This method overrides the previous value
+  /// The `delete` clause. This method overrides the previous value
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -102,7 +107,8 @@ impl Delete {
 
   /// Adds at the beginning a raw SQL query.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -126,7 +132,8 @@ impl Delete {
 
   /// Adds a raw SQL query after a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -150,7 +157,8 @@ impl Delete {
 
   /// Adds a raw SQL query before a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -172,9 +180,10 @@ impl Delete {
     self
   }
 
-  /// The where clause
+  /// The `where` clause
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -190,15 +199,16 @@ impl Delete {
 
 #[cfg(any(doc, feature = "postgresql"))]
 impl Delete {
-  /// The returning clause, this method can be used enabling the feature flag `postgresql`
+  /// The `returning` clause, this method can be used enabling the feature flag `postgresql`
   pub fn returning(mut self, output_name: &str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
   }
 
-  /// The with clause, this method can be used enabling the feature flag `postgresql`
+  /// The `with` clause, this method can be used enabling the feature flag `postgresql`
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```text
   /// use sql_query_builder as sql;
   ///
@@ -228,6 +238,8 @@ impl Delete {
 }
 
 impl WithQuery for Delete {}
+
+impl TransactionQuery for Delete {}
 
 impl std::fmt::Display for Delete {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

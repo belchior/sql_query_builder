@@ -1,13 +1,14 @@
 use crate::{
-  behavior::{push_unique, Concat, WithQuery},
+  behavior::{push_unique, Concat, TransactionQuery, WithQuery},
   fmt,
   structure::{Insert, InsertClause, Select},
 };
 
 impl Insert {
-  /// Gets the current state of the Insert and returns it as string
+  /// Gets the current state of the [Insert] and returns it as string
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -18,6 +19,7 @@ impl Insert {
   /// ```
   ///
   /// Output
+  ///
   /// ```sql
   /// INSERT INTO users (login) VALUES ('foo')
   /// ```
@@ -29,7 +31,8 @@ impl Insert {
   /// Prints the current state of the Insert into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -53,9 +56,10 @@ impl Insert {
     self
   }
 
-  /// The insert into clause. This method overrides the previous value
+  /// The `insert` into clause. This method overrides the previous value
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -76,13 +80,13 @@ impl Insert {
     Self::default()
   }
 
-  /// The on conflict clause. This method overrides the previous value
+  /// The `on conflict` clause. This method overrides the previous value
   pub fn on_conflict(mut self, conflict: &str) -> Self {
     self._on_conflict = conflict.trim().to_owned();
     self
   }
 
-  /// The overriding clause. This method overrides the previous value
+  /// The `overriding` clause. This method overrides the previous value
   pub fn overriding(mut self, option: &str) -> Self {
     self._overriding = option.trim().to_owned();
     self
@@ -96,9 +100,10 @@ impl Insert {
     self
   }
 
-  /// The select clause. This method overrides the previous value
+  /// The `select` clause. This method overrides the previous value
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -128,7 +133,8 @@ impl Insert {
 
   /// Adds at the beginning a raw SQL query.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -152,7 +158,8 @@ impl Insert {
 
   /// Adds a raw SQL query after a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -176,7 +183,8 @@ impl Insert {
 
   /// Adds a raw SQL query before a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -198,7 +206,7 @@ impl Insert {
     self
   }
 
-  /// The values clause
+  /// The `values` clause
   pub fn values(mut self, value: &str) -> Self {
     push_unique(&mut self._values, value.trim().to_owned());
     self
@@ -213,9 +221,10 @@ impl Insert {
     self
   }
 
-  /// The with clause, this method can be used enabling the feature flag `postgresql`
+  /// The `with` clause, this method can be used enabling the feature flag `postgresql`
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```text
   /// use sql_query_builder as sql;
   ///
@@ -246,6 +255,8 @@ impl Insert {
 }
 
 impl WithQuery for Insert {}
+
+impl TransactionQuery for Insert {}
 
 impl std::fmt::Display for Insert {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

@@ -1,4 +1,8 @@
-use std::marker::PhantomData;
+use crate::behavior::TransactionQuery;
+#[cfg(feature = "postgresql")]
+use crate::behavior::WithQuery;
+#[cfg(feature = "postgresql")]
+use std::sync::Arc;
 
 #[cfg(feature = "postgresql")]
 pub enum Combinator {
@@ -24,7 +28,7 @@ pub struct Delete {
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Delete] builder
 ///
-/// # Examples
+/// # Example
 /// ```
 /// use sql_query_builder as sql;
 ///
@@ -65,7 +69,7 @@ pub struct Insert {
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Insert] builder
 ///
-/// # Examples
+/// # Example
 /// ```
 /// use sql_query_builder as sql;
 ///
@@ -119,7 +123,7 @@ pub struct Select {
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Select] builder
 ///
-/// # Examples
+/// # Example
 /// ```
 /// use sql_query_builder as sql;
 ///
@@ -153,6 +157,30 @@ pub enum SelectClause {
   With,
 }
 
+/// Builder to contruct a [Transaction] command
+#[derive(Default)]
+pub struct Transaction {
+  pub(crate) _commit: Option<TransactionCommand>,
+  pub(crate) _ordered_commands: Vec<Box<dyn TransactionQuery>>,
+  pub(crate) _raw: Vec<String>,
+  pub(crate) _set_transaction: Option<TransactionCommand>,
+  pub(crate) _start_transaction: Option<TransactionCommand>,
+}
+
+/// Commands used in to build a [Transaction]
+#[derive(PartialEq)]
+pub(crate) enum TrCmd {
+  Commit,
+  ReleaseSavepoint,
+  Rollback,
+  Savepoint,
+  SetTransaction,
+  StartTransaction,
+}
+
+#[derive(PartialEq)]
+pub(crate) struct TransactionCommand(pub(crate) TrCmd, pub(crate) String);
+
 /// Builder to contruct a [Update] command
 #[derive(Default, Clone)]
 pub struct Update {
@@ -173,7 +201,7 @@ pub struct Update {
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Update] builder
 ///
-/// # Examples
+/// # Example
 /// ```
 /// use sql_query_builder as sql;
 ///
@@ -208,7 +236,7 @@ pub struct Values {
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Values] builder
 ///
-/// # Examples
+/// # Example
 /// ```
 /// use sql_query_builder as sql;
 ///

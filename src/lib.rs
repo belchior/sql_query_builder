@@ -6,9 +6,11 @@ mod fmt;
 mod insert;
 mod select;
 mod structure;
+mod transaction;
 mod update;
 mod values;
 
 pub use crate::structure::{
-  Delete, DeleteClause, Insert, InsertClause, Select, SelectClause, Update, UpdateClause, Values, ValuesClause,
+  Delete, DeleteClause, Insert, InsertClause, Select, SelectClause, Transaction, Update, UpdateClause, Values,
+  ValuesClause,
 };

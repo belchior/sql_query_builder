@@ -1,5 +1,5 @@
 use crate::{
-  behavior::{push_unique, Concat, WithQuery},
+  behavior::{push_unique, Concat, TransactionQuery, WithQuery},
   fmt,
   structure::{Select, SelectClause},
 };
@@ -7,7 +7,8 @@ use crate::{
 impl Select {
   /// The same as [where_clause](Select::where_clause) method, useful to write more idiomatic SQL query
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -20,9 +21,10 @@ impl Select {
     self
   }
 
-  /// Gets the current state of the Select returns it as string
+  /// Gets the current state of the [Select] and returns it as string
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -34,6 +36,7 @@ impl Select {
   /// ```
   ///
   /// Output
+  ///
   /// ```sql
   /// SELECT id FROM users WHERE login = 'foo'
   /// ```
@@ -45,7 +48,8 @@ impl Select {
   /// Prints the current state of the Select into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -67,7 +71,8 @@ impl Select {
   ///
   /// You can debug different parts of the select putting it in another position
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -92,25 +97,25 @@ impl Select {
     self
   }
 
-  /// The from clause
+  /// The `from` clause
   pub fn from(mut self, tables: &str) -> Self {
     push_unique(&mut self._from, tables.trim().to_owned());
     self
   }
 
-  /// The group by clause
+  /// The `group by` clause
   pub fn group_by(mut self, column: &str) -> Self {
     push_unique(&mut self._group_by, column.trim().to_owned());
     self
   }
 
-  /// The having clause
+  /// The `having` clause
   pub fn having(mut self, condition: &str) -> Self {
     push_unique(&mut self._having, condition.trim().to_owned());
     self
   }
 
-  /// The cross join clause
+  /// The `cross join` clause
   pub fn cross_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("CROSS JOIN {table}");
@@ -118,7 +123,7 @@ impl Select {
     self
   }
 
-  /// The inner join clause
+  /// The `inner join` clause
   pub fn inner_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("INNER JOIN {table}");
@@ -126,7 +131,7 @@ impl Select {
     self
   }
 
-  /// The left join clause
+  /// The `left join` clause
   pub fn left_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("LEFT JOIN {table}");
@@ -134,7 +139,7 @@ impl Select {
     self
   }
 
-  /// The right join clause
+  /// The `right join` clause
   pub fn right_join(mut self, table: &str) -> Self {
     let table = table.trim();
     let table = format!("RIGHT JOIN {table}");
@@ -147,7 +152,7 @@ impl Select {
     Self::default()
   }
 
-  /// The order by clause
+  /// The `order by` clause
   pub fn order_by(mut self, column: &str) -> Self {
     push_unique(&mut self._order_by, column.trim().to_owned());
     self
@@ -163,7 +168,8 @@ impl Select {
 
   /// Adds at the beginning a raw SQL query.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -187,7 +193,8 @@ impl Select {
 
   /// Adds a raw SQL query after a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -215,7 +222,8 @@ impl Select {
 
   /// Adds a raw SQL query before a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -239,15 +247,16 @@ impl Select {
     self
   }
 
-  /// The select clause
+  /// The `select` clause
   pub fn select(mut self, column: &str) -> Self {
     push_unique(&mut self._select, column.trim().to_owned());
     self
   }
 
-  /// The where clause
+  /// The `where` clause
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -263,21 +272,22 @@ impl Select {
 
 #[cfg(any(doc, feature = "postgresql"))]
 impl Select {
-  /// The except clause, this method can be used enabling the feature flag `postgresql`
+  /// The `except` clause, this method can be used enabling the feature flag `postgresql`
   pub fn except(mut self, select: Self) -> Self {
     self._except.push(select);
     self
   }
 
-  /// The intersect clause, this method can be used enabling the feature flag `postgresql`
+  /// The `intersect` clause, this method can be used enabling the feature flag `postgresql`
   pub fn intersect(mut self, select: Self) -> Self {
     self._intersect.push(select);
     self
   }
 
-  /// The limit clause. This method overrides the previous value, this method can be used enabling the feature flag `postgresql`
+  /// The `limit` clause, this method overrides the previous value, this method can be used enabling the feature flag `postgresql`
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```text
   /// use sql_query_builder as sql;
   ///
@@ -293,9 +303,10 @@ impl Select {
     self
   }
 
-  /// The offset clause. This method overrides the previous value, this method can be used enabling the feature flag `postgresql`
+  /// The `offset` clause, this method overrides the previous value, this method can be used enabling the feature flag `postgresql`
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```text
   /// use sql_query_builder as sql;
   ///
@@ -311,15 +322,16 @@ impl Select {
     self
   }
 
-  /// The union clause, this method can be used enabling the feature flag `postgresql`
+  /// The `union` clause, this method can be used enabling the feature flag `postgresql`
   pub fn union(mut self, select: Self) -> Self {
     self._union.push(select);
     self
   }
 
-  /// The with clause, this method can be used enabling the feature flag `postgresql`
+  /// The `with` clause, this method can be used enabling the feature flag `postgresql`
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```text
   /// use sql_query_builder as sql;
   ///

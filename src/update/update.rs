@@ -1,5 +1,5 @@
 use crate::{
-  behavior::{push_unique, Concat, WithQuery},
+  behavior::{push_unique, Concat, TransactionQuery, WithQuery},
   fmt,
   structure::{Update, UpdateClause},
 };
@@ -7,7 +7,8 @@ use crate::{
 impl Update {
   /// The same as [where_clause](Update::where_clause) method, useful to write more idiomatic SQL query
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -22,9 +23,10 @@ impl Update {
     self
   }
 
-  /// Gets the current state of the Update and returns it as string
+  /// Gets the current state of the [Update] and returns it as string
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -35,6 +37,7 @@ impl Update {
   /// ```
   ///
   /// Output
+  ///
   /// ```sql
   ///  UPDATE users SET login = 'foo'
   /// ```
@@ -46,7 +49,8 @@ impl Update {
   /// Prints the current state of the Update into console output in a more ease to read version.
   /// This method is useful to debug complex queries or just to print the generated SQL while you type
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -85,7 +89,8 @@ impl Update {
 
   /// Adds at the beginning a raw SQL query.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -109,7 +114,8 @@ impl Update {
 
   /// Adds a raw SQL query after a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -133,7 +139,8 @@ impl Update {
 
   /// Adds a raw SQL query before a specified clause.
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -155,15 +162,16 @@ impl Update {
     self
   }
 
-  /// The set clause
+  /// The `set` clause
   pub fn set(mut self, value: &str) -> Self {
     push_unique(&mut self._set, value.trim().to_owned());
     self
   }
 
-  /// The update clause. This method overrides the previous value
+  /// The `update` clause, this method overrides the previous value
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -179,9 +187,10 @@ impl Update {
     self
   }
 
-  /// The where clause
+  /// The `where` clause
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```
   /// use sql_query_builder as sql;
   ///
@@ -198,21 +207,22 @@ impl Update {
 
 #[cfg(any(doc, feature = "postgresql"))]
 impl Update {
-  /// The from clause, this method can be used enabling the feature flag `postgresql`
+  /// The `from` clause, this method can be used enabling the feature flag `postgresql`
   pub fn from(mut self, tables: &str) -> Self {
     push_unique(&mut self._from, tables.trim().to_owned());
     self
   }
 
-  /// The returning clause, this method can be used enabling the feature flag `postgresql`
+  /// The `returning` clause, this method can be used enabling the feature flag `postgresql`
   pub fn returning(mut self, output_name: &str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
   }
 
-  /// The with clause, this method can be used enabling the feature flag `postgresql`
+  /// The `with` clause, this method can be used enabling the feature flag `postgresql`
   ///
-  /// # Examples
+  /// # Example
+  ///
   /// ```text
   /// use sql_query_builder as sql;
   ///
@@ -247,6 +257,8 @@ impl Update {
 }
 
 impl WithQuery for Update {}
+
+impl TransactionQuery for Update {}
 
 impl std::fmt::Display for Update {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
