@@ -36,13 +36,14 @@ SELECT id, login FROM users WHERE login = $1 AND is_admin = true
 
 SQL Query Builder comes with the following optional features:
 - `postgresql` enable Postgres syntax
+- `sqlite` enable SQLite syntax
 
 You can enable features like
 
 ```toml
 ## Cargo.toml
 
-sql_query_builder = { version = "1.x.x", features = ["postgresql"] }
+sql_query_builder = { version = "2.x.x", features = ["postgresql"] }
 ```
 
 
@@ -68,7 +69,7 @@ let select = sql::Select::new()
 
 Methods like `limit` and `offset` will override the previous value, the two select is equivalent
 
-```text
+```ts
 use sql_query_builder as sql;
 
 let select = sql::Select::new()
@@ -154,7 +155,7 @@ let query = Some(sql::Select::new())
 println!("{}", query);
 ```
 
-Output (indented for redability)
+Output (indented for readability)
 
 ```sql
 SELECT u.id, u.name as user_name, u.login, a.name as address_name, o.name as product_name
@@ -167,7 +168,7 @@ WHERE u.login = $1 AND o.id = $2
 
 ## Raw queries
 
-You can use the raw method to accomplish some edge cases that are hard to rewrite into the Select syntax.
+You can use the raw method to reach some edge cases that are hard to rewrite into the Select syntax.
 The `select.raw()` method will put any SQL you define on top of the output
 
 ```rust
@@ -213,7 +214,7 @@ let select = sql::Select::new()
 
 ## Debugging queries
 
-Sometimes it's more ease just print de current state of the query builder, to do this just add the .debug() method at any part of the builder, note that the where clause will not be printed because the debug was added before
+Sometimes it's more ease just print de current state of the query builder, to do so adds the `.debug()` method anywhere in the builder. In the example below, the where clause will not be printed because the debug was added before the clause
 
 ```rust
 use sql_query_builder as sql;
@@ -228,8 +229,10 @@ let mut select = sql::Select::new()
 Output
 
 ```sql
+-- ------------------------------------------------------------------------------
 SELECT id, login
 FROM users
+-- ------------------------------------------------------------------------------
 ```
 
 See the [documentation](https://docs.rs/sql_query_builder/) for more builders like [Insert](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Insert.html), [Update](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Update.html) and [Delete](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Delete.html)

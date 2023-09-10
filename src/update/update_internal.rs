@@ -1,5 +1,7 @@
-#[cfg(feature = "postgresql")]
-use crate::behavior::ConcatPostgres;
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+use crate::behavior::ConcatCommon;
+#[cfg(feature = "sqlite")]
+use crate::behavior::ConcatSqlite;
 use crate::{
   behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
   fmt,
@@ -8,8 +10,8 @@ use crate::{
 
 impl ConcatSqlStandard<UpdateClause> for Update {}
 
-#[cfg(feature = "postgresql")]
-impl ConcatPostgres<UpdateClause> for Update {}
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl ConcatCommon<UpdateClause> for Update {}
 
 impl Update {
   fn concat_set(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -24,6 +26,7 @@ impl Update {
     concat_raw_before_after(&self._raw_before, &self._raw_after, query, fmts, UpdateClause::Set, sql)
   }
 
+  #[cfg(not(feature = "sqlite"))]
   fn concat_update(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._update.is_empty() == false {
@@ -49,7 +52,7 @@ impl Concat for Update {
     let mut query = "".to_owned();
 
     query = self.concat_raw(query, &fmts, &self._raw);
-    #[cfg(feature = "postgresql")]
+    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
       query = self.concat_with(
         &self._raw_before,
@@ -60,9 +63,19 @@ impl Concat for Update {
         &self._with,
       );
     }
-    query = self.concat_update(query, &fmts);
+
+    #[cfg(not(feature = "sqlite"))]
+    {
+      query = self.concat_update(query, &fmts);
+    }
+    #[cfg(feature = "sqlite")]
+    {
+      query = ConcatSqlite::concat_update(self, &self._raw_before, &self._raw_after, query, &fmts, &self._update);
+    }
+
     query = self.concat_set(query, &fmts);
-    #[cfg(feature = "postgresql")]
+
+    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
       query = self.concat_from(
         &self._raw_before,
@@ -73,6 +86,20 @@ impl Concat for Update {
         &self._from,
       );
     }
+
+    #[cfg(feature = "sqlite")]
+    {
+      query = ConcatSqlite::concat_join(
+        self,
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Join,
+        &self._join,
+      );
+    }
+
     query = self.concat_where(
       &self._raw_before,
       &self._raw_after,
@@ -82,7 +109,7 @@ impl Concat for Update {
       &self._where,
     );
 
-    #[cfg(feature = "postgresql")]
+    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
       query = self.concat_returning(
         &self._raw_before,
@@ -97,3 +124,6 @@ impl Concat for Update {
     query.trim_end().to_owned()
   }
 }
+
+#[cfg(feature = "sqlite")]
+impl ConcatSqlite for Update {}

@@ -1,5 +1,5 @@
-#[cfg(feature = "postgresql")]
-use crate::behavior::ConcatPostgres;
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+use crate::behavior::ConcatCommon;
 use crate::{
   behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
   fmt,
@@ -7,9 +7,6 @@ use crate::{
 };
 
 impl ConcatSqlStandard<DeleteClause> for Delete {}
-
-#[cfg(feature = "postgresql")]
-impl ConcatPostgres<DeleteClause> for Delete {}
 
 impl Delete {
   fn concat_delete_from(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -37,7 +34,7 @@ impl Concat for Delete {
     let mut query = "".to_owned();
 
     query = self.concat_raw(query, &fmts, &self._raw);
-    #[cfg(feature = "postgresql")]
+    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
       query = self.concat_with(
         &self._raw_before,
@@ -57,7 +54,7 @@ impl Concat for Delete {
       DeleteClause::Where,
       &self._where,
     );
-    #[cfg(feature = "postgresql")]
+    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
       query = self.concat_returning(
         &self._raw_before,
@@ -72,3 +69,6 @@ impl Concat for Delete {
     query.trim_end().to_owned()
   }
 }
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl ConcatCommon<DeleteClause> for Delete {}
