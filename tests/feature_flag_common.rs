@@ -1,4 +1,4 @@
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 mod from_clause {
   mod update_builder {
     use pretty_assertions::assert_eq;
@@ -68,7 +68,7 @@ mod from_clause {
   }
 }
 
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 mod limit_clause {
   mod select_builder {
     use pretty_assertions::assert_eq;
@@ -130,7 +130,7 @@ mod limit_clause {
   }
 }
 
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 mod offset_clause {
   mod select_builder {
     use pretty_assertions::assert_eq;
@@ -192,7 +192,7 @@ mod offset_clause {
   }
 }
 
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 mod returning_clause {
   mod delete_builder {
     use pretty_assertions::assert_eq;
@@ -413,7 +413,7 @@ mod returning_clause {
   }
 }
 
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 mod with_clause {
   mod delete_builder {
     use pretty_assertions::assert_eq;
@@ -671,7 +671,7 @@ mod with_clause {
     }
   }
 
-  mod select_builder_with_clause {
+  mod select_builder {
     use pretty_assertions::assert_eq;
     use sql_query_builder as sql;
 
@@ -928,7 +928,7 @@ mod with_clause {
   }
 }
 
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 mod except_clause {
   mod select_builder {
     use pretty_assertions::assert_eq;
@@ -1010,7 +1010,7 @@ mod except_clause {
   }
 }
 
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 mod intersect_clause {
   mod select_builder {
     use pretty_assertions::assert_eq;
@@ -1095,7 +1095,7 @@ mod intersect_clause {
   }
 }
 
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 mod union_clause {
   mod select_builder {
     use pretty_assertions::assert_eq;
@@ -1177,7 +1177,7 @@ mod union_clause {
   }
 }
 
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 mod begin_command {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -1217,6 +1217,7 @@ mod begin_command {
     assert_eq!(query, expected_query);
   }
 
+  #[cfg(not(feature = "sqlite"))]
   #[test]
   fn method_begin_should_not_override_the_start_transaction_on_consecutive_calls() {
     let query = sql::Transaction::new().start_transaction("").begin("").as_string();
@@ -1225,10 +1226,41 @@ mod begin_command {
     assert_eq!(query, expected_query);
   }
 
+  #[cfg(not(feature = "sqlite"))]
   #[test]
   fn method_begin_should_not_be_overrided_by_start_transaction_method_on_consecutive_calls() {
     let query = sql::Transaction::new().begin("").start_transaction("").as_string();
     let expected_query = "BEGIN; START TRANSACTION;";
+
+    assert_eq!(query, expected_query);
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+mod end_command {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_end_should_add_a_end_command() {
+    let query = sql::Transaction::new().end("").as_string();
+    let expected_query = "END;";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_end_should_trim_space_of_the_argument() {
+    let query = sql::Transaction::new().end("  TRANSACTION  ").as_string();
+    let expected_query = "END TRANSACTION;";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_end_should_override_the_previews_value_on_consecutive_calls() {
+    let query = sql::Transaction::new().end("TRANSACTION").end("").as_string();
+    let expected_query = "END;";
 
     assert_eq!(query, expected_query);
   }

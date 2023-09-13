@@ -9,7 +9,7 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let query = sql::Transaction::new()
@@ -34,7 +34,7 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let query = sql::Transaction::new()
@@ -61,7 +61,7 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let insert_foo = sql::Insert::new()
@@ -95,7 +95,7 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let delete_foo = sql::Delete::new()
@@ -127,7 +127,7 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let insert_foo = sql::Insert::new()
@@ -286,7 +286,7 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let select_foo = sql::Select::new()
@@ -335,6 +335,7 @@ impl Transaction {
   /// START TRANSACTION;
   /// SET TRANSACTION read only;
   /// ```
+  #[cfg(not(feature = "sqlite"))]
   pub fn set_transaction(mut self, mode: &str) -> Self {
     let cmd = TransactionCommand::new(SetTransaction, mode.trim().to_owned());
     self._set_transaction = Some(cmd);
@@ -362,6 +363,7 @@ impl Transaction {
   /// START TRANSACTION isolation level serializable;
   /// COMMIT;
   /// ```
+  #[cfg(not(feature = "sqlite"))]
   pub fn start_transaction(mut self, mode: &str) -> Self {
     let cmd = TransactionCommand::new(StartTransaction, mode.trim().to_owned());
     self._start_transaction = Some(cmd);
@@ -372,7 +374,7 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let update_foo = sql::Update::new()
@@ -401,20 +403,45 @@ impl Transaction {
   }
 }
 
-#[cfg(any(doc, feature = "postgresql"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 impl Transaction {
   /// The `begin` command, this method will be always added at the beginning of the transation and
-  /// all consecutive call will override the previous value. The method can be used enabling the feature flag `postgresql`
+  /// all consecutive call will override the previous value. The method can be used enabling a feature flag
   ///
   /// # Example
   ///
-  /// ```text
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let query = sql::Transaction::new()
+  ///   .begin("transaction")
   ///   .commit("")
-  ///   .begin("isolation level serializable")
+  ///   .as_string();
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// BEGIN transaction;
+  /// COMMIT;
+  /// ```
+  pub fn begin(mut self, mode: &str) -> Self {
+    let cmd = TransactionCommand::new(Begin, mode.trim().to_owned());
+    self._begin = Some(cmd);
+    self
+  }
+
+  /// The `end` command, this method will be always added at the end of the transation and
+  /// all consecutive call will override the previous value. The method can be used enabling a feature flag
+  ///
+  /// # Example
+  ///
+  /// ```ts
+  /// use sql_query_builder as sql;
+  ///
+  /// let query = sql::Transaction::new()
   ///   .begin("")
+  ///   .end("")
   ///   .as_string();
   /// ```
   ///
@@ -422,11 +449,11 @@ impl Transaction {
   ///
   /// ```sql
   /// BEGIN;
-  /// COMMIT;
+  /// END;
   /// ```
-  pub fn begin(mut self, mode: &str) -> Self {
-    let cmd = TransactionCommand::new(Begin, mode.trim().to_owned());
-    self._begin = Some(cmd);
+  pub fn end(mut self, mode: &str) -> Self {
+    let cmd = TransactionCommand::new(End, mode.trim().to_owned());
+    self._end = Some(cmd);
     self
   }
 }

@@ -1,256 +1,531 @@
-use pretty_assertions::assert_eq;
-use sql_query_builder as sql;
+mod raw_methods {
+  mod select_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
 
-// Raw after method
+    // Raw after method
 
-#[test]
-fn method_raw_after_should_add_raw_sql_after_join_clause() {
-  let query = sql::Select::new()
-    .inner_join("address ON users.login = address.login")
-    .raw_after(sql::SelectClause::Join, "where id = $1")
-    .as_string();
-  let expected_query = "INNER JOIN address ON users.login = address.login where id = $1";
+    #[test]
+    fn method_raw_after_should_add_raw_sql_after_join_clause() {
+      let query = sql::Select::new()
+        .inner_join("address ON users.login = address.login")
+        .raw_after(sql::SelectClause::Join, "where id = $1")
+        .as_string();
+      let expected_query = "INNER JOIN address ON users.login = address.login where id = $1";
 
-  assert_eq!(query, expected_query);
-}
+      assert_eq!(query, expected_query);
+    }
 
-// Raw before method
+    // Raw before method
 
-#[test]
-fn method_raw_before_should_add_raw_sql_before_join_clause() {
-  let query = sql::Select::new()
-    .raw_before(sql::SelectClause::Join, "from orders")
-    .inner_join("address ON address.user_login = orders.user_login")
-    .as_string();
-  let expected_query = "from orders INNER JOIN address ON address.user_login = orders.user_login";
+    #[test]
+    fn method_raw_before_should_add_raw_sql_before_join_clause() {
+      let query = sql::Select::new()
+        .raw_before(sql::SelectClause::Join, "from orders")
+        .inner_join("address ON address.user_login = orders.user_login")
+        .as_string();
+      let expected_query = "from orders INNER JOIN address ON address.user_login = orders.user_login";
 
-  assert_eq!(query, expected_query);
+      assert_eq!(query, expected_query);
+    }
+  }
+
+  #[cfg(feature = "sqlite")]
+  mod update_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
+
+    // Raw after method
+    #[test]
+    fn method_raw_after_should_add_raw_sql_after_join_clause() {
+      let query = sql::Update::new()
+        .inner_join("orders ON orders.user_id = user.id")
+        .raw_after(sql::UpdateClause::Join, "WHERE user.id = $1")
+        .as_string();
+      let expected_query = "INNER JOIN orders ON orders.user_id = user.id WHERE user.id = $1";
+
+      assert_eq!(query, expected_query);
+    }
+
+    // Raw before method
+
+    #[test]
+    fn method_raw_before_should_add_raw_sql_before_join_clause() {
+      let query = sql::Update::new()
+        .raw_before(sql::UpdateClause::Join, "FROM users")
+        .inner_join("orders ON orders.user_id = user.id")
+        .as_string();
+      let expected_query = "FROM users INNER JOIN orders ON orders.user_id = user.id";
+
+      assert_eq!(query, expected_query);
+    }
+  }
 }
 
 mod cross_join_clause {
-  use super::*;
-  use pretty_assertions::assert_eq;
+  mod select_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
 
-  #[test]
-  fn method_cross_join_should_add_the_cross_join_clause() {
-    let query = sql::Select::new().cross_join("address").as_string();
-    let expected_query = "CROSS JOIN address";
+    #[test]
+    fn method_cross_join_should_add_the_cross_join_clause() {
+      let query = sql::Select::new().cross_join("address").as_string();
+      let expected_query = "CROSS JOIN address";
 
-    assert_eq!(query, expected_query);
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_cross_join_should_accumulate_values_on_consecutive_calls() {
+      let query = sql::Select::new()
+        .cross_join("address")
+        .cross_join("orders")
+        .as_string();
+      let expected_query = "\
+        CROSS JOIN address \
+        CROSS JOIN orders\
+      ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_cross_join_by_should_trim_space_of_the_argument() {
+      let query = sql::Select::new().cross_join("  orders  ").as_string();
+      let expected_query = "CROSS JOIN orders";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_cross_join_should_not_accumulate_arguments_with_the_same_content() {
+      let query = sql::Select::new()
+        .cross_join("address")
+        .cross_join("address")
+        .as_string();
+      let expected_query = "CROSS JOIN address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn clause_cross_join_should_be_after_from_clause() {
+      let query = sql::Select::new().from("users").cross_join("address").as_string();
+      let expected_query = "FROM users CROSS JOIN address";
+
+      assert_eq!(query, expected_query);
+    }
   }
 
-  #[test]
-  fn method_cross_join_should_accumulate_values_on_consecutive_calls() {
-    let query = sql::Select::new()
-      .cross_join("address")
-      .cross_join("orders")
-      .as_string();
-    let expected_query = "\
-      CROSS JOIN address \
-      CROSS JOIN orders\
-    ";
+  #[cfg(feature = "sqlite")]
+  mod update_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
 
-    assert_eq!(query, expected_query);
-  }
+    #[test]
+    fn method_cross_join_should_add_the_cross_join_clause() {
+      let query = sql::Update::new().cross_join("address").as_string();
+      let expected_query = "CROSS JOIN address";
 
-  #[test]
-  fn method_cross_join_by_should_trim_space_of_the_argument() {
-    let query = sql::Select::new().cross_join("  orders  ").as_string();
-    let expected_query = "CROSS JOIN orders";
+      assert_eq!(query, expected_query);
+    }
 
-    assert_eq!(query, expected_query);
-  }
+    #[test]
+    fn method_cross_join_should_accumulate_values_on_consecutive_calls() {
+      let query = sql::Update::new()
+        .cross_join("address")
+        .cross_join("orders")
+        .as_string();
+      let expected_query = "\
+        CROSS JOIN address \
+        CROSS JOIN orders\
+      ";
 
-  #[test]
-  fn method_cross_join_should_not_accumulate_arguments_with_the_same_content() {
-    let query = sql::Select::new()
-      .cross_join("address")
-      .cross_join("address")
-      .as_string();
-    let expected_query = "CROSS JOIN address";
+      assert_eq!(query, expected_query);
+    }
 
-    assert_eq!(query, expected_query);
-  }
+    #[test]
+    fn method_cross_join_by_should_trim_space_of_the_argument() {
+      let query = sql::Update::new().cross_join("  orders  ").as_string();
+      let expected_query = "CROSS JOIN orders";
 
-  #[test]
-  fn clause_cross_join_should_be_after_from_clause() {
-    let query = sql::Select::new().from("users").cross_join("address").as_string();
-    let expected_query = "FROM users CROSS JOIN address";
+      assert_eq!(query, expected_query);
+    }
 
-    assert_eq!(query, expected_query);
+    #[test]
+    fn method_cross_join_should_not_accumulate_arguments_with_the_same_content() {
+      let query = sql::Update::new()
+        .cross_join("address")
+        .cross_join("address")
+        .as_string();
+      let expected_query = "CROSS JOIN address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn clause_cross_join_should_be_after_from_clause() {
+      let query = sql::Update::new().from("users").cross_join("address").as_string();
+      let expected_query = "FROM users CROSS JOIN address";
+
+      assert_eq!(query, expected_query);
+    }
   }
 }
 
 mod inner_join_clause {
-  use super::*;
-  use pretty_assertions::assert_eq;
+  mod select_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
 
-  #[test]
-  fn method_inner_join_should_add_the_inner_join_clause() {
-    let query = sql::Select::new()
-      .inner_join("address ON users.login = address.login")
-      .as_string();
-    let expected_query = "INNER JOIN address ON users.login = address.login";
+    #[test]
+    fn method_inner_join_should_add_the_inner_join_clause() {
+      let query = sql::Select::new()
+        .inner_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "INNER JOIN address ON users.login = address.login";
 
-    assert_eq!(query, expected_query);
-  }
+      assert_eq!(query, expected_query);
+    }
 
-  #[test]
-  fn method_inner_join_should_accumulate_values_on_consecutive_calls() {
-    let query = sql::Select::new()
-      .inner_join("address ON users.login = address.login")
-      .inner_join("orders ON users.login = orders.login")
-      .as_string();
-    let expected_query = "\
+    #[test]
+    fn method_inner_join_should_accumulate_values_on_consecutive_calls() {
+      let query = sql::Select::new()
+        .inner_join("address ON users.login = address.login")
+        .inner_join("orders ON users.login = orders.login")
+        .as_string();
+      let expected_query = "\
       INNER JOIN address ON users.login = address.login \
       INNER JOIN orders ON users.login = orders.login\
     ";
 
-    assert_eq!(query, expected_query);
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_inner_join_by_should_trim_space_of_the_argument() {
+      let query = sql::Select::new().inner_join("  orders  ").as_string();
+      let expected_query = "INNER JOIN orders";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_inner_join_should_not_accumulate_arguments_with_the_same_content() {
+      let query = sql::Select::new()
+        .inner_join("address")
+        .inner_join("address")
+        .as_string();
+      let expected_query = "INNER JOIN address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn clause_inner_join_should_be_after_from_clause() {
+      let query = sql::Select::new()
+        .from("users")
+        .inner_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "FROM users INNER JOIN address ON users.login = address.login";
+
+      assert_eq!(query, expected_query);
+    }
   }
 
-  #[test]
-  fn method_inner_join_by_should_trim_space_of_the_argument() {
-    let query = sql::Select::new().inner_join("  orders  ").as_string();
-    let expected_query = "INNER JOIN orders";
+  #[cfg(feature = "sqlite")]
+  mod update_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
 
-    assert_eq!(query, expected_query);
-  }
+    #[test]
+    fn method_inner_join_should_add_the_inner_join_clause() {
+      let query = sql::Update::new()
+        .inner_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "INNER JOIN address ON users.login = address.login";
 
-  #[test]
-  fn method_inner_join_should_not_accumulate_arguments_with_the_same_content() {
-    let query = sql::Select::new()
-      .inner_join("address")
-      .inner_join("address")
-      .as_string();
-    let expected_query = "INNER JOIN address";
+      assert_eq!(query, expected_query);
+    }
 
-    assert_eq!(query, expected_query);
-  }
+    #[test]
+    fn method_inner_join_should_accumulate_values_on_consecutive_calls() {
+      let query = sql::Update::new()
+        .inner_join("address ON users.login = address.login")
+        .inner_join("orders ON users.login = orders.login")
+        .as_string();
+      let expected_query = "\
+        INNER JOIN address ON users.login = address.login \
+        INNER JOIN orders ON users.login = orders.login\
+      ";
 
-  #[test]
-  fn clause_inner_join_should_be_after_from_clause() {
-    let query = sql::Select::new()
-      .from("users")
-      .inner_join("address ON users.login = address.login")
-      .as_string();
-    let expected_query = "FROM users INNER JOIN address ON users.login = address.login";
+      assert_eq!(query, expected_query);
+    }
 
-    assert_eq!(query, expected_query);
+    #[test]
+    fn method_inner_join_by_should_trim_space_of_the_argument() {
+      let query = sql::Update::new().inner_join("  orders  ").as_string();
+      let expected_query = "INNER JOIN orders";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_inner_join_should_not_accumulate_arguments_with_the_same_content() {
+      let query = sql::Update::new()
+        .inner_join("address")
+        .inner_join("address")
+        .as_string();
+      let expected_query = "INNER JOIN address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn clause_inner_join_should_be_after_from_clause() {
+      let query = sql::Update::new()
+        .from("users")
+        .inner_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "FROM users INNER JOIN address ON users.login = address.login";
+
+      assert_eq!(query, expected_query);
+    }
   }
 }
 
 mod left_join_clause {
-  use super::*;
-  use pretty_assertions::assert_eq;
+  mod select_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
 
-  #[test]
-  fn method_left_join_should_add_the_left_join_clause() {
-    let query = sql::Select::new()
-      .left_join("address ON users.login = address.login")
-      .as_string();
-    let expected_query = "LEFT JOIN address ON users.login = address.login";
+    #[test]
+    fn method_left_join_should_add_the_left_join_clause() {
+      let query = sql::Select::new()
+        .left_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "LEFT JOIN address ON users.login = address.login";
 
-    assert_eq!(query, expected_query);
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_left_join_should_accumulate_values_on_consecutive_calls() {
+      let query = sql::Select::new()
+        .left_join("address ON users.login = address.login")
+        .left_join("orders ON users.login = orders.login")
+        .as_string();
+      let expected_query = "\
+        LEFT JOIN address ON users.login = address.login \
+        LEFT JOIN orders ON users.login = orders.login\
+      ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_left_join_by_should_trim_space_of_the_argument() {
+      let query = sql::Select::new().left_join("  orders  ").as_string();
+      let expected_query = "LEFT JOIN orders";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_left_join_should_not_accumulate_arguments_with_the_same_content() {
+      let query = sql::Select::new().left_join("address").left_join("address").as_string();
+      let expected_query = "LEFT JOIN address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn clause_left_join_should_be_after_from_clause() {
+      let query = sql::Select::new()
+        .from("users")
+        .left_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "FROM users LEFT JOIN address ON users.login = address.login";
+
+      assert_eq!(query, expected_query);
+    }
   }
 
-  #[test]
-  fn method_left_join_should_accumulate_values_on_consecutive_calls() {
-    let query = sql::Select::new()
-      .left_join("address ON users.login = address.login")
-      .left_join("orders ON users.login = orders.login")
-      .as_string();
-    let expected_query = "\
-      LEFT JOIN address ON users.login = address.login \
-      LEFT JOIN orders ON users.login = orders.login\
-    ";
+  #[cfg(feature = "sqlite")]
+  mod update_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
 
-    assert_eq!(query, expected_query);
-  }
+    #[test]
+    fn method_left_join_should_add_the_left_join_clause() {
+      let query = sql::Update::new()
+        .left_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "LEFT JOIN address ON users.login = address.login";
 
-  #[test]
-  fn method_left_join_by_should_trim_space_of_the_argument() {
-    let query = sql::Select::new().left_join("  orders  ").as_string();
-    let expected_query = "LEFT JOIN orders";
+      assert_eq!(query, expected_query);
+    }
 
-    assert_eq!(query, expected_query);
-  }
+    #[test]
+    fn method_left_join_should_accumulate_values_on_consecutive_calls() {
+      let query = sql::Update::new()
+        .left_join("address ON users.login = address.login")
+        .left_join("orders ON users.login = orders.login")
+        .as_string();
+      let expected_query = "\
+        LEFT JOIN address ON users.login = address.login \
+        LEFT JOIN orders ON users.login = orders.login\
+      ";
 
-  #[test]
-  fn method_left_join_should_not_accumulate_arguments_with_the_same_content() {
-    let query = sql::Select::new().left_join("address").left_join("address").as_string();
-    let expected_query = "LEFT JOIN address";
+      assert_eq!(query, expected_query);
+    }
 
-    assert_eq!(query, expected_query);
-  }
+    #[test]
+    fn method_left_join_by_should_trim_space_of_the_argument() {
+      let query = sql::Update::new().left_join("  orders  ").as_string();
+      let expected_query = "LEFT JOIN orders";
 
-  #[test]
-  fn clause_left_join_should_be_after_from_clause() {
-    let query = sql::Select::new()
-      .from("users")
-      .left_join("address ON users.login = address.login")
-      .as_string();
-    let expected_query = "FROM users LEFT JOIN address ON users.login = address.login";
+      assert_eq!(query, expected_query);
+    }
 
-    assert_eq!(query, expected_query);
+    #[test]
+    fn method_left_join_should_not_accumulate_arguments_with_the_same_content() {
+      let query = sql::Update::new().left_join("address").left_join("address").as_string();
+      let expected_query = "LEFT JOIN address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn clause_left_join_should_be_after_from_clause() {
+      let query = sql::Update::new()
+        .from("users")
+        .left_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "FROM users LEFT JOIN address ON users.login = address.login";
+
+      assert_eq!(query, expected_query);
+    }
   }
 }
 
 mod right_join_clause {
-  use super::*;
-  use pretty_assertions::assert_eq;
+  mod select_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
 
-  #[test]
-  fn method_right_join_should_add_the_right_join_clause() {
-    let query = sql::Select::new()
-      .right_join("address ON users.login = address.login")
-      .as_string();
-    let expected_query = "RIGHT JOIN address ON users.login = address.login";
+    #[test]
+    fn method_right_join_should_add_the_right_join_clause() {
+      let query = sql::Select::new()
+        .right_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "RIGHT JOIN address ON users.login = address.login";
 
-    assert_eq!(query, expected_query);
-  }
+      assert_eq!(query, expected_query);
+    }
 
-  #[test]
-  fn method_right_join_should_accumulate_values_on_consecutive_calls() {
-    let query = sql::Select::new()
-      .right_join("address ON users.login = address.login")
-      .right_join("orders ON users.login = orders.login")
-      .as_string();
-    let expected_query = "\
+    #[test]
+    fn method_right_join_should_accumulate_values_on_consecutive_calls() {
+      let query = sql::Select::new()
+        .right_join("address ON users.login = address.login")
+        .right_join("orders ON users.login = orders.login")
+        .as_string();
+      let expected_query = "\
       RIGHT JOIN address ON users.login = address.login \
       RIGHT JOIN orders ON users.login = orders.login\
     ";
 
-    assert_eq!(query, expected_query);
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_right_join_by_should_trim_space_of_the_argument() {
+      let query = sql::Select::new().right_join("  orders  ").as_string();
+      let expected_query = "RIGHT JOIN orders";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_right_join_should_not_accumulate_arguments_with_the_same_content() {
+      let query = sql::Select::new()
+        .right_join("address")
+        .right_join("address")
+        .as_string();
+      let expected_query = "RIGHT JOIN address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn clause_right_join_should_be_after_from_clause() {
+      let query = sql::Select::new()
+        .from("users")
+        .right_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "FROM users RIGHT JOIN address ON users.login = address.login";
+
+      assert_eq!(query, expected_query);
+    }
   }
 
-  #[test]
-  fn method_right_join_by_should_trim_space_of_the_argument() {
-    let query = sql::Select::new().right_join("  orders  ").as_string();
-    let expected_query = "RIGHT JOIN orders";
+  #[cfg(feature = "sqlite")]
+  mod update_builder {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
 
-    assert_eq!(query, expected_query);
-  }
+    #[test]
+    fn method_right_join_should_add_the_right_join_clause() {
+      let query = sql::Update::new()
+        .right_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "RIGHT JOIN address ON users.login = address.login";
 
-  #[test]
-  fn method_right_join_should_not_accumulate_arguments_with_the_same_content() {
-    let query = sql::Select::new()
-      .right_join("address")
-      .right_join("address")
-      .as_string();
-    let expected_query = "RIGHT JOIN address";
+      assert_eq!(query, expected_query);
+    }
 
-    assert_eq!(query, expected_query);
-  }
+    #[test]
+    fn method_right_join_should_accumulate_values_on_consecutive_calls() {
+      let query = sql::Update::new()
+        .right_join("address ON users.login = address.login")
+        .right_join("orders ON users.login = orders.login")
+        .as_string();
+      let expected_query = "\
+        RIGHT JOIN address ON users.login = address.login \
+        RIGHT JOIN orders ON users.login = orders.login\
+      ";
 
-  #[test]
-  fn clause_right_join_should_be_after_from_clause() {
-    let query = sql::Select::new()
-      .from("users")
-      .right_join("address ON users.login = address.login")
-      .as_string();
-    let expected_query = "FROM users RIGHT JOIN address ON users.login = address.login";
+      assert_eq!(query, expected_query);
+    }
 
-    assert_eq!(query, expected_query);
+    #[test]
+    fn method_right_join_by_should_trim_space_of_the_argument() {
+      let query = sql::Update::new().right_join("  orders  ").as_string();
+      let expected_query = "RIGHT JOIN orders";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_right_join_should_not_accumulate_arguments_with_the_same_content() {
+      let query = sql::Update::new()
+        .right_join("address")
+        .right_join("address")
+        .as_string();
+      let expected_query = "RIGHT JOIN address";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn clause_right_join_should_be_after_from_clause() {
+      let query = sql::Update::new()
+        .from("users")
+        .right_join("address ON users.login = address.login")
+        .as_string();
+      let expected_query = "FROM users RIGHT JOIN address ON users.login = address.login";
+
+      assert_eq!(query, expected_query);
+    }
   }
 }

@@ -4,6 +4,10 @@ use crate::{
   structure::{Select, SelectClause},
 };
 
+impl TransactionQuery for Select {}
+
+impl WithQuery for Select {}
+
 impl Select {
   /// The same as [where_clause](Select::where_clause) method, useful to write more idiomatic SQL query
   ///
@@ -270,25 +274,25 @@ impl Select {
   }
 }
 
-#[cfg(any(doc, feature = "postgresql"))]
+#[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 impl Select {
-  /// The `except` clause, this method can be used enabling the feature flag `postgresql`
+  /// The `except` clause, this method can be used enabling a feature flag
   pub fn except(mut self, select: Self) -> Self {
     self._except.push(select);
     self
   }
 
-  /// The `intersect` clause, this method can be used enabling the feature flag `postgresql`
+  /// The `intersect` clause, this method can be used enabling a feature flag
   pub fn intersect(mut self, select: Self) -> Self {
     self._intersect.push(select);
     self
   }
 
-  /// The `limit` clause, this method overrides the previous value, this method can be used enabling the feature flag `postgresql`
+  /// The `limit` clause, this method overrides the previous value, this method can be used enabling a feature flag
   ///
   /// # Example
   ///
-  /// ```text
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let select = sql::Select::new()
@@ -303,11 +307,11 @@ impl Select {
     self
   }
 
-  /// The `offset` clause, this method overrides the previous value, this method can be used enabling the feature flag `postgresql`
+  /// The `offset` clause, this method overrides the previous value, this method can be used enabling a feature flag
   ///
   /// # Example
   ///
-  /// ```text
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let select = sql::Select::new()
@@ -322,17 +326,17 @@ impl Select {
     self
   }
 
-  /// The `union` clause, this method can be used enabling the feature flag `postgresql`
+  /// The `union` clause, this method can be used enabling a feature flag
   pub fn union(mut self, select: Self) -> Self {
     self._union.push(select);
     self
   }
 
-  /// The `with` clause, this method can be used enabling the feature flag `postgresql`
+  /// The `with` clause, this method can be used enabling a feature flag
   ///
   /// # Example
   ///
-  /// ```text
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let logins = sql::Select::new().select("login").from("users").where_clause("id in ($1)");
@@ -361,10 +365,6 @@ impl Select {
     self
   }
 }
-
-impl WithQuery for Select {}
-
-impl TransactionQuery for Select {}
 
 impl std::fmt::Display for Select {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

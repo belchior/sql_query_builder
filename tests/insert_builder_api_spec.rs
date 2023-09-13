@@ -114,8 +114,8 @@ mod insert_into_clause {
 
   #[test]
   fn method_insert_into_should_add_a_insert_into_clause() {
-    let query = sql::Insert::new().insert_into("users").as_string();
-    let expected_query = "INSERT INTO users";
+    let query = sql::Insert::new().insert_into("users (login, name)").as_string();
+    let expected_query = "INSERT INTO users (login, name)";
 
     assert_eq!(query, expected_query);
   }
@@ -123,10 +123,10 @@ mod insert_into_clause {
   #[test]
   fn method_insert_into_should_override_value_on_consecutive_calls() {
     let query = sql::Insert::new()
-      .insert_into("users")
-      .insert_into("orders")
+      .insert_into("users (login, name)")
+      .insert_into("orders (product_name, price)")
       .as_string();
-    let expected_query = "INSERT INTO orders";
+    let expected_query = "INSERT INTO orders (product_name, price)";
 
     assert_eq!(query, expected_query);
   }
@@ -162,6 +162,7 @@ mod insert_into_clause {
   }
 }
 
+#[cfg(not(feature = "sqlite"))]
 mod overriding_clause {
   use super::*;
   use pretty_assertions::assert_eq;

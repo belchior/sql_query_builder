@@ -19,12 +19,11 @@ fn insert_builder_should_be_displayable() {
 fn insert_builder_should_be_debuggable() {
   let insert = sql::Insert::new()
     .insert_into("users(login, name)")
-    .values("('foo', 'Foo')")
-    .overriding("user value");
+    .values("('foo', 'Foo')");
 
   println!("{:?}", insert);
 
-  let expected_query = "INSERT INTO users(login, name) OVERRIDING user value VALUES ('foo', 'Foo')";
+  let expected_query = "INSERT INTO users(login, name) VALUES ('foo', 'Foo')";
   let query = insert.as_string();
 
   assert_eq!(query, expected_query);
@@ -64,15 +63,15 @@ fn insert_builder_should_be_cloneable() {
 #[test]
 fn insert_builder_should_be_able_to_conditionally_add_clauses() {
   let mut insert = sql::Insert::new()
-    .insert_into("users(login, name)")
+    .insert_into("users (login, name)")
     .values("('bar', 'Bar')");
 
   if true {
-    insert = insert.overriding("system value");
+    insert = insert.values("('foo', 'Foo')");
   }
 
   let query = insert.as_string();
-  let expected_query = "INSERT INTO users(login, name) OVERRIDING system value VALUES ('bar', 'Bar')";
+  let expected_query = "INSERT INTO users (login, name) VALUES ('bar', 'Bar'), ('foo', 'Foo')";
 
   assert_eq!(query, expected_query);
 }

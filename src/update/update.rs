@@ -1,8 +1,14 @@
+#[cfg(feature = "sqlite")]
+use crate::structure::UpdateVars;
 use crate::{
   behavior::{push_unique, Concat, TransactionQuery, WithQuery},
   fmt,
   structure::{Update, UpdateClause},
 };
+
+impl WithQuery for Update {}
+
+impl TransactionQuery for Update {}
 
 impl Update {
   /// The same as [where_clause](Update::where_clause) method, useful to write more idiomatic SQL query
@@ -182,6 +188,7 @@ impl Update {
   ///   .update("address")
   ///   .update("orders");
   /// ```
+  #[cfg(not(feature = "sqlite"))]
   pub fn update(mut self, table_name: &str) -> Self {
     self._update = table_name.trim().to_owned();
     self
@@ -205,25 +212,25 @@ impl Update {
   }
 }
 
-#[cfg(any(doc, feature = "postgresql"))]
+#[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 impl Update {
-  /// The `from` clause, this method can be used enabling the feature flag `postgresql`
+  /// The `from` clause, this method can be used enabling a feature flag
   pub fn from(mut self, tables: &str) -> Self {
     push_unique(&mut self._from, tables.trim().to_owned());
     self
   }
 
-  /// The `returning` clause, this method can be used enabling the feature flag `postgresql`
+  /// The `returning` clause, this method can be used enabling a feature flag
   pub fn returning(mut self, output_name: &str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
   }
 
-  /// The `with` clause, this method can be used enabling the feature flag `postgresql`
+  /// The `with` clause, this method can be used enabling a feature flag
   ///
   /// # Example
   ///
-  /// ```text
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let user = sql::Insert::new()
@@ -256,9 +263,78 @@ impl Update {
   }
 }
 
-impl WithQuery for Update {}
+#[cfg(any(doc, feature = "sqlite"))]
+impl Update {
+  /// The `cross join` clause, this method can be used enabling the feature flag `sqlite`
+  pub fn cross_join(mut self, table: &str) -> Self {
+    let table = table.trim();
+    let table = format!("CROSS JOIN {table}");
+    push_unique(&mut self._join, table);
+    self
+  }
 
-impl TransactionQuery for Update {}
+  /// The `inner join` clause, this method can be used enabling the feature flag `sqlite`
+  pub fn inner_join(mut self, table: &str) -> Self {
+    let table = table.trim();
+    let table = format!("INNER JOIN {table}");
+    push_unique(&mut self._join, table);
+    self
+  }
+
+  /// The `left join` clause, this method can be used enabling the feature flag `sqlite`
+  pub fn left_join(mut self, table: &str) -> Self {
+    let table = table.trim();
+    let table = format!("LEFT JOIN {table}");
+    push_unique(&mut self._join, table);
+    self
+  }
+
+  /// The `right join` clause, this method can be used enabling the feature flag `sqlite`
+  pub fn right_join(mut self, table: &str) -> Self {
+    let table = table.trim();
+    let table = format!("RIGHT JOIN {table}");
+    push_unique(&mut self._join, table);
+    self
+  }
+
+  /// The `update` clause, this method overrides the previous value
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// use sql_query_builder as sql;
+  ///
+  /// let update = sql::Update::new()
+  ///   .update("orders");
+  ///
+  /// let update = sql::Update::new()
+  ///   .update("address")
+  ///   .update("orders");
+  /// ```
+  pub fn update(mut self, table_name: &str) -> Self {
+    self._update = (UpdateVars::Update, table_name.trim().to_owned());
+    self
+  }
+
+  /// The `update or <keyword>` clause, this method overrides the previous value and can be used enabling the feature flag `sqlite`
+  ///
+  /// # Example
+  ///
+  /// ```ts
+  /// use sql_query_builder as sql;
+  ///
+  /// let update = sql::Update::new()
+  ///   .update_or("ABORT orders");
+  ///
+  /// let update = sql::Update::new()
+  ///   .update_or("FAIL address")
+  ///   .update_or("ABORT orders");
+  /// ```
+  pub fn update_or(mut self, expression: &str) -> Self {
+    self._update = (UpdateVars::UpdateOr, expression.trim().to_owned());
+    self
+  }
+}
 
 impl std::fmt::Display for Update {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

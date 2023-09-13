@@ -3,68 +3,146 @@ use sql_query_builder as sql;
 
 #[test]
 fn transaction_builder_should_be_displayable() {
-  let tr = sql::Transaction::new().start_transaction("").commit("");
+  #[cfg(not(feature = "sqlite"))]
+  {
+    let tr = sql::Transaction::new().start_transaction("").commit("");
 
-  println!("{}", tr);
+    println!("{}", tr);
 
-  let query = tr.as_string();
-  let expected_query = "START TRANSACTION; COMMIT;";
+    let query = tr.as_string();
+    let expected_query = "START TRANSACTION; COMMIT;";
 
-  assert_eq!(query, expected_query);
+    assert_eq!(query, expected_query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  {
+    let tr = sql::Transaction::new().begin("").commit("");
+
+    println!("{}", tr);
+
+    let query = tr.as_string();
+    let expected_query = "BEGIN; COMMIT;";
+
+    assert_eq!(query, expected_query);
+  }
 }
 
 #[test]
 fn transaction_builder_should_be_debuggable() {
-  let tr = sql::Transaction::new().start_transaction("").commit("TRANSACTION");
+  #[cfg(not(feature = "sqlite"))]
+  {
+    let tr = sql::Transaction::new().start_transaction("").commit("TRANSACTION");
 
-  println!("{:?}", tr);
+    println!("{:?}", tr);
 
-  let expected_query = "START TRANSACTION; COMMIT TRANSACTION;";
-  let query = tr.as_string();
+    let expected_query = "START TRANSACTION; COMMIT TRANSACTION;";
+    let query = tr.as_string();
 
-  assert_eq!(query, expected_query);
+    assert_eq!(query, expected_query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  {
+    let tr = sql::Transaction::new().begin("").commit("TRANSACTION");
+
+    println!("{:?}", tr);
+
+    let expected_query = "BEGIN; COMMIT TRANSACTION;";
+    let query = tr.as_string();
+
+    assert_eq!(query, expected_query);
+  }
 }
 
 #[test]
 fn transaction_builder_should_be_able_to_conditionally_add_clauses() {
-  let mut tr = sql::Transaction::new().start_transaction("");
+  #[cfg(not(feature = "sqlite"))]
+  {
+    let mut tr = sql::Transaction::new().start_transaction("");
 
-  if true {
-    tr = tr.commit("WORK");
+    if true {
+      tr = tr.commit("WORK");
+    }
+
+    let query = tr.as_string();
+    let expected_query = "START TRANSACTION; COMMIT WORK;";
+
+    assert_eq!(query, expected_query);
   }
 
-  let query = tr.as_string();
-  let expected_query = "START TRANSACTION; COMMIT WORK;";
+  #[cfg(feature = "sqlite")]
+  {
+    let mut tr = sql::Transaction::new().begin("");
 
-  assert_eq!(query, expected_query);
+    if true {
+      tr = tr.commit("");
+    }
+
+    let query = tr.as_string();
+    let expected_query = "BEGIN; COMMIT;";
+
+    assert_eq!(query, expected_query);
+  }
 }
 
 #[test]
 fn transaction_builder_should_be_composable() {
-  fn start_transaction(tr: sql::Transaction) -> sql::Transaction {
-    tr.start_transaction("")
-      .set_transaction("isolation level read committed")
+  #[cfg(not(feature = "sqlite"))]
+  {
+    fn start_transaction(tr: sql::Transaction) -> sql::Transaction {
+      tr.start_transaction("")
+        .set_transaction("isolation level read committed")
+    }
+
+    fn commit(tr: sql::Transaction) -> sql::Transaction {
+      tr.commit("")
+    }
+
+    fn as_string(tr: sql::Transaction) -> String {
+      tr.as_string()
+    }
+
+    let query = Some(sql::Transaction::new())
+      .map(start_transaction)
+      .map(commit)
+      .map(as_string)
+      .unwrap();
+
+    let expected_query = "\
+      START TRANSACTION; \
+      SET TRANSACTION isolation level read committed; \
+      COMMIT;\
+    ";
+
+    assert_eq!(query, expected_query);
   }
 
-  fn commit(tr: sql::Transaction) -> sql::Transaction {
-    tr.commit("")
+  #[cfg(feature = "sqlite")]
+  {
+    fn begin(tr: sql::Transaction) -> sql::Transaction {
+      tr.begin("")
+    }
+
+    fn commit(tr: sql::Transaction) -> sql::Transaction {
+      tr.commit("")
+    }
+
+    fn as_string(tr: sql::Transaction) -> String {
+      tr.as_string()
+    }
+
+    let query = Some(sql::Transaction::new())
+      .map(begin)
+      .map(commit)
+      .map(as_string)
+      .unwrap();
+
+    let expected_query = "\
+      BEGIN; \
+      COMMIT;\
+    ";
+
+    assert_eq!(query, expected_query);
   }
-
-  fn as_string(tr: sql::Transaction) -> String {
-    tr.as_string()
-  }
-
-  let query = Some(sql::Transaction::new())
-    .map(start_transaction)
-    .map(commit)
-    .map(as_string)
-    .unwrap();
-
-  let expected_query = "\
-    START TRANSACTION; \
-    SET TRANSACTION isolation level read committed; \
-    COMMIT;\
-  ";
-
-  assert_eq!(query, expected_query);
 }

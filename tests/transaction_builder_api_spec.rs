@@ -20,32 +20,68 @@ mod builder_methods {
 
   #[test]
   fn method_debug_should_print_at_console_in_a_human_readable_format() {
-    let query = sql::Transaction::new().start_transaction("").debug().as_string();
-    let expected_query = "START TRANSACTION;";
+    #[cfg(not(feature = "sqlite"))]
+    {
+      let query = sql::Transaction::new().start_transaction("").debug().as_string();
+      let expected_query = "START TRANSACTION;";
 
-    assert_eq!(query, expected_query);
+      assert_eq!(query, expected_query);
+    }
+
+    #[cfg(feature = "sqlite")]
+    {
+      let query = sql::Transaction::new().begin("").debug().as_string();
+      let expected_query = "BEGIN;";
+
+      assert_eq!(query, expected_query);
+    }
   }
 
   #[test]
   fn method_print_should_print_in_one_line_the_current_state_of_builder() {
-    let query = sql::Transaction::new()
-      .start_transaction("isolation level serializable")
-      .print()
-      .as_string();
-    let expected_query = "START TRANSACTION isolation level serializable;";
+    #[cfg(not(feature = "sqlite"))]
+    {
+      let query = sql::Transaction::new()
+        .start_transaction("isolation level serializable")
+        .print()
+        .as_string();
+      let expected_query = "START TRANSACTION isolation level serializable;";
 
-    assert_eq!(query, expected_query);
+      assert_eq!(query, expected_query);
+    }
+
+    #[cfg(feature = "sqlite")]
+    {
+      let query = sql::Transaction::new().begin("EXCLUSIVE").print().as_string();
+      let expected_query = "BEGIN EXCLUSIVE;";
+
+      assert_eq!(query, expected_query);
+    }
   }
 
   #[test]
   fn method_raw_should_add_raw_sql_on_top_of_the_command() {
-    let query = sql::Transaction::new()
-      .raw("/* the transaction command */")
-      .start_transaction("")
-      .as_string();
-    let expected_query = "/* the transaction command */ START TRANSACTION;";
+    #[cfg(not(feature = "sqlite"))]
+    {
+      let query = sql::Transaction::new()
+        .raw("/* the transaction command */")
+        .start_transaction("")
+        .as_string();
+      let expected_query = "/* the transaction command */ START TRANSACTION;";
 
-    assert_eq!(query, expected_query);
+      assert_eq!(query, expected_query);
+    }
+
+    #[cfg(feature = "sqlite")]
+    {
+      let query = sql::Transaction::new()
+        .raw("/* the transaction command */")
+        .begin("IMMEDIATE")
+        .as_string();
+      let expected_query = "/* the transaction command */ BEGIN IMMEDIATE;";
+
+      assert_eq!(query, expected_query);
+    }
   }
 
   #[test]
@@ -61,13 +97,23 @@ mod builder_methods {
 
   #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
-    let query = sql::Transaction::new()
-      .start_transaction("")
-      .raw("/* the first */")
-      .as_string();
-    let expected_query = "/* the first */ START TRANSACTION;";
+    #[cfg(not(feature = "sqlite"))]
+    {
+      let query = sql::Transaction::new()
+        .start_transaction("")
+        .raw("/* the first */")
+        .as_string();
+      let expected_query = "/* the first */ START TRANSACTION;";
 
-    assert_eq!(query, expected_query);
+      assert_eq!(query, expected_query);
+    }
+    #[cfg(feature = "sqlite")]
+    {
+      let query = sql::Transaction::new().begin("").raw("/* the first */").as_string();
+      let expected_query = "/* the first */ BEGIN;";
+
+      assert_eq!(query, expected_query);
+    }
   }
 
   #[test]
@@ -96,47 +142,91 @@ mod multi_commands {
 
   #[test]
   fn should_build_multi_commands() {
-    let insert_foo = sql::Insert::new()
-      .insert_into("users (login, name)")
-      .values("('foo', 'Foo')");
+    #[cfg(not(feature = "sqlite"))]
+    {
+      let insert_foo = sql::Insert::new()
+        .insert_into("users (login, name)")
+        .values("('foo', 'Foo')");
 
-    let insert_bar = sql::Insert::new()
-      .insert_into("users (login, name)")
-      .values("('bar', 'Bar')");
+      let insert_bar = sql::Insert::new()
+        .insert_into("users (login, name)")
+        .values("('bar', 'Bar')");
 
-    let update_foo = sql::Update::new()
-      .update("users")
-      .set("name = 'Foooo'")
-      .where_clause("login = 'foo'");
+      let update_foo = sql::Update::new()
+        .update("users")
+        .set("name = 'Foooo'")
+        .where_clause("login = 'foo'");
 
-    let query = sql::Transaction::new()
-      .start_transaction("")
-      .set_transaction("READ ONLY")
-      .insert(insert_foo)
-      .savepoint("saved_foo")
-      .insert(insert_bar)
-      .update(update_foo)
-      .savepoint("saved_bar_updated_foo")
-      .release_savepoint("saved_foo")
-      .commit("")
-      .as_string();
+      let query = sql::Transaction::new()
+        .start_transaction("")
+        .set_transaction("READ ONLY")
+        .insert(insert_foo)
+        .savepoint("saved_foo")
+        .insert(insert_bar)
+        .update(update_foo)
+        .savepoint("saved_bar_updated_foo")
+        .release_savepoint("saved_foo")
+        .commit("")
+        .as_string();
 
-    let expected_query = "\
-      START TRANSACTION; \
-      SET TRANSACTION READ ONLY; \
-      INSERT INTO users (login, name) VALUES ('foo', 'Foo'); \
-      SAVEPOINT saved_foo; \
-      INSERT INTO users (login, name) VALUES ('bar', 'Bar'); \
-      UPDATE users SET name = 'Foooo' WHERE login = 'foo'; \
-      SAVEPOINT saved_bar_updated_foo; \
-      RELEASE SAVEPOINT saved_foo; \
-      COMMIT;\
-    ";
+      let expected_query = "\
+        START TRANSACTION; \
+        SET TRANSACTION READ ONLY; \
+        INSERT INTO users (login, name) VALUES ('foo', 'Foo'); \
+        SAVEPOINT saved_foo; \
+        INSERT INTO users (login, name) VALUES ('bar', 'Bar'); \
+        UPDATE users SET name = 'Foooo' WHERE login = 'foo'; \
+        SAVEPOINT saved_bar_updated_foo; \
+        RELEASE SAVEPOINT saved_foo; \
+        COMMIT;\
+      ";
 
-    assert_eq!(query, expected_query);
+      assert_eq!(query, expected_query);
+    }
+
+    #[cfg(feature = "sqlite")]
+    {
+      let insert_foo = sql::Insert::new()
+        .insert_into("users (login, name)")
+        .values("('foo', 'Foo')");
+
+      let insert_bar = sql::Insert::new()
+        .insert_into("users (login, name)")
+        .values("('bar', 'Bar')");
+
+      let update_foo = sql::Update::new()
+        .update("users")
+        .set("name = 'Foooo'")
+        .where_clause("login = 'foo'");
+
+      let query = sql::Transaction::new()
+        .begin("")
+        .insert(insert_foo)
+        .savepoint("saved_foo")
+        .insert(insert_bar)
+        .update(update_foo)
+        .savepoint("saved_bar_updated_foo")
+        .release_savepoint("saved_foo")
+        .end("")
+        .as_string();
+
+      let expected_query = "\
+        BEGIN; \
+        INSERT INTO users (login, name) VALUES ('foo', 'Foo'); \
+        SAVEPOINT saved_foo; \
+        INSERT INTO users (login, name) VALUES ('bar', 'Bar'); \
+        UPDATE users SET name = 'Foooo' WHERE login = 'foo'; \
+        SAVEPOINT saved_bar_updated_foo; \
+        RELEASE SAVEPOINT saved_foo; \
+        END;\
+      ";
+
+      assert_eq!(query, expected_query);
+    }
   }
 }
 
+#[cfg(not(feature = "sqlite"))]
 mod order_of_commands {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -178,6 +268,34 @@ mod order_of_commands {
     let expected_query = "\
       SET TRANSACTION READ ONLY; \
       COMMIT;\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+}
+
+#[cfg(feature = "sqlite")]
+mod order_of_commands {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn command_commit_should_be_add_after_begin_when_specified() {
+    let query = sql::Transaction::new().commit("").begin("DEFERRED").as_string();
+    let expected_query = "\
+      BEGIN DEFERRED; \
+      COMMIT;\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn command_end_should_be_add_after_begin_when_specified() {
+    let query = sql::Transaction::new().end("").begin("IMMEDIATE").as_string();
+    let expected_query = "\
+      BEGIN IMMEDIATE; \
+      END;\
     ";
 
     assert_eq!(query, expected_query);
@@ -392,6 +510,7 @@ mod select_command {
   }
 }
 
+#[cfg(not(feature = "sqlite"))]
 mod set_transaction_command {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -432,6 +551,7 @@ mod set_transaction_command {
   }
 }
 
+#[cfg(not(feature = "sqlite"))]
 mod start_transaction_command {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;

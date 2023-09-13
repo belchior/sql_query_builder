@@ -27,11 +27,12 @@ pub fn multiline<'a>() -> Formatter<'a> {
 }
 
 pub fn colorize(query: String) -> String {
-  let sql_syntax: [(fn(&str) -> String, &str, &str); 61] = [
+  let sql_syntax: [(fn(&str) -> String, &str, &str); 64] = [
     (blue, "AND ", "and "),
     (blue, "COMMIT", "commit"),
     (blue, "CROSS ", "cross "),
     (blue, "DELETE ", "delete "),
+    (blue, "END ", "end "),
     (blue, "EXCEPT ", "except "),
     (blue, "FROM ", "from "),
     (blue, "FULL ", "full "),
@@ -51,6 +52,7 @@ pub fn colorize(query: String) -> String {
     (blue, "READ ONLY", "read only"),
     (blue, "READ WRITE", "read write"),
     (blue, "RELEASE ", "release "),
+    (blue, "REPLACE ", "REPLACE "),
     (blue, "RETURNING ", "returning "),
     (blue, "RIGHT ", "right "),
     (blue, "ROLLBACK", "rollback"),
@@ -70,6 +72,7 @@ pub fn colorize(query: String) -> String {
     (blue, " BY", " by"),
     (blue, " COMMITTED", " committed"),
     (blue, " CONFLICT", " conflict"),
+    (blue, " DEFAULT", " default"),
     (blue, " DEFERRABLE", " deferrable"),
     (blue, " DESC", " desc"),
     (blue, " DO", " do"),

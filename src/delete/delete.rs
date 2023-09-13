@@ -4,6 +4,10 @@ use crate::{
   structure::{Delete, DeleteClause},
 };
 
+impl WithQuery for Delete {}
+
+impl TransactionQuery for Delete {}
+
 impl Delete {
   /// The same as [where_clause](Delete::where_clause) method, useful to write more idiomatic SQL query
   ///
@@ -197,19 +201,19 @@ impl Delete {
   }
 }
 
-#[cfg(any(doc, feature = "postgresql"))]
+#[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 impl Delete {
-  /// The `returning` clause, this method can be used enabling the feature flag `postgresql`
+  /// The `returning` clause, this method can be used enabling a feature flag
   pub fn returning(mut self, output_name: &str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
   }
 
-  /// The `with` clause, this method can be used enabling the feature flag `postgresql`
+  /// The `with` clause, this method can be used enabling a feature flag
   ///
   /// # Example
   ///
-  /// ```text
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let deactivated_users = sql::Select::new().select("id").from("users").where_clause("ative = false");
@@ -236,10 +240,6 @@ impl Delete {
     self
   }
 }
-
-impl WithQuery for Delete {}
-
-impl TransactionQuery for Delete {}
 
 impl std::fmt::Display for Delete {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

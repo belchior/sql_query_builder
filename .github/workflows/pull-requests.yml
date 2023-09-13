@@ -10,11 +10,18 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions-rs/toolchain@v1
         with:
-          toolchain: stable
+          toolchain: 1.62.0
       - uses: actions-rs/cargo@v1
+        name: Test standard syntax
         with:
           command: test
       - uses: actions-rs/cargo@v1
+        name: Test PostgreSQL syntax
         with:
           command: test
-          args: --features postgresql --test feature_flag_postgresql
+          args: --features postgresql
+      - uses: actions-rs/cargo@v1
+        name: Test SQLite syntax
+        with:
+          command: test
+          args: --features sqlite

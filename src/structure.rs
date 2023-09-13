@@ -1,10 +1,10 @@
 use crate::behavior::TransactionQuery;
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 use crate::behavior::WithQuery;
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 use std::sync::Arc;
 
-#[cfg(feature = "postgresql")]
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 pub enum Combinator {
   Except,
   Intersect,
@@ -20,9 +20,9 @@ pub struct Delete {
   pub(crate) _raw: Vec<String>,
   pub(crate) _where: Vec<String>,
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _returning: Vec<String>,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
 
@@ -43,16 +43,15 @@ pub enum DeleteClause {
   DeleteFrom,
   Where,
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   Returning,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   With,
 }
 
 /// Builder to contruct a [Insert] command
 #[derive(Default, Clone)]
 pub struct Insert {
-  pub(crate) _insert_into: String,
   pub(crate) _on_conflict: String,
   pub(crate) _overriding: String,
   pub(crate) _raw_after: Vec<(InsertClause, String)>,
@@ -61,10 +60,27 @@ pub struct Insert {
   pub(crate) _select: Option<Select>,
   pub(crate) _values: Vec<String>,
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _returning: Vec<String>,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
+
+  #[cfg(not(feature = "sqlite"))]
+  pub(crate) _insert_into: String,
+  #[cfg(feature = "sqlite")]
+  pub(crate) _insert: (InsertVars, String),
+
+  #[cfg(feature = "sqlite")]
+  pub(crate) _default_values: bool,
+}
+
+#[cfg(feature = "sqlite")]
+#[derive(Default, Clone, PartialEq)]
+pub enum InsertVars {
+  #[default]
+  InsertInto,
+  InsertOr,
+  ReplaceInto,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Insert] builder
@@ -87,10 +103,14 @@ pub enum InsertClause {
   Select,
   Values,
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   Returning,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   With,
+  #[cfg(any(feature = "sqlite"))]
+  InsertOr,
+  #[cfg(any(feature = "sqlite"))]
+  ReplaceInto,
 }
 
 /// Builder to contruct a [Select] command
@@ -107,17 +127,17 @@ pub struct Select {
   pub(crate) _select: Vec<String>,
   pub(crate) _where: Vec<String>,
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _except: Vec<Self>,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _intersect: Vec<Self>,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _limit: String,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _offset: String,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _union: Vec<Self>,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _with: Vec<(String, Arc<dyn WithQuery>)>,
 }
 
@@ -147,13 +167,13 @@ pub enum SelectClause {
   Select,
   Where,
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   Except,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   Intersect,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   Union,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   With,
 }
 
@@ -166,8 +186,10 @@ pub struct Transaction {
   pub(crate) _set_transaction: Option<TransactionCommand>,
   pub(crate) _start_transaction: Option<TransactionCommand>,
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _begin: Option<TransactionCommand>,
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  pub(crate) _end: Option<TransactionCommand>,
 }
 
 /// Commands used in to build a [Transaction]
@@ -177,11 +199,16 @@ pub(crate) enum TrCmd {
   ReleaseSavepoint,
   Rollback,
   Savepoint,
-  SetTransaction,
-  StartTransaction,
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   Begin,
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  End,
+
+  #[cfg(not(feature = "sqlite"))]
+  SetTransaction,
+  #[cfg(not(feature = "sqlite"))]
+  StartTransaction,
 }
 
 #[derive(PartialEq)]
@@ -194,15 +221,29 @@ pub struct Update {
   pub(crate) _raw_before: Vec<(UpdateClause, String)>,
   pub(crate) _raw: Vec<String>,
   pub(crate) _set: Vec<String>,
-  pub(crate) _update: String,
   pub(crate) _where: Vec<String>,
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _from: Vec<String>,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _returning: Vec<String>,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
+
+  #[cfg(not(feature = "sqlite"))]
+  pub(crate) _update: String,
+  #[cfg(feature = "sqlite")]
+  pub(crate) _update: (UpdateVars, String),
+  #[cfg(feature = "sqlite")]
+  pub(crate) _join: Vec<String>,
+}
+
+#[cfg(feature = "sqlite")]
+#[derive(Default, Clone, PartialEq)]
+pub enum UpdateVars {
+  #[default]
+  Update,
+  UpdateOr,
 }
 
 /// All available clauses to be used in `raw_before` and `raw_after` methods on [Update] builder
@@ -223,12 +264,17 @@ pub enum UpdateClause {
   Update,
   Where,
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   From,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   Returning,
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   With,
+
+  #[cfg(feature = "sqlite")]
+  UpdateOr,
+  #[cfg(feature = "sqlite")]
+  Join,
 }
 
 /// Builder to contruct a [Values] command

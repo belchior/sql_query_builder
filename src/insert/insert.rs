@@ -1,8 +1,14 @@
+#[cfg(feature = "sqlite")]
+use crate::structure::InsertVars;
 use crate::{
   behavior::{push_unique, Concat, TransactionQuery, WithQuery},
   fmt,
   structure::{Insert, InsertClause, Select},
 };
+
+impl WithQuery for Insert {}
+
+impl TransactionQuery for Insert {}
 
 impl Insert {
   /// Gets the current state of the [Insert] and returns it as string
@@ -56,7 +62,7 @@ impl Insert {
     self
   }
 
-  /// The `insert` into clause. This method overrides the previous value
+  /// The `insert into` clause. This method overrides the previous value
   ///
   /// # Example
   ///
@@ -70,6 +76,7 @@ impl Insert {
   ///   .insert_into("address (state, country)")
   ///   .insert_into("users (login, name)");
   /// ```
+  #[cfg(not(feature = "sqlite"))]
   pub fn insert_into(mut self, table_name: &str) -> Self {
     self._insert_into = table_name.trim().to_owned();
     self
@@ -87,6 +94,7 @@ impl Insert {
   }
 
   /// The `overriding` clause. This method overrides the previous value
+  #[cfg(not(feature = "sqlite"))]
   pub fn overriding(mut self, option: &str) -> Self {
     self._overriding = option.trim().to_owned();
     self
@@ -213,19 +221,19 @@ impl Insert {
   }
 }
 
-#[cfg(any(doc, feature = "postgresql"))]
+#[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 impl Insert {
-  /// The returning clause, this method can be used enabling the feature flag `postgresql`
+  /// The `returning` clause, this method can be used enabling a feature flag
   pub fn returning(mut self, output_name: &str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
   }
 
-  /// The `with` clause, this method can be used enabling the feature flag `postgresql`
+  /// The `with` clause, this method can be used enabling a feature flag
   ///
   /// # Example
   ///
-  /// ```text
+  /// ```ts
   /// use sql_query_builder as sql;
   ///
   /// let active_users = sql::Select::new().select("*").from("users_bk").where_clause("ative = true");
@@ -254,9 +262,32 @@ impl Insert {
   }
 }
 
-impl WithQuery for Insert {}
+#[cfg(any(doc, feature = "sqlite"))]
+impl Insert {
+  /// The `default values` clause, this method can be used enabling the feature flag `sqlite`
+  pub fn default_values(mut self) -> Self {
+    self._default_values = true;
+    self
+  }
 
-impl TransactionQuery for Insert {}
+  /// The `insert into` clause, this method can be used enabling the feature flag `sqlite`
+  pub fn insert_into(mut self, expression: &str) -> Self {
+    self._insert = (InsertVars::InsertInto, expression.trim().to_owned());
+    self
+  }
+
+  /// The `insert or <keyword> into` clause, this method can be used enabling the feature flag `sqlite`
+  pub fn insert_or(mut self, expression: &str) -> Self {
+    self._insert = (InsertVars::InsertOr, expression.trim().to_owned());
+    self
+  }
+
+  /// The `replace into` clause, this method can be used enabling the feature flag `sqlite`
+  pub fn replace_into(mut self, expression: &str) -> Self {
+    self._insert = (InsertVars::ReplaceInto, expression.trim().to_owned());
+    self
+  }
+}
 
 impl std::fmt::Display for Insert {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

@@ -12,7 +12,8 @@
   "rust-analyzer.diagnostics.disabled": [
     "inactive-code"
   ],
-  "rust-analyzer.cargo.features": [
-    "postgresql"
+  "rust-analyzer.cargo.features": [],
+  "rust-analyzer.linkedProjects": [
+    "./Cargo.toml"
   ],
 }

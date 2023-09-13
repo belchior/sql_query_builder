@@ -2,4 +2,5 @@
 
 clear
 cargo test
-cargo test --features postgresql --test feature_flag_postgresql
+cargo test --features postgresql
+cargo test --features sqlite
