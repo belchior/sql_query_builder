@@ -30,7 +30,7 @@ pub struct Delete {
 ///
 /// # Example
 /// ```
-/// use sql_query_builder as sql;
+/// # use sql_query_builder as sql;
 ///
 /// let raw = "where name = 'Foo'";
 /// let delete_query = sql::Delete::new()
@@ -87,7 +87,7 @@ pub enum InsertVars {
 ///
 /// # Example
 /// ```
-/// use sql_query_builder as sql;
+/// # use sql_query_builder as sql;
 ///
 /// let raw = "values ('foo', 'Foo')";
 /// let insert_query = sql::Insert::new()
@@ -111,6 +111,8 @@ pub enum InsertClause {
   InsertOr,
   #[cfg(any(feature = "sqlite"))]
   ReplaceInto,
+  #[cfg(any(feature = "sqlite"))]
+  DefaultValues,
 }
 
 /// Builder to contruct a [Select] command
@@ -145,9 +147,9 @@ pub struct Select {
 ///
 /// # Example
 /// ```
-/// use sql_query_builder as sql;
+/// # use sql_query_builder as sql;
 ///
-/// let raw_join = "inner join address addr on u.login = addr.owner_login";
+/// let raw_join = "inner join addresses addr on u.login = addr.owner_login";
 /// let select_query = sql::Select::new()
 ///   .select("*")
 ///   .from("users u")
@@ -250,7 +252,7 @@ pub enum UpdateVars {
 ///
 /// # Example
 /// ```
-/// use sql_query_builder as sql;
+/// # use sql_query_builder as sql;
 ///
 /// let raw = "set name = 'Foo'";
 /// let update_query = sql::Update::new()
@@ -290,7 +292,7 @@ pub struct Values {
 ///
 /// # Example
 /// ```
-/// use sql_query_builder as sql;
+/// # use sql_query_builder as sql;
 ///
 /// let raw_query = ", (3, 'three')";
 /// let values = sql::Values::new()

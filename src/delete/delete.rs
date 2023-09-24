@@ -14,12 +14,14 @@ impl Delete {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let delete = sql::Delete::new()
   ///   .delete_from("users")
   ///   .where_clause("created_at < $1")
   ///   .and("active = false");
+  ///
+  /// # let expected = "DELETE FROM users WHERE created_at < $1 AND active = false";
+  /// # assert_eq!(delete.to_string(), expected);
   /// ```
   pub fn and(mut self, condition: &str) -> Self {
     self = self.where_clause(condition);
@@ -31,12 +33,14 @@ impl Delete {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let query = sql::Delete::new()
   ///   .delete_from("users")
   ///   .where_clause("id = $1")
   ///   .as_string();
+  ///
+  /// # let expected = "DELETE FROM users WHERE id = $1";
+  /// # assert_eq!(query, expected);
   /// ```
   ///
   /// Output
@@ -49,14 +53,13 @@ impl Delete {
     self.concat(&fmts)
   }
 
-  /// Prints the current state of the [Delete] into console output in a more ease to read version.
-  /// This method is useful to debug complex queries or just to print the generated SQL while you type
+  /// Prints the current state of the [Delete] to the standard output in a more ease to read version.
+  /// This method is useful to debug complex queries or just print the generated SQL while you type
   ///
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let delete_query = sql::Delete::new()
   ///   .delete_from("users")
   ///   .where_clause("login = 'foo'")
@@ -65,11 +68,13 @@ impl Delete {
   ///   .as_string();
   /// ```
   ///
-  /// Output
+  /// Prints to the standard output
   ///
   /// ```sql
+  /// -- ------------------------------------------------------------------------------
   /// DELETE FROM users
   /// WHERE login = 'foo'
+  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn debug(self) -> Self {
     let fmts = fmt::multiline();
@@ -82,26 +87,31 @@ impl Delete {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let delete = sql::Delete::new()
   ///   .delete_from("orders");
+  /// #
+  /// # let expected = "DELETE FROM orders";
+  /// # assert_eq!(delete.to_string(), expected);
   ///
   /// let delete = sql::Delete::new()
-  ///   .delete_from("address")
+  ///   .delete_from("addresses")
   ///   .delete_from("orders");
+  ///
+  /// # let expected = "DELETE FROM orders";
+  /// # assert_eq!(delete.to_string(), expected);
   /// ```
   pub fn delete_from(mut self, table_name: &str) -> Self {
     self._delete_from = table_name.trim().to_owned();
     self
   }
 
-  /// Create Delete's instance
+  /// Creates instance of the Delete command
   pub fn new() -> Self {
     Self::default()
   }
 
-  /// Prints the current state of the [Delete] into console output similar to debug method,
+  /// Prints the current state of the [Delete] to the standard output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::one_line();
@@ -114,20 +124,21 @@ impl Delete {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let raw_query = "delete from users";
   /// let delete_query = sql::Delete::new()
   ///   .raw(raw_query)
   ///   .where_clause("login = 'foo'")
   ///   .as_string();
+  ///
+  /// # let expected = "delete from users WHERE login = 'foo'";
+  /// # assert_eq!(delete_query, expected);
   /// ```
   ///
   /// Output
   ///
   /// ```sql
-  /// delete from users
-  /// WHERE login = 'foo'
+  /// delete from users WHERE login = 'foo'
   /// ```
   pub fn raw(mut self, raw_sql: &str) -> Self {
     push_unique(&mut self._raw, raw_sql.trim().to_owned());
@@ -139,20 +150,21 @@ impl Delete {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let raw = "where name = 'Foo'";
   /// let delete_query = sql::Delete::new()
   ///   .delete_from("users")
   ///   .raw_after(sql::DeleteClause::DeleteFrom, raw)
   ///   .as_string();
+  ///
+  /// # let expected = "DELETE FROM users where name = 'Foo'";
+  /// # assert_eq!(delete_query, expected);
   /// ```
   ///
   /// Output
   ///
   /// ```sql
-  /// DELETE FROM users
-  /// where name = 'Foo'
+  /// DELETE FROM users where name = 'Foo'
   /// ```
   pub fn raw_after(mut self, clause: DeleteClause, raw_sql: &str) -> Self {
     self._raw_after.push((clause, raw_sql.trim().to_owned()));
@@ -164,20 +176,21 @@ impl Delete {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let raw = "delete from users";
   /// let delete_query = sql::Delete::new()
   ///   .raw_before(sql::DeleteClause::Where, raw)
   ///   .where_clause("name = 'Bar'")
   ///   .as_string();
+  ///
+  /// # let expected = "delete from users WHERE name = 'Bar'";
+  /// # assert_eq!(delete_query, expected);
   /// ```
   ///
   /// Output
   ///
   /// ```sql
-  /// delete from users
-  /// WHERE name = 'Bar'
+  /// delete from users WHERE name = 'Bar'
   /// ```
   pub fn raw_before(mut self, clause: DeleteClause, raw_sql: &str) -> Self {
     self._raw_before.push((clause, raw_sql.trim().to_owned()));
@@ -189,11 +202,14 @@ impl Delete {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let delete = sql::Delete::new()
   ///   .delete_from("users")
-  ///   .where_clause("login = 'foo'");
+  ///   .where_clause("login = 'foo'")
+  ///   .where_clause("name = 'Foo'");
+  ///
+  /// # let expected = "DELETE FROM users WHERE login = 'foo' AND name = 'Foo'";
+  /// # assert_eq!(delete.to_string(), expected);
   /// ```
   pub fn where_clause(mut self, condition: &str) -> Self {
     push_unique(&mut self._where, condition.trim().to_owned());
@@ -204,6 +220,28 @@ impl Delete {
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 impl Delete {
   /// The `returning` clause, this method can be used enabling a feature flag
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let delete = sql::Delete::new()
+  ///   .delete_from("users")
+  ///   .returning("id")
+  ///   .returning("login");
+  ///
+  /// # let expected = "DELETE FROM users RETURNING id, login";
+  /// # assert_eq!(delete.to_string(), expected);
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// DELETE FROM users RETURNING id, login
+  /// ```
   pub fn returning(mut self, output_name: &str) -> Self {
     push_unique(&mut self._returning, output_name.trim().to_owned());
     self
@@ -213,15 +251,28 @@ impl Delete {
   ///
   /// # Example
   ///
-  /// ```ts
-  /// use sql_query_builder as sql;
-  ///
+  /// ```
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
   /// let deactivated_users = sql::Select::new().select("id").from("users").where_clause("ative = false");
   /// let delete = sql::Delete::new()
   ///   .with("deactivated_users", deactivated_users)
   ///   .delete_from("users")
   ///   .where_clause("id in (select * from deactivated_users)")
   ///   .debug();
+  ///
+  /// # let expected = "\
+  ///   WITH deactivated_users AS (\
+  ///     SELECT id \
+  ///     FROM users \
+  ///     WHERE ative = false\
+  ///   ) \
+  ///   DELETE FROM users \
+  ///   WHERE id in (select * from deactivated_users)\
+  /// ";
+  /// # assert_eq!(delete.to_string(), expected);
+  /// # }
   /// ```
   ///
   /// Output

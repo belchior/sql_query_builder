@@ -69,7 +69,9 @@ let select = sql::Select::new()
 
 Methods like `limit` and `offset` will override the previous value, the two select is equivalent
 
-```ts
+```rust
+# #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+# {
 use sql_query_builder as sql;
 
 let select = sql::Select::new()
@@ -78,6 +80,7 @@ let select = sql::Select::new()
 
 let select = sql::Select::new()
   .limit("123");
+# }
 ```
 
 The library ignores the order between clauses so the two selects are the same
@@ -109,7 +112,7 @@ let mut select = sql::Select::new()
 let shouldIncludesAddress = true;
 
 if shouldIncludesAddress {
-  select = select.inner_join("address on user.login = address.owner_login");
+  select = select.inner_join("addresses on user.login = addresses.owner_login");
 }
 ```
 
@@ -124,14 +127,14 @@ use sql_query_builder as sql;
 fn project(select: sql::Select) -> sql::Select {
 select
     .select("u.id, u.name as user_name, u.login")
-    .select("a.name as address_name")
+    .select("a.name as addresses_name")
     .select("o.name as product_name")
 }
 
 fn relations(select: sql::Select) -> sql::Select {
   select
     .from("users u")
-    .inner_join("address a ON a.user_login = u.login")
+    .inner_join("addresses a ON a.user_login = u.login")
     .inner_join("orders o ON o.user_login = u.login")
 }
 
@@ -158,9 +161,9 @@ println!("{}", query);
 Output (indented for readability)
 
 ```sql
-SELECT u.id, u.name as user_name, u.login, a.name as address_name, o.name as product_name
+SELECT u.id, u.name as user_name, u.login, a.name as addresses_name, o.name as product_name
 FROM users u
-INNER JOIN address a ON a.user_login = u.login
+INNER JOIN addresses a ON a.user_login = u.login
 INNER JOIN orders o ON o.user_login = u.login
 WHERE u.login = $1 AND o.id = $2
 ```
@@ -177,7 +180,7 @@ use sql_query_builder as sql;
 let raw_query = "\
   select u.id as user_id, addr.* \
   from users u \
-  inner join address addr on u.login = addr.owner_login\
+  inner join addresses addr on u.login = addr.owner_login\
 ";
 let select = sql::Select::new()
   .raw(raw_query)
@@ -191,7 +194,7 @@ use sql_query_builder as sql;
 
 let raw_query = "\
   from users u \
-  inner join address addr on u.login = addr.owner_login\
+  inner join addresses addr on u.login = addr.owner_login\
 ";
 let select = sql::Select::new()
   .select("u.id as user_id, addr.*")
@@ -204,7 +207,7 @@ use sql_query_builder as sql;
 
 let raw_query = "\
   from users u \
-  inner join address addr on u.login = addr.owner_login\
+  inner join addresses addr on u.login = addr.owner_login\
 ";
 let select = sql::Select::new()
   .select("u.id as user_id, addr.*")
@@ -214,7 +217,8 @@ let select = sql::Select::new()
 
 ## Debugging queries
 
-Sometimes it's more ease just print de current state of the query builder, to do so adds the `.debug()` method anywhere in the builder. In the example below, the where clause will not be printed because the debug was added before the clause
+Sometimes it's more ease just print de current state of the query builder, to do so adds the `.debug()` method anywhere in the builder.
+In the example below, the where clause will not be printed because the debug was added before the clause
 
 ```rust
 use sql_query_builder as sql;
@@ -226,7 +230,7 @@ let mut select = sql::Select::new()
   .where_clause("login = $1");
 ```
 
-Output
+Prints to the standard output
 
 ```sql
 -- ------------------------------------------------------------------------------

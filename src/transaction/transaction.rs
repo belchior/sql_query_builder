@@ -9,13 +9,18 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```ts
-  /// use sql_query_builder as sql;
-  ///
-  /// let query = sql::Transaction::new()
+  /// ```
+  /// # #[cfg(not(feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let transaction_query = sql::Transaction::new()
   ///   .start_transaction("")
   ///   .commit("")
   ///   .as_string();
+  ///
+  /// # let expected = "START TRANSACTION; COMMIT;";
+  /// # assert_eq!(transaction_query, expected);
+  /// # }
   /// ```
   ///
   /// Output
@@ -34,20 +39,23 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```ts
-  /// use sql_query_builder as sql;
-  ///
-  /// let query = sql::Transaction::new()
+  /// ```
+  /// # #[cfg(not(feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let transaction_query = sql::Transaction::new()
   ///   .commit("WORK")
   ///   .commit("TRANSACTION")
-  ///   .start_transaction("")
   ///   .as_string();
+  ///
+  /// # let expected = "COMMIT TRANSACTION;";
+  /// # assert_eq!(transaction_query, expected);
+  /// # }
   /// ```
   ///
   /// Output
   ///
   /// ```sql
-  /// START TRANSACTION;
   /// COMMIT TRANSACTION;
   /// ```
   pub fn commit(mut self, arg: &str) -> Self {
@@ -56,14 +64,15 @@ impl Transaction {
     self
   }
 
-  /// Prints the current state of the [Transaction] into console output in a more ease to read version.
-  /// This method is useful to debug complex queries or just to print the generated SQL while you type
+  /// Prints the current state of the [Transaction] to the standard output in a more ease to read version.
+  /// This method is useful to debug complex queries or just print the generated SQL while you type
   ///
   /// # Example
   ///
-  /// ```ts
-  /// use sql_query_builder as sql;
-  ///
+  /// ```
+  /// # #[cfg(not(feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
   /// let insert_foo = sql::Insert::new()
   ///   .insert_into("users (login, name)")
   ///   .values("('foo', 'Foo')");
@@ -73,9 +82,10 @@ impl Transaction {
   ///   .insert(insert_foo)
   ///   .commit("")
   ///   .debug();
+  /// # }
   /// ```
   ///
-  /// Output
+  /// Prints to the standard output
   ///
   /// ```sql
   /// -- ------------------------------------------------------------------------------
@@ -95,27 +105,39 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```ts
-  /// use sql_query_builder as sql;
-  ///
+  /// ```
+  /// # #[cfg(not(feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
   /// let delete_foo = sql::Delete::new()
   ///   .delete_from("users")
   ///   .where_clause("login = 'foo'");
   ///
-  /// let query = sql::Transaction::new()
+  /// let transaction = sql::Transaction::new()
   ///   .start_transaction("")
   ///   .delete(delete_foo)
   ///   .commit("")
-  ///   .as_string();
+  ///   .debug();
+  ///
+  /// # let expected = "\
+  /// #   START TRANSACTION; \
+  /// #   DELETE FROM users \
+  /// #   WHERE login = 'foo'; \
+  /// #   COMMIT;\
+  /// # ";
+  /// # assert_eq!(transaction.as_string(), expected);
+  /// # }
   /// ```
   ///
-  /// Output
+  /// Prints to the standard output
   ///
   /// ```sql
+  /// -- ------------------------------------------------------------------------------
   /// START TRANSACTION;
   /// DELETE FROM users
   /// WHERE login = 'foo';
   /// COMMIT;
+  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn delete(mut self, delete: Delete) -> Self {
     let cmd = Box::new(delete);
@@ -127,27 +149,39 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```ts
-  /// use sql_query_builder as sql;
-  ///
+  /// ```
+  /// # #[cfg(not(feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
   /// let insert_foo = sql::Insert::new()
   ///   .insert_into("users (login, name)")
   ///   .values("('foo', 'Foo')");
   ///
-  /// let query = sql::Transaction::new()
+  /// let transaction = sql::Transaction::new()
   ///   .start_transaction("")
   ///   .insert(insert_foo)
   ///   .commit("")
-  ///   .as_string();
+  ///   .debug();
+  ///
+  /// # let expected = "\
+  /// #   START TRANSACTION; \
+  /// #   INSERT INTO users (login, name) \
+  /// #   VALUES ('foo', 'Foo'); \
+  /// #   COMMIT;\
+  /// # ";
+  /// # assert_eq!(transaction.as_string(), expected);
+  /// # }
   /// ```
   ///
-  /// Output
+  /// Prints to the standard output
   ///
   /// ```sql
+  /// -- ------------------------------------------------------------------------------
   /// START TRANSACTION;
   /// INSERT INTO users (login, name)
   /// VALUES ('foo', 'Foo');
   /// COMMIT;
+  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn insert(mut self, insert: Insert) -> Self {
     let cmd = Box::new(insert);
@@ -155,12 +189,12 @@ impl Transaction {
     self
   }
 
-  /// Create Transaction's instance
+  /// Creates instance to be used with Transaction commands
   pub fn new() -> Self {
     Self::default()
   }
 
-  /// Prints the current state of the [Transaction] into console output similar to debug method,
+  /// Prints the current state of the [Transaction] to the standard output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::one_line();
@@ -173,16 +207,22 @@ impl Transaction {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let raw_query = "\
   ///   start transaction; \
   ///   set transaction isolation level read committed;\
   /// ";
-  /// let query = sql::Transaction::new()
+  /// let transaction_query = sql::Transaction::new()
   ///   .raw(raw_query)
   ///   .commit("")
   ///   .as_string();
+  ///
+  /// # let expected = "\
+  /// #   start transaction; \
+  /// #   set transaction isolation level read committed; \
+  /// #   COMMIT;\
+  /// ";
+  /// # assert_eq!(transaction_query, expected);
   /// ```
   ///
   /// Output
@@ -202,11 +242,13 @@ impl Transaction {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
-  /// let query = sql::Transaction::new()
+  /// # use sql_query_builder as sql;
+  /// let transaction_query = sql::Transaction::new()
   ///   .release_savepoint("saved_foo")
   ///   .as_string();
+  ///
+  /// # let expected = "RELEASE SAVEPOINT saved_foo;";
+  /// # assert_eq!(transaction_query, expected);
   /// ```
   ///
   /// Output
@@ -225,11 +267,13 @@ impl Transaction {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
-  /// let query = sql::Transaction::new()
+  /// # use sql_query_builder as sql;
+  /// let transaction_query = sql::Transaction::new()
   ///   .rollback("")
   ///   .as_string();
+  ///
+  /// # let expected = "ROLLBACK;";
+  /// # assert_eq!(transaction_query, expected);
   /// ```
   ///
   /// Output
@@ -241,11 +285,13 @@ impl Transaction {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
-  /// let query = sql::Transaction::new()
+  /// # use sql_query_builder as sql;
+  /// let transaction_query = sql::Transaction::new()
   ///   .rollback("TO SAVEPOINT my_savepoint")
   ///   .as_string();
+  ///
+  /// # let expected = "ROLLBACK TO SAVEPOINT my_savepoint;";
+  /// # assert_eq!(transaction_query, expected);
   /// ```
   ///
   /// Output
@@ -264,11 +310,13 @@ impl Transaction {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
-  /// let query = sql::Transaction::new()
+  /// # use sql_query_builder as sql;
+  /// let transaction_query = sql::Transaction::new()
   ///   .savepoint("my_savepoint")
   ///   .as_string();
+  ///
+  /// # let expected = "SAVEPOINT my_savepoint;";
+  /// # assert_eq!(transaction_query, expected);
   /// ```
   ///
   /// Output
@@ -286,27 +334,38 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```ts
-  /// use sql_query_builder as sql;
-  ///
+  /// ```
+  /// # #[cfg(not(feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
   /// let select_foo = sql::Select::new()
   ///   .select("login, name")
   ///   .from("users")
   ///   .where_clause("id = $1");
   ///
-  /// let query = sql::Transaction::new()
+  /// let transaction = sql::Transaction::new()
   ///   .start_transaction("")
   ///   .select(select_foo)
   ///   .commit("")
-  ///   .as_string();
+  ///   .debug();
+  ///
+  /// # let expected = "\
+  /// #   START TRANSACTION; \
+  /// #   SELECT login, name FROM users WHERE id = $1; \
+  /// #   COMMIT;\
+  /// # ";
+  /// # assert_eq!(transaction.as_string(), expected);
+  /// # }
   /// ```
   ///
-  /// Output
+  /// Prints to the standard output
   ///
   /// ```sql
+  /// -- ------------------------------------------------------------------------------
   /// START TRANSACTION;
   /// SELECT login, name FROM users WHERE id = $1;
   /// COMMIT;
+  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn select(mut self, select: Select) -> Self {
     let cmd = Box::new(select);
@@ -320,13 +379,15 @@ impl Transaction {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
-  /// let query = sql::Transaction::new()
+  /// # use sql_query_builder as sql;
+  /// let transaction_query = sql::Transaction::new()
   ///   .set_transaction("read write")
   ///   .set_transaction("read only")
   ///   .start_transaction("")
   ///   .as_string();
+  ///
+  /// # let expected = "START TRANSACTION; SET TRANSACTION read only;";
+  /// # assert_eq!(transaction_query, expected);
   /// ```
   ///
   /// Output
@@ -348,13 +409,15 @@ impl Transaction {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
-  /// let query = sql::Transaction::new()
+  /// # use sql_query_builder as sql;
+  /// let transaction_query = sql::Transaction::new()
   ///   .commit("")
   ///   .start_transaction("read write")
   ///   .start_transaction("isolation level serializable")
   ///   .as_string();
+  ///
+  /// # let expected = "START TRANSACTION isolation level serializable; COMMIT;";
+  /// # assert_eq!(transaction_query, expected);
   /// ```
   ///
   /// Output
@@ -374,27 +437,38 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```ts
-  /// use sql_query_builder as sql;
-  ///
+  /// ```
+  /// # #[cfg(not(feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
   /// let update_foo = sql::Update::new()
   ///   .update("users")
   ///   .set("name = 'Foooo'")
   ///   .where_clause("id = $1");
   ///
-  /// let query = sql::Transaction::new()
+  /// let transaction = sql::Transaction::new()
   ///   .start_transaction("")
   ///   .update(update_foo)
   ///   .commit("")
-  ///   .as_string();
+  ///   .debug();
+  ///
+  /// # let expected = "\
+  /// #   START TRANSACTION; \
+  /// #   UPDATE users SET name = 'Foooo' WHERE id = $1; \
+  /// #   COMMIT;\
+  /// # ";
+  /// # assert_eq!(transaction.as_string(), expected);
+  /// # }
   /// ```
   ///
-  /// Output
+  /// Prints to the standard output
   ///
   /// ```sql
+  /// -- ------------------------------------------------------------------------------
   /// START TRANSACTION;
   /// UPDATE users SET name = 'Foooo' WHERE id = $1;
   /// COMMIT;
+  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn update(mut self, update: Update) -> Self {
     let cmd = Box::new(update);
@@ -410,13 +484,18 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```ts
-  /// use sql_query_builder as sql;
-  ///
-  /// let query = sql::Transaction::new()
+  /// ```
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let transaction_query = sql::Transaction::new()
   ///   .begin("transaction")
   ///   .commit("")
   ///   .as_string();
+  ///
+  /// # let expected = "BEGIN transaction; COMMIT;";
+  /// # assert_eq!(transaction_query, expected);
+  /// # }
   /// ```
   ///
   /// Output
@@ -436,13 +515,18 @@ impl Transaction {
   ///
   /// # Example
   ///
-  /// ```ts
-  /// use sql_query_builder as sql;
-  ///
-  /// let query = sql::Transaction::new()
+  /// ```
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let transaction_query = sql::Transaction::new()
   ///   .begin("")
   ///   .end("")
   ///   .as_string();
+  ///
+  /// # let expected = "BEGIN; END;";
+  /// # assert_eq!(transaction_query, expected);
+  /// # }
   /// ```
   ///
   /// Output

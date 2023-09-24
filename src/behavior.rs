@@ -216,26 +216,25 @@ pub trait ConcatSqlite {
     concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
   }
 
-  fn concat_values<Clause: PartialEq>(
+  fn concat_values(
     &self,
-    items_raw_before: &Vec<(Clause, String)>,
-    items_raw_after: &Vec<(Clause, String)>,
+    items_raw_before: &Vec<(InsertClause, String)>,
+    items_raw_after: &Vec<(InsertClause, String)>,
     query: String,
     fmts: &fmt::Formatter,
-    clause: Clause,
     values: &Vec<String>,
     default_values: &bool,
   ) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
 
-    let sql = if *default_values {
-      format!("DEFAULT VALUES{space}{lb}")
+    let (clause, sql) = if *default_values {
+      (InsertClause::DefaultValues, format!("DEFAULT VALUES{space}{lb}"))
     } else if values.is_empty() == false {
       let sep = format!("{comma}{lb}");
       let values = values.join(&sep);
-      format!("VALUES{space}{lb}{values}{space}{lb}")
+      (InsertClause::Values, format!("VALUES{space}{lb}{values}{space}{lb}"))
     } else {
-      "".to_owned()
+      (InsertClause::Values, "".to_owned())
     };
 
     concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
