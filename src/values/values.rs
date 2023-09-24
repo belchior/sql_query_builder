@@ -10,11 +10,13 @@ impl Values {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
-  /// let query = sql::Values::new()
+  /// # use sql_query_builder as sql;
+  /// let values_query = sql::Values::new()
   ///   .values("('foo', 'Foo')")
   ///   .as_string();
+  ///
+  /// # let expected = "VALUES ('foo', 'Foo')";
+  /// # assert_eq!(values_query, expected);
   /// ```
   ///
   /// Output
@@ -27,24 +29,28 @@ impl Values {
     self.concat(&fmts)
   }
 
-  /// Prints the current state of the Values into console output in a more ease to read version.
-  /// This method is useful to debug complex queries or just to print the generated SQL while you type
+  /// Prints the current state of the [Values] to the standard output in a more ease to read version.
+  /// This method is useful to debug complex queries or just print the generated SQL while you type
   ///
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let values = sql::Values::new()
   ///   .values("(1, 'one'), (2, 'two')")
   ///   .values("(3, 'three')")
   ///   .debug();
+  ///
+  /// # let expected = "VALUES (1, 'one'), (2, 'two'), (3, 'three')";
+  /// # assert_eq!(values.as_string(), expected);
   /// ```
   ///
-  /// Output
+  /// Prints to the standard output
   ///
   /// ```sql
+  /// -- ------------------------------------------------------------------------------
   /// VALUES (1, 'one'), (2, 'two'), (3, 'three')
+  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn debug(self) -> Self {
     let fmts = fmt::multiline();
@@ -52,12 +58,12 @@ impl Values {
     self
   }
 
-  /// Create Values's instance
+  /// Creates instance of the Values command
   pub fn new() -> Self {
     Self::default()
   }
 
-  /// Prints the current state of the Values into console output similar to debug method,
+  /// Prints the current state of the [Values] to the standard output similar to debug method,
   /// the difference is that this method prints in one line.
   pub fn print(self) -> Self {
     let fmts = fmt::one_line();
@@ -70,13 +76,16 @@ impl Values {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
+  /// # use sql_query_builder as sql;
+  /// let raw_query = "insert into my_table(num, txt)";
   ///
-  /// let raw_query = "insert into my_table(nun, txt)";
-  /// let values = sql::Values::new()
+  /// let values_query = sql::Values::new()
   ///   .raw(raw_query)
   ///   .values("(1, 'one'), (2, 'two')")
-  ///   .debug();
+  ///   .as_string();
+  ///
+  /// # let expected = "insert into my_table(num, txt) VALUES (1, 'one'), (2, 'two')";
+  /// # assert_eq!(values_query, expected);
   /// ```
   ///
   /// Output
@@ -95,13 +104,16 @@ impl Values {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let raw_query = ", (3, 'three')";
-  /// let values = sql::Values::new()
+  ///
+  /// let values_query = sql::Values::new()
   ///   .values("(1, 'one'), (2, 'two')")
   ///   .raw_after(sql::ValuesClause::Values, raw_query)
-  ///   .debug();
+  ///   .as_string();
+  ///
+  /// # let expected = "VALUES (1, 'one'), (2, 'two') , (3, 'three')";
+  /// # assert_eq!(values_query, expected);
   /// ```
   ///
   /// Output
@@ -119,13 +131,16 @@ impl Values {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
+  /// # use sql_query_builder as sql;
   /// let raw_query = "/* the values command */";
-  /// let values = sql::Values::new()
+  ///
+  /// let values_query = sql::Values::new()
   ///   .raw_before(sql::ValuesClause::Values, raw_query)
   ///   .values("(1, 'one'), (2, 'two')")
-  ///   .debug();
+  ///   .as_string();
+  ///
+  /// # let expected = "/* the values command */ VALUES (1, 'one'), (2, 'two')";
+  /// # assert_eq!(values_query, expected);
   /// ```
   ///
   /// Output
@@ -144,11 +159,20 @@ impl Values {
   /// # Example
   ///
   /// ```
-  /// use sql_query_builder as sql;
-  ///
-  /// let values = sql::Values::new()
+  /// # use sql_query_builder as sql;
+  /// let values_query = sql::Values::new()
   ///   .values("(1, 'one'), (2, 'two')")
-  ///   .values("(3, 'three')");
+  ///   .values("(3, 'three')")
+  ///   .as_string();
+  ///
+  /// # let expected = "VALUES (1, 'one'), (2, 'two'), (3, 'three')";
+  /// # assert_eq!(values_query, expected);
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// VALUES (1, 'one'), (2, 'two'), (3, 'three')
   /// ```
   pub fn values(mut self, expression: &str) -> Self {
     push_unique(&mut self._values, expression.trim().to_owned());

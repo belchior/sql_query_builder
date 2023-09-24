@@ -138,7 +138,6 @@ impl Concat for Insert {
         &self._raw_after,
         query,
         &fmts,
-        InsertClause::Values,
         &self._values,
         &self._default_values,
       );
