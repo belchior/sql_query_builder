@@ -277,19 +277,19 @@ impl Insert {
   /// ```
   /// # use sql_query_builder as sql;
   /// let query = sql::Insert::new()
-  ///   .insert_into("users (login)")
+  ///   .insert_into("users (login, name)")
   ///   .values("('foo', 'Foo')")
   ///   .values("('bar', 'Bar')")
   ///   .as_string();
   ///
-  /// # let expected = "INSERT INTO users (login) VALUES ('foo', 'Foo'), ('bar', 'Bar')";
+  /// # let expected = "INSERT INTO users (login, name) VALUES ('foo', 'Foo'), ('bar', 'Bar')";
   /// # assert_eq!(query, expected);
   /// ```
   ///
   /// Output
   ///
   /// ```sql
-  /// INSERT INTO users (login) VALUES ('foo', 'Foo'), ('bar', 'Bar')
+  /// INSERT INTO users (login, name) VALUES ('foo', 'Foo'), ('bar', 'Bar')
   /// ```
   pub fn values(mut self, value: &str) -> Self {
     push_unique(&mut self._values, value.trim().to_owned());

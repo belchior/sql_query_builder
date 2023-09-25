@@ -93,7 +93,7 @@ mod builder_features {
     }
 
     fn conditions(select: sql::Select) -> sql::Select {
-      select.where_clause("u.login = $1").and("o.id = $2")
+      select.where_clause("u.login = $1").where_clause("o.id = $2")
     }
 
     fn as_string(select: sql::Select) -> String {
@@ -119,7 +119,7 @@ mod builder_features {
   }
 
   #[test]
-  fn all_clauses_concatenated_in_order() {
+  fn all_standard_clauses_concatenated_in_order() {
     let query = sql::Select::new()
       .raw("/* all clauses in order */")
       .select("*")

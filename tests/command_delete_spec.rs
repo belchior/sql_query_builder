@@ -109,6 +109,21 @@ mod builder_features {
 
     assert_eq!(query, expected_query);
   }
+
+  #[test]
+  fn all_standard_clauses_concatenated_in_order() {
+    let query = sql::Delete::new()
+      .delete_from("users")
+      .where_clause("users.login = $1")
+      .as_string();
+
+    let expected_query = "\
+      DELETE FROM users \
+      WHERE users.login = $1\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
 }
 
 mod builder_methods {

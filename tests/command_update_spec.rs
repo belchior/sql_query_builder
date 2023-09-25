@@ -116,6 +116,23 @@ mod builder_features {
 
     assert_eq!(query, expected_query);
   }
+
+  #[test]
+  fn all_standard_clauses_concatenated_in_order() {
+    let query = sql::Update::new()
+      .update("users")
+      .set("users.name = 'Foo'")
+      .where_clause("users.login = $1")
+      .as_string();
+
+    let expected_query = "\
+      UPDATE users \
+      SET users.name = 'Foo' \
+      WHERE users.login = $1\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
 }
 
 mod builder_methods {

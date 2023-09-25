@@ -17,7 +17,7 @@ let mut select = sql::Select::new()
 let is_admin = true;
 
 if is_admin {
-  select = select.and("is_admin = true");
+  select = select.where_clause("is_admin = true");
 }
 
 let query = select.as_string();
@@ -141,7 +141,7 @@ fn relations(select: sql::Select) -> sql::Select {
 fn conditions(select: sql::Select) -> sql::Select {
   select
     .where_clause("u.login = $1")
-    .and("o.id = $2")
+    .where_clause("o.id = $2")
 }
 
 fn as_string(select: sql::Select) -> String {

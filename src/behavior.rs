@@ -1,6 +1,6 @@
-use crate::fmt;
 #[cfg(feature = "sqlite")]
 use crate::structure::{InsertClause, InsertVars, UpdateClause, UpdateVars};
+use crate::{fmt, structure::LogicalOperator};
 use std::cmp::PartialEq;
 
 pub trait Concat {
@@ -66,11 +66,17 @@ pub trait ConcatSqlStandard<Clause: PartialEq> {
     query: String,
     fmts: &fmt::Formatter,
     clause: Clause,
-    items: &Vec<String>,
+    items: &Vec<(LogicalOperator, String)>,
   ) -> String {
     let fmt::Formatter { lb, space, indent, .. } = fmts;
     let sql = if items.is_empty() == false {
-      let conditions = items.join(&format!("{space}{lb}{indent}AND{space}"));
+      let ((_, cond), tail) = items.split_first().unwrap();
+
+      let first_condition = format!("{lb}{indent}{cond}");
+      let conditions = tail.iter().fold(first_condition, |acc, (log_op, condition)| {
+        format!("{acc}{space}{lb}{indent}{log_op}{space}{condition}")
+      });
+
       format!("WHERE{space}{conditions}{space}{lb}")
     } else {
       "".to_owned()
@@ -246,6 +252,16 @@ pub trait TransactionQuery: Concat {}
 
 /// Represents all commands that can be used inside the with method
 pub trait WithQuery: Concat {}
+
+impl std::fmt::Display for LogicalOperator {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    let v = match self {
+      LogicalOperator::And => "AND",
+      LogicalOperator::Or => "OR",
+    };
+    write!(f, "{}", v)
+  }
+}
 
 pub fn concat_raw_before_after<Clause: PartialEq>(
   items_before: &Vec<(Clause, String)>,

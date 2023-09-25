@@ -3,7 +3,7 @@ use crate::structure::UpdateVars;
 use crate::{
   behavior::{push_unique, Concat, TransactionQuery, WithQuery},
   fmt,
-  structure::{Update, UpdateClause},
+  structure::{LogicalOperator, Update, UpdateClause},
 };
 
 impl WithQuery for Update {}
@@ -11,31 +11,6 @@ impl WithQuery for Update {}
 impl TransactionQuery for Update {}
 
 impl Update {
-  /// The same as [where_clause](Update::where_clause) method, useful to write more idiomatic SQL query
-  ///
-  /// # Example
-  ///
-  /// ```
-  /// # use sql_query_builder as sql;
-  /// let update_query = sql::Update::new()
-  ///   .where_clause("login = $1")
-  ///   .and("active = true")
-  ///   .as_string();
-  ///
-  /// # let expected = "WHERE login = $1 AND active = true";
-  /// # assert_eq!(update_query, expected);
-  /// ```
-  ///
-  /// Output
-  ///
-  /// ```sql
-  ///  WHERE login = $1 AND active = true
-  /// ```
-  pub fn and(mut self, condition: &str) -> Self {
-    self = self.where_clause(condition);
-    self
-  }
-
   /// Gets the current state of the [Update] and returns it as string
   ///
   /// # Example
@@ -232,29 +207,59 @@ impl Update {
     self
   }
 
-  /// The `where` clause
+  /// The `where` clause, this method will concatenate mulltiples calls using the `and` operator.
+  /// If you intended to use the `or` operator you should use the [where_or](Update::where_or) method
   ///
   /// # Example
   ///
   /// ```
   /// # use sql_query_builder as sql;
   /// let update_query = sql::Update::new()
-  ///   .update("users")
-  ///   .set("name = $1")
-  ///   .where_clause("login = $2")
+  ///   .where_clause("login = $1")
+  ///   .where_clause("status = 'deactivated'")
   ///   .as_string();
   ///
-  /// # let expected = "UPDATE users SET name = $1 WHERE login = $2";
+  /// # let expected = "WHERE login = $1 AND status = 'deactivated'";
+  /// # assert_eq!(update_query, expected);
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// WHERE
+  ///   login = $1
+  ///   AND status = 'deactivated'
+  /// ```
+  pub fn where_clause(mut self, condition: &str) -> Self {
+    push_unique(&mut self._where, (LogicalOperator::And, condition.trim().to_owned()));
+    self
+  }
+
+  /// The `where` clause that concatenate multiples calls using the OR operator.
+  /// If you intended to use the `and` operator you should use the [where_clause](Update::where_clause) method
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # use sql_query_builder as sql;
+  /// let update_query = sql::Update::new()
+  ///   .where_clause("login = 'foo'")
+  ///   .where_or("login = 'bar'")
+  ///   .as_string();
+  ///
+  /// # let expected = "WHERE login = 'foo' OR login = 'bar'";
   /// # assert_eq!(update_query, expected);
   /// ```
   ///
   /// Output
   ///
   /// ```sql
-  /// UPDATE users SET name = $1 WHERE login = $2
+  /// WHERE
+  ///   login = 'foo'
+  ///   OR login = 'bar'
   /// ```
-  pub fn where_clause(mut self, condition: &str) -> Self {
-    push_unique(&mut self._where, condition.trim().to_owned());
+  pub fn where_or(mut self, condition: &str) -> Self {
+    push_unique(&mut self._where, (LogicalOperator::Or, condition.trim().to_owned()));
     self
   }
 }

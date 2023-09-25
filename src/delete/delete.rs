@@ -1,7 +1,7 @@
 use crate::{
   behavior::{push_unique, Concat, TransactionQuery, WithQuery},
   fmt,
-  structure::{Delete, DeleteClause},
+  structure::{Delete, DeleteClause, LogicalOperator},
 };
 
 impl WithQuery for Delete {}
@@ -9,25 +9,6 @@ impl WithQuery for Delete {}
 impl TransactionQuery for Delete {}
 
 impl Delete {
-  /// The same as [where_clause](Delete::where_clause) method, useful to write more idiomatic SQL query
-  ///
-  /// # Example
-  ///
-  /// ```
-  /// # use sql_query_builder as sql;
-  /// let delete = sql::Delete::new()
-  ///   .delete_from("users")
-  ///   .where_clause("created_at < $1")
-  ///   .and("active = false");
-  ///
-  /// # let expected = "DELETE FROM users WHERE created_at < $1 AND active = false";
-  /// # assert_eq!(delete.to_string(), expected);
-  /// ```
-  pub fn and(mut self, condition: &str) -> Self {
-    self = self.where_clause(condition);
-    self
-  }
-
   /// Gets the current state of the [Delete] and returns it as string
   ///
   /// # Example
@@ -197,22 +178,59 @@ impl Delete {
     self
   }
 
-  /// The `where` clause
+  /// The `where` clause, this method will concatenate mulltiples calls using the `and` operator.
+  /// If you intended to use the `or` operator you should use the [where_or](Delete::where_or) method
   ///
   /// # Example
   ///
   /// ```
   /// # use sql_query_builder as sql;
-  /// let delete = sql::Delete::new()
-  ///   .delete_from("users")
-  ///   .where_clause("login = 'foo'")
-  ///   .where_clause("name = 'Foo'");
+  /// let delete_query = sql::Delete::new()
+  ///   .where_clause("login = $1")
+  ///   .where_clause("status = 'deactivated'")
+  ///   .as_string();
   ///
-  /// # let expected = "DELETE FROM users WHERE login = 'foo' AND name = 'Foo'";
-  /// # assert_eq!(delete.to_string(), expected);
+  /// # let expected = "WHERE login = $1 AND status = 'deactivated'";
+  /// # assert_eq!(delete_query, expected);
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// WHERE
+  ///   login = $1
+  ///   AND status = 'deactivated'
   /// ```
   pub fn where_clause(mut self, condition: &str) -> Self {
-    push_unique(&mut self._where, condition.trim().to_owned());
+    push_unique(&mut self._where, (LogicalOperator::And, condition.trim().to_owned()));
+    self
+  }
+
+  /// The `where` clause that concatenate multiples calls using the OR operator.
+  /// If you intended to use the `and` operator you should use the [where_clause](Delete::where_clause) method
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # use sql_query_builder as sql;
+  /// let delete_query = sql::Delete::new()
+  ///   .where_clause("login = 'foo'")
+  ///   .where_or("login = 'bar'")
+  ///   .as_string();
+  ///
+  /// # let expected = "WHERE login = 'foo' OR login = 'bar'";
+  /// # assert_eq!(delete_query, expected);
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// WHERE
+  ///   login = 'foo'
+  ///   OR login = 'bar'
+  /// ```
+  pub fn where_or(mut self, condition: &str) -> Self {
+    push_unique(&mut self._where, (LogicalOperator::Or, condition.trim().to_owned()));
     self
   }
 }
