@@ -106,6 +106,24 @@ mod builder_features {
 
     assert_eq!(query, expected_query);
   }
+
+  #[cfg(not(feature = "sqlite"))]
+  #[test]
+  fn all_standard_clauses_concatenated_in_order() {
+    let query = sql::Insert::new()
+      .insert_into("users (login, name)")
+      .overriding("user value")
+      .values("('foo', 'Foo')")
+      .as_string();
+
+    let expected_query = "\
+      INSERT INTO users (login, name) \
+      OVERRIDING user value \
+      VALUES ('foo', 'Foo')\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
 }
 
 mod builder_methods {

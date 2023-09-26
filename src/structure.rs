@@ -11,6 +11,12 @@ pub enum Combinator {
   Union,
 }
 
+#[derive(Clone, PartialEq)]
+pub enum LogicalOperator {
+  And,
+  Or,
+}
+
 /// Builder to contruct a [Delete] command
 #[derive(Default, Clone)]
 pub struct Delete {
@@ -18,7 +24,7 @@ pub struct Delete {
   pub(crate) _raw_after: Vec<(DeleteClause, String)>,
   pub(crate) _raw_before: Vec<(DeleteClause, String)>,
   pub(crate) _raw: Vec<String>,
-  pub(crate) _where: Vec<String>,
+  pub(crate) _where: Vec<(LogicalOperator, String)>,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _returning: Vec<String>,
@@ -127,7 +133,7 @@ pub struct Select {
   pub(crate) _raw_before: Vec<(SelectClause, String)>,
   pub(crate) _raw: Vec<String>,
   pub(crate) _select: Vec<String>,
-  pub(crate) _where: Vec<String>,
+  pub(crate) _where: Vec<(LogicalOperator, String)>,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _except: Vec<Self>,
@@ -223,7 +229,7 @@ pub struct Update {
   pub(crate) _raw_before: Vec<(UpdateClause, String)>,
   pub(crate) _raw: Vec<String>,
   pub(crate) _set: Vec<String>,
-  pub(crate) _where: Vec<String>,
+  pub(crate) _where: Vec<(LogicalOperator, String)>,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _from: Vec<String>,

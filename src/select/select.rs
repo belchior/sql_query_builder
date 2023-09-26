@@ -1,7 +1,7 @@
 use crate::{
   behavior::{push_unique, Concat, TransactionQuery, WithQuery},
   fmt,
-  structure::{Select, SelectClause},
+  structure::{LogicalOperator, Select, SelectClause},
 };
 
 impl TransactionQuery for Select {}
@@ -9,24 +9,6 @@ impl TransactionQuery for Select {}
 impl WithQuery for Select {}
 
 impl Select {
-  /// The same as [where_clause](Select::where_clause) method, useful to write more idiomatic SQL query
-  ///
-  /// # Example
-  ///
-  /// ```
-  /// # use sql_query_builder as sql;
-  /// let select = sql::Select::new()
-  ///   .where_clause("login = 'foo'")
-  ///   .and("active = true");
-  ///
-  /// # let expected = "WHERE login = 'foo' AND active = true";
-  /// # assert_eq!(select.as_string(), expected);
-  /// ```
-  pub fn and(mut self, condition: &str) -> Self {
-    self = self.where_clause(condition);
-    self
-  }
-
   /// Gets the current state of the [Select] and returns it as string
   ///
   /// # Example
@@ -64,7 +46,7 @@ impl Select {
   ///   .select("*")
   ///   .from("users")
   ///   .where_clause("login = foo")
-  ///   .and("active = true")
+  ///   .where_clause("active = true")
   ///   .debug();
   /// ```
   ///
@@ -89,7 +71,7 @@ impl Select {
   ///   .from("users")
   ///   .debug()
   ///   .where_clause("login = foo")
-  ///   .and("active = true")
+  ///   .where_clause("active = true")
   ///   .as_string();
   /// ```
   ///
@@ -411,20 +393,109 @@ impl Select {
     self
   }
 
-  /// The `where` clause
+  /// The `where` clause, this method will concatenate mulltiples calls using the `and` operator.
+  /// If you intended to use the `or` operator you should use the [where_or](Select::where_or) method
   ///
   /// # Example
   ///
   /// ```
   /// # use sql_query_builder as sql;
-  /// let select = sql::Select::new()
-  ///   .where_clause("login = $1");
+  /// let select_query = sql::Select::new()
+  ///   .where_clause("login = $1")
+  ///   .where_clause("status = 'active'")
+  ///   .as_string();
   ///
-  /// # let expected = "WHERE login = $1";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # let expected = "WHERE login = $1 AND status = 'active'";
+  /// # assert_eq!(select_query, expected);
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// WHERE
+  ///   login = $1
+  ///   AND status = 'active'
   /// ```
   pub fn where_clause(mut self, condition: &str) -> Self {
-    push_unique(&mut self._where, condition.trim().to_owned());
+    push_unique(&mut self._where, (LogicalOperator::And, condition.trim().to_owned()));
+    self
+  }
+
+  /// The `where` clause that concatenate multiples calls using the OR operator.
+  /// If you intended to use the `and` operator you should use the [where_clause](Select::where_clause) method
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # use sql_query_builder as sql;
+  /// let select_query = sql::Select::new()
+  ///   .where_clause("login = 'foo'")
+  ///   .where_or("login = 'bar'")
+  ///   .as_string();
+  ///
+  /// # let expected = "WHERE login = 'foo' OR login = 'bar'";
+  /// # assert_eq!(select_query, expected);
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// WHERE
+  ///   login = 'foo'
+  ///   OR login = 'bar'
+  /// ```
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # use sql_query_builder as sql;
+  /// let select_query = sql::Select::new()
+  ///   .where_clause("login = 'foo'")
+  ///   .where_or("login = 'bar'")
+  ///   .where_clause("login = 'joe'")
+  ///   .as_string();
+  ///
+  /// # let expected = "\
+  /// #   WHERE \
+  /// #     login = 'foo' \
+  /// #     OR login = 'bar' \
+  /// #     AND login = 'joe'\
+  /// # ";
+  /// # assert_eq!(select_query, expected);
+  /// ```
+  /// Output
+  ///
+  /// ```sql
+  /// WHERE
+  ///   login = 'foo'
+  ///   OR login = 'bar'
+  ///   AND login = 'joe'
+  /// ```
+  ///
+  /// # Example
+  ///
+  /// If the `where_or` was the first clause then the operator will be ignored
+  ///
+  /// ```
+  /// # use sql_query_builder as sql;
+  /// let select_query = sql::Select::new()
+  ///   .where_or("login = 'joe'")
+  ///   .where_clause("login = 'foo'")
+  ///   .as_string();
+  ///
+  /// # let expected = "WHERE login = 'joe' AND login = 'foo'";
+  /// # assert_eq!(select_query, expected);
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// WHERE
+  ///   login = 'joe'
+  ///   AND login = 'foo'
+  /// ```
+  pub fn where_or(mut self, condition: &str) -> Self {
+    push_unique(&mut self._where, (LogicalOperator::Or, condition.trim().to_owned()));
     self
   }
 }
