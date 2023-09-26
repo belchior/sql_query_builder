@@ -10,7 +10,7 @@ impl ConcatSqlStandard<SelectClause> for Select {}
 
 impl Concat for Select {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_owned();
+    let mut query = "".to_string();
 
     query = self.concat_raw(query, &fmts, &self._raw);
 
@@ -61,7 +61,7 @@ impl Concat for Select {
       query = self.concat_combinator(query, &fmts, Combinator::Union);
     }
 
-    query.trim_end().to_owned()
+    query.trim_end().to_string()
   }
 }
 
@@ -72,7 +72,7 @@ impl Select {
       let columns = self._group_by.join(comma);
       format!("GROUP BY{space}{columns}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -91,7 +91,7 @@ impl Select {
       let conditions = self._having.join(" AND ");
       format!("HAVING{space}{conditions}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -110,7 +110,7 @@ impl Select {
       let joins = self._join.join(format!("{space}{lb}").as_str());
       format!("{joins}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -129,7 +129,7 @@ impl Select {
       let columns = self._order_by.join(comma);
       format!("ORDER BY{space}{columns}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -148,7 +148,7 @@ impl Select {
       let columns = self._select.join(comma);
       format!("SELECT{space}{columns}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -187,22 +187,22 @@ impl Select {
     let raw_after = raw_queries(&self._raw_after, &clause).join(space);
 
     let space_before = if raw_before.is_empty() {
-      "".to_owned()
+      "".to_string()
     } else {
       space.to_string()
     };
     let space_after = if raw_after.is_empty() {
-      "".to_owned()
+      "".to_string()
     } else {
       space.to_string()
     };
 
     if clause_list.is_empty() {
-      let sql = "".to_owned();
+      let sql = "".to_string();
       return format!("{query}{raw_before}{space_before}{sql}{raw_after}{space_after}");
     }
 
-    let right_stmt = clause_list.iter().fold("".to_owned(), |acc, select| {
+    let right_stmt = clause_list.iter().fold("".to_string(), |acc, select| {
       let query = select.concat(&fmts);
       format!("{acc}{clause_name}{space}({lb}{query}){space}{lb}")
     });
@@ -220,7 +220,7 @@ impl Select {
       let count = &self._limit;
       format!("LIMIT{space}{count}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -242,7 +242,7 @@ impl Select {
       let start = &self._offset;
       format!("OFFSET{space}{start}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(

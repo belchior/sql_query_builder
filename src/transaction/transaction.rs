@@ -59,7 +59,7 @@ impl Transaction {
   /// COMMIT TRANSACTION;
   /// ```
   pub fn commit(mut self, arg: &str) -> Self {
-    let cmd = TransactionCommand::new(Commit, arg.trim().to_owned());
+    let cmd = TransactionCommand::new(Commit, arg.trim().to_string());
     self._commit = Some(cmd);
     self
   }
@@ -233,7 +233,7 @@ impl Transaction {
   /// COMMIT;
   /// ```
   pub fn raw(mut self, raw_sql: &str) -> Self {
-    push_unique(&mut self._raw, raw_sql.trim().to_owned());
+    push_unique(&mut self._raw, raw_sql.trim().to_string());
     self
   }
 
@@ -257,7 +257,7 @@ impl Transaction {
   /// RELEASE_SAVEPOINT saved_foo;
   /// ```
   pub fn release_savepoint(mut self, name: &str) -> Self {
-    let cmd = Box::new(TransactionCommand::new(ReleaseSavepoint, name.trim().to_owned()));
+    let cmd = Box::new(TransactionCommand::new(ReleaseSavepoint, name.trim().to_string()));
     self._ordered_commands.push(cmd);
     self
   }
@@ -300,7 +300,7 @@ impl Transaction {
   /// ROLLBACK TO SAVEPOINT my_savepoint;
   /// ```
   pub fn rollback(mut self, arg: &str) -> Self {
-    let cmd = Box::new(TransactionCommand::new(Rollback, arg.trim().to_owned()));
+    let cmd = Box::new(TransactionCommand::new(Rollback, arg.trim().to_string()));
     self._ordered_commands.push(cmd);
     self
   }
@@ -325,7 +325,7 @@ impl Transaction {
   /// SAVEPOINT my_savepoint;
   /// ```
   pub fn savepoint(mut self, name: &str) -> Self {
-    let cmd = Box::new(TransactionCommand::new(Savepoint, name.trim().to_owned()));
+    let cmd = Box::new(TransactionCommand::new(Savepoint, name.trim().to_string()));
     self._ordered_commands.push(cmd);
     self
   }
@@ -398,7 +398,7 @@ impl Transaction {
   /// ```
   #[cfg(not(feature = "sqlite"))]
   pub fn set_transaction(mut self, mode: &str) -> Self {
-    let cmd = TransactionCommand::new(SetTransaction, mode.trim().to_owned());
+    let cmd = TransactionCommand::new(SetTransaction, mode.trim().to_string());
     self._set_transaction = Some(cmd);
     self
   }
@@ -428,7 +428,7 @@ impl Transaction {
   /// ```
   #[cfg(not(feature = "sqlite"))]
   pub fn start_transaction(mut self, mode: &str) -> Self {
-    let cmd = TransactionCommand::new(StartTransaction, mode.trim().to_owned());
+    let cmd = TransactionCommand::new(StartTransaction, mode.trim().to_string());
     self._start_transaction = Some(cmd);
     self
   }
@@ -505,7 +505,7 @@ impl Transaction {
   /// COMMIT;
   /// ```
   pub fn begin(mut self, mode: &str) -> Self {
-    let cmd = TransactionCommand::new(Begin, mode.trim().to_owned());
+    let cmd = TransactionCommand::new(Begin, mode.trim().to_string());
     self._begin = Some(cmd);
     self
   }
@@ -536,7 +536,7 @@ impl Transaction {
   /// END;
   /// ```
   pub fn end(mut self, mode: &str) -> Self {
-    let cmd = TransactionCommand::new(End, mode.trim().to_owned());
+    let cmd = TransactionCommand::new(End, mode.trim().to_string());
     self._end = Some(cmd);
     self
   }

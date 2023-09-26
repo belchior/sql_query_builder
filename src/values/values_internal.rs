@@ -8,7 +8,7 @@ impl ConcatSqlStandard<ValuesClause> for Values {}
 
 impl Concat for Values {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_owned();
+    let mut query = "".to_string();
 
     query = self.concat_raw(query, &fmts, &self._raw);
     query = self.concat_values(
@@ -20,6 +20,6 @@ impl Concat for Values {
       &self._values,
     );
 
-    query.trim_end().to_owned()
+    query.trim_end().to_string()
   }
 }

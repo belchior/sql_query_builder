@@ -3,9 +3,8 @@ use crate::{
   fmt,
   structure::{
     TrCmd::{self, *},
-    TransactionCommand,
+    Transaction, TransactionCommand,
   },
-  Transaction,
 };
 
 impl ConcatSqlStandard<TransactionCommand> for Transaction {}
@@ -14,7 +13,7 @@ impl TransactionQuery for TransactionCommand {}
 
 impl Concat for Transaction {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_owned();
+    let mut query = "".to_string();
 
     query = self.concat_raw(query, &fmts, &self._raw);
 
@@ -36,7 +35,7 @@ impl Concat for Transaction {
       query = self.concat_end(query, &fmts);
     }
 
-    query.trim_end().to_owned()
+    query.trim_end().to_string()
   }
 }
 
@@ -44,7 +43,7 @@ impl Concat for TransactionCommand {
   fn concat(&self, fmts: &crate::fmt::Formatter) -> String {
     let fmt::Formatter { space, .. } = fmts;
     let arg = if self.1.is_empty() {
-      "".to_owned()
+      "".to_string()
     } else {
       format!("{space}{0}", self.1)
     };
@@ -72,7 +71,7 @@ impl Transaction {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = match &self._commit {
       Some(cmd) => format!("{0};{space}{lb}", cmd.concat(fmts)),
-      None => "".to_owned(),
+      None => "".to_string(),
     };
 
     format!("{query}{sql}")
@@ -82,7 +81,7 @@ impl Transaction {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = match &self._set_transaction {
       Some(cmd) => format!("{0};{space}{lb}", cmd.concat(fmts)),
-      None => "".to_owned(),
+      None => "".to_string(),
     };
 
     format!("{query}{sql}")
@@ -92,7 +91,7 @@ impl Transaction {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = match &self._start_transaction {
       Some(cmd) => format!("{0};{space}{lb}", cmd.concat(fmts)),
-      None => "".to_owned(),
+      None => "".to_string(),
     };
 
     format!("{query}{sql}")
@@ -100,7 +99,7 @@ impl Transaction {
 
   fn concat_ordered_commands(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = self._ordered_commands.iter().fold("".to_owned(), |acc, cmd| {
+    let sql = self._ordered_commands.iter().fold("".to_string(), |acc, cmd| {
       format!("{acc}{0};{space}{lb}", cmd.concat(fmts))
     });
 
@@ -120,7 +119,7 @@ impl Transaction {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = match &self._begin {
       Some(cmd) => format!("{0};{space}{lb}", cmd.concat(fmts)),
-      None => "".to_owned(),
+      None => "".to_string(),
     };
 
     format!("{query}{sql}")
@@ -130,7 +129,7 @@ impl Transaction {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = match &self._end {
       Some(cmd) => format!("{0};{space}{lb}", cmd.concat(fmts)),
-      None => "".to_owned(),
+      None => "".to_string(),
     };
 
     format!("{query}{sql}")
