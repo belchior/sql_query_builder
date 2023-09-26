@@ -15,7 +15,7 @@ impl Delete {
       let table_name = &self._delete_from;
       format!("DELETE FROM{space}{table_name}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -31,7 +31,7 @@ impl Delete {
 
 impl Concat for Delete {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_owned();
+    let mut query = "".to_string();
 
     query = self.concat_raw(query, &fmts, &self._raw);
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
@@ -66,7 +66,7 @@ impl Concat for Delete {
       );
     }
 
-    query.trim_end().to_owned()
+    query.trim_end().to_string()
   }
 }
 

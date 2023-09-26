@@ -5,16 +5,10 @@ use crate::behavior::WithQuery;
 use std::sync::Arc;
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-pub enum Combinator {
+pub(crate) enum Combinator {
   Except,
   Intersect,
   Union,
-}
-
-#[derive(Clone, PartialEq)]
-pub enum LogicalOperator {
-  And,
-  Or,
 }
 
 /// Builder to contruct a [Delete] command
@@ -82,7 +76,7 @@ pub struct Insert {
 
 #[cfg(feature = "sqlite")]
 #[derive(Default, Clone, PartialEq)]
-pub enum InsertVars {
+pub(crate) enum InsertVars {
   #[default]
   InsertInto,
   InsertOr,
@@ -119,6 +113,12 @@ pub enum InsertClause {
   ReplaceInto,
   #[cfg(any(feature = "sqlite"))]
   DefaultValues,
+}
+
+#[derive(Clone, PartialEq)]
+pub(crate) enum LogicalOperator {
+  And,
+  Or,
 }
 
 /// Builder to contruct a [Select] command
@@ -248,7 +248,7 @@ pub struct Update {
 
 #[cfg(feature = "sqlite")]
 #[derive(Default, Clone, PartialEq)]
-pub enum UpdateVars {
+pub(crate) enum UpdateVars {
   #[default]
   Update,
   UpdateOr,

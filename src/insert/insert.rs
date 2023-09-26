@@ -86,7 +86,7 @@ impl Insert {
   /// ```
   #[cfg(not(feature = "sqlite"))]
   pub fn insert_into(mut self, table_name: &str) -> Self {
-    self._insert_into = table_name.trim().to_owned();
+    self._insert_into = table_name.trim().to_string();
     self
   }
 
@@ -116,7 +116,7 @@ impl Insert {
   /// INSERT INTO users (login) ON CONFLICT do nothing
   /// ```
   pub fn on_conflict(mut self, conflict: &str) -> Self {
-    self._on_conflict = conflict.trim().to_owned();
+    self._on_conflict = conflict.trim().to_string();
     self
   }
 
@@ -142,7 +142,7 @@ impl Insert {
   /// ```
   #[cfg(not(feature = "sqlite"))]
   pub fn overriding(mut self, option: &str) -> Self {
-    self._overriding = option.trim().to_owned();
+    self._overriding = option.trim().to_string();
     self
   }
 
@@ -214,7 +214,7 @@ impl Insert {
   /// insert into users (login, name) VALUES ('foo', 'Foo')
   /// ```
   pub fn raw(mut self, raw_sql: &str) -> Self {
-    push_unique(&mut self._raw, raw_sql.trim().to_owned());
+    push_unique(&mut self._raw, raw_sql.trim().to_string());
     self
   }
 
@@ -240,7 +240,7 @@ impl Insert {
   /// INSERT INTO users (login, name) values ('foo', 'Foo')
   /// ```
   pub fn raw_after(mut self, clause: InsertClause, raw_sql: &str) -> Self {
-    self._raw_after.push((clause, raw_sql.trim().to_owned()));
+    self._raw_after.push((clause, raw_sql.trim().to_string()));
     self
   }
 
@@ -266,7 +266,7 @@ impl Insert {
   /// insert into users (login, name) VALUES ('bar', 'Bar')
   /// ```
   pub fn raw_before(mut self, clause: InsertClause, raw_sql: &str) -> Self {
-    self._raw_before.push((clause, raw_sql.trim().to_owned()));
+    self._raw_before.push((clause, raw_sql.trim().to_string()));
     self
   }
 
@@ -292,7 +292,7 @@ impl Insert {
   /// INSERT INTO users (login, name) VALUES ('foo', 'Foo'), ('bar', 'Bar')
   /// ```
   pub fn values(mut self, value: &str) -> Self {
-    push_unique(&mut self._values, value.trim().to_owned());
+    push_unique(&mut self._values, value.trim().to_string());
     self
   }
 }
@@ -324,7 +324,7 @@ impl Insert {
   /// INSERT INTO users RETURNING id, login
   /// ```
   pub fn returning(mut self, output_name: &str) -> Self {
-    push_unique(&mut self._returning, output_name.trim().to_owned());
+    push_unique(&mut self._returning, output_name.trim().to_string());
     self
   }
 
@@ -374,7 +374,7 @@ impl Insert {
   /// FROM active_users
   /// ```
   pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
-    self._with.push((name.trim().to_owned(), std::sync::Arc::new(query)));
+    self._with.push((name.trim().to_string(), std::sync::Arc::new(query)));
     self
   }
 }
@@ -412,7 +412,7 @@ impl Insert {
   /// The `insert into` clause, this method overrides the previous value and can be used enabling the feature flag `sqlite`
   #[cfg(not(doc))]
   pub fn insert_into(mut self, expression: &str) -> Self {
-    self._insert = (InsertVars::InsertInto, expression.trim().to_owned());
+    self._insert = (InsertVars::InsertInto, expression.trim().to_string());
     self
   }
 
@@ -445,7 +445,7 @@ impl Insert {
   /// INSERT OR abort into users (login, name)
   /// ```
   pub fn insert_or(mut self, expression: &str) -> Self {
-    self._insert = (InsertVars::InsertOr, expression.trim().to_owned());
+    self._insert = (InsertVars::InsertOr, expression.trim().to_string());
     self
   }
 
@@ -471,7 +471,7 @@ impl Insert {
   /// REPLACE INTO users (login, name)
   /// ```
   pub fn replace_into(mut self, expression: &str) -> Self {
-    self._insert = (InsertVars::ReplaceInto, expression.trim().to_owned());
+    self._insert = (InsertVars::ReplaceInto, expression.trim().to_string());
     self
   }
 }

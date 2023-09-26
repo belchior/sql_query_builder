@@ -102,7 +102,7 @@ impl Select {
   /// # assert_eq!(select.as_string(), expected);
   /// ```
   pub fn from(mut self, tables: &str) -> Self {
-    push_unique(&mut self._from, tables.trim().to_owned());
+    push_unique(&mut self._from, tables.trim().to_string());
     self
   }
 
@@ -119,7 +119,7 @@ impl Select {
   /// # assert_eq!(select.as_string(), expected);
   /// ```
   pub fn group_by(mut self, column: &str) -> Self {
-    push_unique(&mut self._group_by, column.trim().to_owned());
+    push_unique(&mut self._group_by, column.trim().to_string());
     self
   }
 
@@ -144,7 +144,7 @@ impl Select {
   /// GROUP BY status HAVING status != 'disabled'
   /// ```
   pub fn having(mut self, condition: &str) -> Self {
-    push_unique(&mut self._having, condition.trim().to_owned());
+    push_unique(&mut self._having, condition.trim().to_string());
     self
   }
 
@@ -275,7 +275,7 @@ impl Select {
   /// # assert_eq!(select.as_string(), expected);
   /// ```
   pub fn order_by(mut self, column: &str) -> Self {
-    push_unique(&mut self._order_by, column.trim().to_owned());
+    push_unique(&mut self._order_by, column.trim().to_string());
     self
   }
 
@@ -309,7 +309,7 @@ impl Select {
   /// select * from users WHERE users.login = 'foo'
   /// ```
   pub fn raw(mut self, raw_sql: &str) -> Self {
-    push_unique(&mut self._raw, raw_sql.trim().to_owned());
+    push_unique(&mut self._raw, raw_sql.trim().to_string());
     self
   }
 
@@ -342,7 +342,7 @@ impl Select {
   /// WHERE u.login = foo
   /// ```
   pub fn raw_after(mut self, clause: SelectClause, raw_sql: &str) -> Self {
-    self._raw_after.push((clause, raw_sql.trim().to_owned()));
+    self._raw_after.push((clause, raw_sql.trim().to_string()));
     self
   }
 
@@ -372,7 +372,7 @@ impl Select {
   /// WHERE users.login = 'foo'
   /// ```
   pub fn raw_before(mut self, clause: SelectClause, raw_sql: &str) -> Self {
-    self._raw_before.push((clause, raw_sql.trim().to_owned()));
+    self._raw_before.push((clause, raw_sql.trim().to_string()));
     self
   }
 
@@ -389,7 +389,7 @@ impl Select {
   /// # assert_eq!(select.as_string(), expected);
   /// ```
   pub fn select(mut self, column: &str) -> Self {
-    push_unique(&mut self._select, column.trim().to_owned());
+    push_unique(&mut self._select, column.trim().to_string());
     self
   }
 
@@ -417,7 +417,7 @@ impl Select {
   ///   AND status = 'active'
   /// ```
   pub fn where_clause(mut self, condition: &str) -> Self {
-    push_unique(&mut self._where, (LogicalOperator::And, condition.trim().to_owned()));
+    push_unique(&mut self._where, (LogicalOperator::And, condition.trim().to_string()));
     self
   }
 
@@ -495,7 +495,7 @@ impl Select {
   ///   AND login = 'foo'
   /// ```
   pub fn where_or(mut self, condition: &str) -> Self {
-    push_unique(&mut self._where, (LogicalOperator::Or, condition.trim().to_owned()));
+    push_unique(&mut self._where, (LogicalOperator::Or, condition.trim().to_string()));
     self
   }
 }
@@ -602,7 +602,7 @@ impl Select {
   /// # }
   /// ```
   pub fn limit(mut self, num: &str) -> Self {
-    self._limit = num.trim().to_owned();
+    self._limit = num.trim().to_string();
     self
   }
 
@@ -626,7 +626,7 @@ impl Select {
   /// # }
   /// ```
   pub fn offset(mut self, num: &str) -> Self {
-    self._offset = num.trim().to_owned();
+    self._offset = num.trim().to_string();
     self
   }
 
@@ -720,7 +720,7 @@ impl Select {
   /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
-    self._with.push((name.trim().to_owned(), std::sync::Arc::new(query)));
+    self._with.push((name.trim().to_string(), std::sync::Arc::new(query)));
     self
   }
 }

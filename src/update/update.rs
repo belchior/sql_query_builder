@@ -104,7 +104,7 @@ impl Update {
   /// SET login = 'foo'
   /// ```
   pub fn raw(mut self, raw_sql: &str) -> Self {
-    push_unique(&mut self._raw, raw_sql.trim().to_owned());
+    push_unique(&mut self._raw, raw_sql.trim().to_string());
     self
   }
 
@@ -132,7 +132,7 @@ impl Update {
   /// set name = 'Foo'
   /// ```
   pub fn raw_after(mut self, clause: UpdateClause, raw_sql: &str) -> Self {
-    self._raw_after.push((clause, raw_sql.trim().to_owned()));
+    self._raw_after.push((clause, raw_sql.trim().to_string()));
     self
   }
 
@@ -160,7 +160,7 @@ impl Update {
   /// SET name = 'Bar'
   /// ```
   pub fn raw_before(mut self, clause: UpdateClause, raw_sql: &str) -> Self {
-    self._raw_before.push((clause, raw_sql.trim().to_owned()));
+    self._raw_before.push((clause, raw_sql.trim().to_string()));
     self
   }
 
@@ -184,7 +184,7 @@ impl Update {
   /// SET name = 'Bar'
   /// ```
   pub fn set(mut self, value: &str) -> Self {
-    push_unique(&mut self._set, value.trim().to_owned());
+    push_unique(&mut self._set, value.trim().to_string());
     self
   }
 
@@ -203,7 +203,7 @@ impl Update {
   /// ```
   #[cfg(not(feature = "sqlite"))]
   pub fn update(mut self, table_name: &str) -> Self {
-    self._update = table_name.trim().to_owned();
+    self._update = table_name.trim().to_string();
     self
   }
 
@@ -231,7 +231,7 @@ impl Update {
   ///   AND status = 'deactivated'
   /// ```
   pub fn where_clause(mut self, condition: &str) -> Self {
-    push_unique(&mut self._where, (LogicalOperator::And, condition.trim().to_owned()));
+    push_unique(&mut self._where, (LogicalOperator::And, condition.trim().to_string()));
     self
   }
 
@@ -259,7 +259,7 @@ impl Update {
   ///   OR login = 'bar'
   /// ```
   pub fn where_or(mut self, condition: &str) -> Self {
-    push_unique(&mut self._where, (LogicalOperator::Or, condition.trim().to_owned()));
+    push_unique(&mut self._where, (LogicalOperator::Or, condition.trim().to_string()));
     self
   }
 }
@@ -302,7 +302,7 @@ impl Update {
   /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn from(mut self, tables: &str) -> Self {
-    push_unique(&mut self._from, tables.trim().to_owned());
+    push_unique(&mut self._from, tables.trim().to_string());
     self
   }
 
@@ -329,7 +329,7 @@ impl Update {
   /// RETURNING name, login
   /// ```
   pub fn returning(mut self, output_name: &str) -> Self {
-    push_unique(&mut self._returning, output_name.trim().to_owned());
+    push_unique(&mut self._returning, output_name.trim().to_string());
     self
   }
 
@@ -384,7 +384,7 @@ impl Update {
   /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
-    self._with.push((name.trim().to_owned(), std::sync::Arc::new(query)));
+    self._with.push((name.trim().to_string(), std::sync::Arc::new(query)));
     self
   }
 }
@@ -521,7 +521,7 @@ impl Update {
   /// # assert_eq!(update_query, expected);
   /// ```
   pub fn update(mut self, table_name: &str) -> Self {
-    self._update = (UpdateVars::Update, table_name.trim().to_owned());
+    self._update = (UpdateVars::Update, table_name.trim().to_string());
     self
   }
 
@@ -548,7 +548,7 @@ impl Update {
   /// UPDATE OR ABORT orders
   /// ```
   pub fn update_or(mut self, expression: &str) -> Self {
-    self._update = (UpdateVars::UpdateOr, expression.trim().to_owned());
+    self._update = (UpdateVars::UpdateOr, expression.trim().to_string());
     self
   }
 }

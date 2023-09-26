@@ -18,7 +18,7 @@ impl Insert {
       let insert_into = &self._insert_into;
       format!("INSERT INTO{space}{insert_into}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -37,7 +37,7 @@ impl Insert {
       let overriding = &self._overriding;
       format!("OVERRIDING{space}{overriding}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -56,7 +56,7 @@ impl Insert {
       let overriding = &self._on_conflict;
       format!("ON CONFLICT{space}{overriding}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -75,7 +75,7 @@ impl Insert {
       let select_string = select.concat(fmts);
       format!("{select_string}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -91,7 +91,7 @@ impl Insert {
 
 impl Concat for Insert {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_owned();
+    let mut query = "".to_string();
 
     query = self.concat_raw(query, &fmts, &self._raw);
 
@@ -158,7 +158,7 @@ impl Concat for Insert {
       );
     }
 
-    query.trim_end().to_owned()
+    query.trim_end().to_string()
   }
 }
 

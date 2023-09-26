@@ -7,7 +7,13 @@ pub trait Concat {
   fn concat(&self, fmts: &fmt::Formatter) -> String;
 }
 
-pub trait ConcatSqlStandard<Clause: PartialEq> {
+/// Represents all commands that can be used in a transaction
+pub trait TransactionQuery: Concat {}
+
+/// Represents all commands that can be used inside the with method
+pub trait WithQuery: Concat {}
+
+pub(crate) trait ConcatSqlStandard<Clause: PartialEq> {
   fn concat_from(
     &self,
     items_raw_before: &Vec<(Clause, String)>,
@@ -22,7 +28,7 @@ pub trait ConcatSqlStandard<Clause: PartialEq> {
       let tables = items.join(comma);
       format!("FROM{space}{tables}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
@@ -53,7 +59,7 @@ pub trait ConcatSqlStandard<Clause: PartialEq> {
       let values = items.join(&sep);
       format!("VALUES{space}{lb}{values}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
@@ -79,7 +85,7 @@ pub trait ConcatSqlStandard<Clause: PartialEq> {
 
       format!("WHERE{space}{conditions}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
@@ -87,7 +93,7 @@ pub trait ConcatSqlStandard<Clause: PartialEq> {
 }
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-pub trait ConcatCommon<Clause: PartialEq> {
+pub(crate) trait ConcatCommon<Clause: PartialEq> {
   fn concat_returning(
     &self,
     items_raw_before: &Vec<(Clause, String)>,
@@ -102,7 +108,7 @@ pub trait ConcatCommon<Clause: PartialEq> {
       let output_names = items.join(comma);
       format!("RETURNING{space}{output_names}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
@@ -125,7 +131,7 @@ pub trait ConcatCommon<Clause: PartialEq> {
       ..
     } = fmts;
     let sql = if items.is_empty() == false {
-      let with = items.iter().fold("".to_owned(), |acc, item| {
+      let with = items.iter().fold("".to_string(), |acc, item| {
         let (name, query) = item;
         let inner_lb = format!("{lb}{indent}");
         let inner_fmts = fmt::Formatter {
@@ -143,7 +149,7 @@ pub trait ConcatCommon<Clause: PartialEq> {
 
       format!("WITH{space}{lb}{with}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
@@ -151,7 +157,7 @@ pub trait ConcatCommon<Clause: PartialEq> {
 }
 
 #[cfg(feature = "sqlite")]
-pub trait ConcatSqlite {
+pub(crate) trait ConcatSqlite {
   fn concat_insert(
     &self,
     items_raw_before: &Vec<(InsertClause, String)>,
@@ -163,13 +169,13 @@ pub trait ConcatSqlite {
     let fmt::Formatter { lb, space, .. } = fmts;
 
     let (clause, sql) = match insert {
-      (InsertVars::InsertInto, exp) if exp.is_empty() => (InsertClause::InsertInto, "".to_owned()),
+      (InsertVars::InsertInto, exp) if exp.is_empty() => (InsertClause::InsertInto, "".to_string()),
       (InsertVars::InsertInto, exp) => (InsertClause::InsertInto, format!("INSERT INTO{space}{exp}{space}{lb}")),
 
-      (InsertVars::InsertOr, exp) if exp.is_empty() => (InsertClause::InsertOr, "".to_owned()),
+      (InsertVars::InsertOr, exp) if exp.is_empty() => (InsertClause::InsertOr, "".to_string()),
       (InsertVars::InsertOr, exp) => (InsertClause::InsertOr, format!("INSERT OR{space}{exp}{space}{lb}")),
 
-      (InsertVars::ReplaceInto, exp) if exp.is_empty() => (InsertClause::ReplaceInto, "".to_owned()),
+      (InsertVars::ReplaceInto, exp) if exp.is_empty() => (InsertClause::ReplaceInto, "".to_string()),
       (InsertVars::ReplaceInto, exp) => (
         InsertClause::ReplaceInto,
         format!("REPLACE INTO{space}{exp}{space}{lb}"),
@@ -193,7 +199,7 @@ pub trait ConcatSqlite {
       let joins = join.join(format!("{space}{lb}").as_str());
       format!("{joins}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(&items_raw_before, &items_raw_after, query, fmts, clause, sql)
@@ -240,18 +246,12 @@ pub trait ConcatSqlite {
       let values = values.join(&sep);
       (InsertClause::Values, format!("VALUES{space}{lb}{values}{space}{lb}"))
     } else {
-      (InsertClause::Values, "".to_owned())
+      (InsertClause::Values, "".to_string())
     };
 
     concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
   }
 }
-
-/// Represents all commands that can be used in a transaction
-pub trait TransactionQuery: Concat {}
-
-/// Represents all commands that can be used inside the with method
-pub trait WithQuery: Concat {}
 
 impl std::fmt::Display for LogicalOperator {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
@@ -263,7 +263,7 @@ impl std::fmt::Display for LogicalOperator {
   }
 }
 
-pub fn concat_raw_before_after<Clause: PartialEq>(
+pub(crate) fn concat_raw_before_after<Clause: PartialEq>(
   items_before: &Vec<(Clause, String)>,
   items_after: &Vec<(Clause, String)>,
   query: String,
@@ -280,14 +280,14 @@ pub fn concat_raw_before_after<Clause: PartialEq>(
   format!("{query}{raw_before}{space_before}{sql}{raw_after}{space_after}")
 }
 
-pub fn push_unique<T: PartialEq>(list: &mut Vec<T>, value: T) {
+pub(crate) fn push_unique<T: PartialEq>(list: &mut Vec<T>, value: T) {
   let prev_item = list.iter().find(|&item| *item == value);
   if prev_item.is_none() {
     list.push(value);
   }
 }
 
-pub fn raw_queries<Clause: PartialEq>(raw_list: &Vec<(Clause, String)>, clause: &Clause) -> Vec<String> {
+pub(crate) fn raw_queries<Clause: PartialEq>(raw_list: &Vec<(Clause, String)>, clause: &Clause) -> Vec<String> {
   raw_list
     .iter()
     .filter(|item| item.0 == *clause)

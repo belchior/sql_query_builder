@@ -20,7 +20,7 @@ impl Update {
       let values = self._set.join(comma);
       format!("SET{space}{values}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(&self._raw_before, &self._raw_after, query, fmts, UpdateClause::Set, sql)
@@ -33,7 +33,7 @@ impl Update {
       let table_name = &self._update;
       format!("UPDATE{space}{table_name}{space}{lb}")
     } else {
-      "".to_owned()
+      "".to_string()
     };
 
     concat_raw_before_after(
@@ -49,7 +49,7 @@ impl Update {
 
 impl Concat for Update {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_owned();
+    let mut query = "".to_string();
 
     query = self.concat_raw(query, &fmts, &self._raw);
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
@@ -121,7 +121,7 @@ impl Concat for Update {
       );
     }
 
-    query.trim_end().to_owned()
+    query.trim_end().to_string()
   }
 }
 

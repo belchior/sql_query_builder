@@ -83,7 +83,7 @@ impl Delete {
   /// # assert_eq!(delete.to_string(), expected);
   /// ```
   pub fn delete_from(mut self, table_name: &str) -> Self {
-    self._delete_from = table_name.trim().to_owned();
+    self._delete_from = table_name.trim().to_string();
     self
   }
 
@@ -122,7 +122,7 @@ impl Delete {
   /// delete from users WHERE login = 'foo'
   /// ```
   pub fn raw(mut self, raw_sql: &str) -> Self {
-    push_unique(&mut self._raw, raw_sql.trim().to_owned());
+    push_unique(&mut self._raw, raw_sql.trim().to_string());
     self
   }
 
@@ -148,7 +148,7 @@ impl Delete {
   /// DELETE FROM users where name = 'Foo'
   /// ```
   pub fn raw_after(mut self, clause: DeleteClause, raw_sql: &str) -> Self {
-    self._raw_after.push((clause, raw_sql.trim().to_owned()));
+    self._raw_after.push((clause, raw_sql.trim().to_string()));
     self
   }
 
@@ -174,7 +174,7 @@ impl Delete {
   /// delete from users WHERE name = 'Bar'
   /// ```
   pub fn raw_before(mut self, clause: DeleteClause, raw_sql: &str) -> Self {
-    self._raw_before.push((clause, raw_sql.trim().to_owned()));
+    self._raw_before.push((clause, raw_sql.trim().to_string()));
     self
   }
 
@@ -202,7 +202,7 @@ impl Delete {
   ///   AND status = 'deactivated'
   /// ```
   pub fn where_clause(mut self, condition: &str) -> Self {
-    push_unique(&mut self._where, (LogicalOperator::And, condition.trim().to_owned()));
+    push_unique(&mut self._where, (LogicalOperator::And, condition.trim().to_string()));
     self
   }
 
@@ -230,7 +230,7 @@ impl Delete {
   ///   OR login = 'bar'
   /// ```
   pub fn where_or(mut self, condition: &str) -> Self {
-    push_unique(&mut self._where, (LogicalOperator::Or, condition.trim().to_owned()));
+    push_unique(&mut self._where, (LogicalOperator::Or, condition.trim().to_string()));
     self
   }
 }
@@ -261,7 +261,7 @@ impl Delete {
   /// DELETE FROM users RETURNING id, login
   /// ```
   pub fn returning(mut self, output_name: &str) -> Self {
-    push_unique(&mut self._returning, output_name.trim().to_owned());
+    push_unique(&mut self._returning, output_name.trim().to_string());
     self
   }
 
@@ -305,7 +305,7 @@ impl Delete {
   /// WHERE id in (select * from deactivated_users)
   /// ```
   pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
-    self._with.push((name.trim().to_owned(), std::sync::Arc::new(query)));
+    self._with.push((name.trim().to_string(), std::sync::Arc::new(query)));
     self
   }
 }

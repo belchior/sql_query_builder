@@ -95,7 +95,7 @@ impl Values {
   /// VALUES (1, 'one'), (2, 'two')
   /// ```
   pub fn raw(mut self, raw_sql: &str) -> Self {
-    push_unique(&mut self._raw, raw_sql.trim().to_owned());
+    push_unique(&mut self._raw, raw_sql.trim().to_string());
     self
   }
 
@@ -122,7 +122,7 @@ impl Values {
   /// VALUES (1, 'one'), (2, 'two') , (3, 'three')
   /// ```
   pub fn raw_after(mut self, clause: ValuesClause, raw_sql: &str) -> Self {
-    self._raw_after.push((clause, raw_sql.trim().to_owned()));
+    self._raw_after.push((clause, raw_sql.trim().to_string()));
     self
   }
 
@@ -150,7 +150,7 @@ impl Values {
   /// VALUES (1, 'one'), (2, 'two')
   /// ```
   pub fn raw_before(mut self, clause: ValuesClause, raw_sql: &str) -> Self {
-    self._raw_before.push((clause, raw_sql.trim().to_owned()));
+    self._raw_before.push((clause, raw_sql.trim().to_string()));
     self
   }
 
@@ -175,7 +175,7 @@ impl Values {
   /// VALUES (1, 'one'), (2, 'two'), (3, 'three')
   /// ```
   pub fn values(mut self, expression: &str) -> Self {
-    push_unique(&mut self._values, expression.trim().to_owned());
+    push_unique(&mut self._values, expression.trim().to_string());
     self
   }
 }
