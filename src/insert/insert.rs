@@ -65,6 +65,31 @@ impl Insert {
     self
   }
 
+  /// The `default values` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # use sql_query_builder as sql;
+  /// let insert_query = sql::Insert::new()
+  ///   .insert_into("users")
+  ///   .default_values()
+  ///   .to_string();
+  ///
+  /// # let expected = "INSERT INTO users DEFAULT VALUES";
+  /// # assert_eq!(insert_query, expected);
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// INSERT INTO users DEFAULT VALUES
+  /// ```
+  pub fn default_values(mut self) -> Self {
+    self._default_values = true;
+    self
+  }
+
   /// The `insert into` clause. This method overrides the previous value
   ///
   /// # Example
@@ -381,34 +406,6 @@ impl Insert {
 
 #[cfg(any(doc, feature = "sqlite"))]
 impl Insert {
-  /// The `default values` clause, this method can be used enabling the feature flag `sqlite`
-  ///
-  /// # Example
-  ///
-  /// ```
-  /// # #[cfg(feature = "sqlite")]
-  /// # {
-  /// # use sql_query_builder as sql;
-  /// let insert_query = sql::Insert::new()
-  ///   .insert_into("users")
-  ///   .default_values()
-  ///   .to_string();
-  ///
-  /// # let expected = "INSERT INTO users DEFAULT VALUES";
-  /// # assert_eq!(insert_query, expected);
-  /// # }
-  /// ```
-  ///
-  /// Output
-  ///
-  /// ```sql
-  /// INSERT INTO users DEFAULT VALUES
-  /// ```
-  pub fn default_values(mut self) -> Self {
-    self._default_values = true;
-    self
-  }
-
   /// The `insert into` clause, this method overrides the previous value and can be used enabling the feature flag `sqlite`
   #[cfg(not(doc))]
   pub fn insert_into(mut self, expression: &str) -> Self {

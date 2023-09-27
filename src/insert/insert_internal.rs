@@ -1,6 +1,6 @@
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 use crate::behavior::ConcatCommon;
-#[cfg(any(feature = "sqlite"))]
+#[cfg(feature = "sqlite")]
 use crate::behavior::ConcatSqlite;
 use crate::{
   behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
@@ -87,6 +87,22 @@ impl Insert {
       sql,
     )
   }
+
+  fn concat_values(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { comma, lb, space, .. } = fmts;
+
+    let (clause, sql) = if self._default_values {
+      (InsertClause::DefaultValues, format!("DEFAULT VALUES{space}{lb}"))
+    } else if self._values.is_empty() == false {
+      let sep = format!("{comma}{lb}");
+      let values = self._values.join(&sep);
+      (InsertClause::Values, format!("VALUES{space}{lb}{values}{space}{lb}"))
+    } else {
+      (InsertClause::Values, "".to_string())
+    };
+
+    concat_raw_before_after(&self._raw_before, &self._raw_after, query, fmts, clause, sql)
+  }
 }
 
 impl Concat for Insert {
@@ -118,32 +134,10 @@ impl Concat for Insert {
 
     query = self.concat_overriding(query, &fmts);
 
-    #[cfg(not(feature = "sqlite"))]
-    {
-      query = ConcatSqlStandard::concat_values(
-        self,
-        &self._raw_before,
-        &self._raw_after,
-        query,
-        &fmts,
-        InsertClause::Values,
-        &self._values,
-      );
-    }
-    #[cfg(feature = "sqlite")]
-    {
-      query = ConcatSqlite::concat_values(
-        self,
-        &self._raw_before,
-        &self._raw_after,
-        query,
-        &fmts,
-        &self._values,
-        &self._default_values,
-      );
-    }
+    query = self.concat_values(query, &fmts);
 
     query = self.concat_select(query, &fmts);
+
     query = self.concat_on_conflict(query, &fmts);
 
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]

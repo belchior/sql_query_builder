@@ -23,6 +23,14 @@ mod insert_command {
   }
 
   #[test]
+  fn method_replace_into_should_not_add_clause_when_argument_is_empty() {
+    let query = sql::Insert::new().replace_into("").as_string();
+    let expected_query = "";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_replace_into_should_trim_space_of_the_argument() {
     let query = sql::Insert::new().replace_into("  users (name)  ").as_string();
     let expected_query = "REPLACE INTO users (name)";
