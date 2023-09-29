@@ -44,27 +44,6 @@ pub(crate) trait ConcatSqlStandard<Clause: PartialEq> {
     format!("{query}{raw_sql}{space}{lb}")
   }
 
-  fn concat_values(
-    &self,
-    items_raw_before: &Vec<(Clause, String)>,
-    items_raw_after: &Vec<(Clause, String)>,
-    query: String,
-    fmts: &fmt::Formatter,
-    clause: Clause,
-    items: &Vec<String>,
-  ) -> String {
-    let fmt::Formatter { comma, lb, space, .. } = fmts;
-    let sql = if items.is_empty() == false {
-      let sep = format!("{comma}{lb}");
-      let values = items.join(&sep);
-      format!("VALUES{space}{lb}{values}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
-  }
-
   fn concat_where(
     &self,
     items_raw_before: &Vec<(Clause, String)>,
@@ -223,30 +202,6 @@ pub(crate) trait ConcatSqlite {
         UpdateClause::UpdateOr,
         format!("UPDATE OR{space}{expression}{space}{lb}"),
       ),
-    };
-
-    concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
-  }
-
-  fn concat_values(
-    &self,
-    items_raw_before: &Vec<(InsertClause, String)>,
-    items_raw_after: &Vec<(InsertClause, String)>,
-    query: String,
-    fmts: &fmt::Formatter,
-    values: &Vec<String>,
-    default_values: &bool,
-  ) -> String {
-    let fmt::Formatter { comma, lb, space, .. } = fmts;
-
-    let (clause, sql) = if *default_values {
-      (InsertClause::DefaultValues, format!("DEFAULT VALUES{space}{lb}"))
-    } else if values.is_empty() == false {
-      let sep = format!("{comma}{lb}");
-      let values = values.join(&sep);
-      (InsertClause::Values, format!("VALUES{space}{lb}{values}{space}{lb}"))
-    } else {
-      (InsertClause::Values, "".to_string())
     };
 
     concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)

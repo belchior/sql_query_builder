@@ -52,6 +52,7 @@ pub enum DeleteClause {
 /// Builder to contruct a [Insert] command
 #[derive(Default, Clone)]
 pub struct Insert {
+  pub(crate) _default_values: bool,
   pub(crate) _on_conflict: String,
   pub(crate) _overriding: String,
   pub(crate) _raw_after: Vec<(InsertClause, String)>,
@@ -69,9 +70,6 @@ pub struct Insert {
   pub(crate) _insert_into: String,
   #[cfg(feature = "sqlite")]
   pub(crate) _insert: (InsertVars, String),
-
-  #[cfg(feature = "sqlite")]
-  pub(crate) _default_values: bool,
 }
 
 #[cfg(feature = "sqlite")]
@@ -97,6 +95,7 @@ pub(crate) enum InsertVars {
 /// ```
 #[derive(PartialEq, Clone)]
 pub enum InsertClause {
+  DefaultValues,
   InsertInto,
   OnConflict,
   Overriding,
@@ -107,12 +106,11 @@ pub enum InsertClause {
   Returning,
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   With,
-  #[cfg(any(feature = "sqlite"))]
+
+  #[cfg(feature = "sqlite")]
   InsertOr,
-  #[cfg(any(feature = "sqlite"))]
+  #[cfg(feature = "sqlite")]
   ReplaceInto,
-  #[cfg(any(feature = "sqlite"))]
-  DefaultValues,
 }
 
 #[derive(Clone, PartialEq)]

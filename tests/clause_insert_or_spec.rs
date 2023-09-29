@@ -25,6 +25,14 @@ mod insert_command {
   }
 
   #[test]
+  fn method_insert_or_should_not_add_clause_when_argument_is_empty() {
+    let query = sql::Insert::new().insert_or("").as_string();
+    let expected_query = "";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_insert_or_should_trim_space_of_the_argument() {
     let query = sql::Insert::new().insert_or("  IGNORE INTO users (name)  ").as_string();
     let expected_query = "INSERT OR IGNORE INTO users (name)";

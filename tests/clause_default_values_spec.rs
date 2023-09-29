@@ -1,4 +1,3 @@
-#[cfg(feature = "sqlite")]
 mod insert_command {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
