@@ -41,7 +41,7 @@ SQL Query Builder comes with the following optional features:
 You can enable features like
 
 ```toml
-## Cargo.toml
+# Cargo.toml
 
 sql_query_builder = { version = "2.x.x", features = ["postgresql"] }
 ```
@@ -125,7 +125,7 @@ Composition is very welcome to write complex queries, this feature makes the lib
 use sql_query_builder as sql;
 
 fn project(select: sql::Select) -> sql::Select {
-select
+  select
     .select("u.id, u.name as user_name, u.login")
     .select("a.name as addresses_name")
     .select("o.name as product_name")

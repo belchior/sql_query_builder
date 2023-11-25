@@ -224,6 +224,7 @@ impl Insert {
   /// ```
   /// # use sql_query_builder as sql;
   /// let raw_query = "insert into users (login, name)";
+  ///
   /// let insert_query = sql::Insert::new()
   ///   .raw(raw_query)
   ///   .values("('foo', 'Foo')")
@@ -250,6 +251,7 @@ impl Insert {
   /// ```
   /// # use sql_query_builder as sql;
   /// let raw = "values ('foo', 'Foo')";
+  ///
   /// let insert_query = sql::Insert::new()
   ///   .insert_into("users (login, name)")
   ///   .raw_after(sql::InsertClause::InsertInto, raw)
@@ -276,6 +278,7 @@ impl Insert {
   /// ```
   /// # use sql_query_builder as sql;
   /// let raw = "insert into users (login, name)";
+  ///
   /// let insert_query = sql::Insert::new()
   ///   .raw_before(sql::InsertClause::Values, raw)
   ///   .values("('bar', 'Bar')")
@@ -324,7 +327,7 @@ impl Insert {
 
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 impl Insert {
-  /// The `returning` clause, this method can be used enabling a feature flag
+  /// The `returning` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///
@@ -353,7 +356,7 @@ impl Insert {
     self
   }
 
-  /// The `with` clause, this method can be used enabling a feature flag
+  /// The `with` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///

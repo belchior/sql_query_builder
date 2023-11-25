@@ -294,6 +294,7 @@ impl Select {
   /// ```
   /// # use sql_query_builder as sql;
   /// let raw_query = "select * from users";
+  ///
   /// let select_query = sql::Select::new()
   ///   .raw(raw_query)
   ///   .where_clause("users.login = 'foo'")
@@ -320,6 +321,7 @@ impl Select {
   /// ```
   /// # use sql_query_builder as sql;
   /// let raw_join = "inner join addresses addr on u.login = addr.owner_login";
+  ///
   /// let select_query = sql::Select::new()
   ///   .from("users u")
   ///   .raw_after(sql::SelectClause::From, raw_join)
@@ -353,6 +355,7 @@ impl Select {
   /// ```
   /// # use sql_query_builder as sql;
   /// let raw_query = "from users";
+  ///
   /// let select_query = sql::Select::new()
   ///   .raw_before(sql::SelectClause::Where, raw_query)
   ///   .where_clause("users.login = 'foo'")
@@ -391,6 +394,37 @@ impl Select {
   pub fn select(mut self, column: &str) -> Self {
     push_unique(&mut self._select, column.trim().to_string());
     self
+  }
+
+  /// This method is un alias of `where_clause`. The `where_and` will concatenate mulltiples calls using the `and` operator.
+  /// The intention is to enable more idiomatic concatenation of conditions.
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # use sql_query_builder as sql;
+  /// let select_query = sql::Select::new()
+  ///   .from("carts")
+  ///   .where_clause("login = $1")
+  ///   .where_and("session_id = $2")
+  ///   .where_and("created_at >= current_date")
+  ///   .as_string();
+  ///
+  /// # let expected = "FROM carts WHERE login = $1 AND session_id = $2 AND created_at >= current_date";
+  /// # assert_eq!(select_query, expected);
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// FROM carts
+  /// WHERE
+  ///   login = $1
+  ///   AND session_id = $2
+  ///   AND created_at >= current_date
+  /// ```
+  pub fn where_and(self, condition: &str) -> Self {
+    self.where_clause(condition)
   }
 
   /// The `where` clause, this method will concatenate mulltiples calls using the `and` operator.
@@ -498,11 +532,35 @@ impl Select {
     push_unique(&mut self._where, (LogicalOperator::Or, condition.trim().to_string()));
     self
   }
+
+  /// The `window` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # use sql_query_builder as sql;
+  /// let select_query = sql::Select::new()
+  ///   .window("win as (partition by department)")
+  ///   .as_string();
+  ///
+  /// # let expected = "WINDOW win as (partition by department)";
+  /// # assert_eq!(select_query, expected);
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// WINDOW win as (partition by department)
+  /// ```
+  pub fn window(mut self, name: &str) -> Self {
+    push_unique(&mut self._window, name.trim().to_string());
+    self
+  }
 }
 
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 impl Select {
-  /// The `except` clause, this method can be used enabling a feature flag
+  /// The `except` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///
@@ -542,7 +600,7 @@ impl Select {
     self
   }
 
-  /// The `intersect` clause, this method can be used enabling a feature flag
+  /// The `intersect` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///
@@ -582,7 +640,7 @@ impl Select {
     self
   }
 
-  /// The `limit` clause, this method overrides the previous value, this method can be used enabling a feature flag
+  /// The `limit` clause, this method overrides the previous value, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///
@@ -606,7 +664,7 @@ impl Select {
     self
   }
 
-  /// The `offset` clause, this method overrides the previous value, this method can be used enabling a feature flag
+  /// The `offset` clause, this method overrides the previous value, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///
@@ -630,7 +688,7 @@ impl Select {
     self
   }
 
-  /// The `union` clause, this method can be used enabling a feature flag
+  /// The `union` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///
@@ -670,7 +728,7 @@ impl Select {
     self
   }
 
-  /// The `with` clause, this method can be used enabling a feature flag
+  /// The `with` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///

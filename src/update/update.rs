@@ -207,6 +207,35 @@ impl Update {
     self
   }
 
+  /// This method is un alias of `where_clause`. The `where_and` will concatenate mulltiples calls using the `and` operator.
+  /// The intention is to enable more idiomatic concatenation of conditions.
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # use sql_query_builder as sql;
+  /// let update_query = sql::Update::new()
+  ///   .where_clause("login = $1")
+  ///   .where_and("product_id = $2")
+  ///   .where_and("created_at >= current_date")
+  ///   .as_string();
+  ///
+  /// # let expected = "WHERE login = $1 AND product_id = $2 AND created_at >= current_date";
+  /// # assert_eq!(update_query, expected);
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// WHERE
+  ///   login = $1
+  ///   AND product_id = $2
+  ///   AND created_at >= current_date
+  /// ```
+  pub fn where_and(self, condition: &str) -> Self {
+    self.where_clause(condition)
+  }
+
   /// The `where` clause, this method will concatenate mulltiples calls using the `and` operator.
   /// If you intended to use the `or` operator you should use the [where_or](Update::where_or) method
   ///
@@ -266,7 +295,7 @@ impl Update {
 
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 impl Update {
-  /// The `from` clause, this method can be used enabling a feature flag
+  /// The `from` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///
@@ -306,7 +335,7 @@ impl Update {
     self
   }
 
-  /// The `returning` clause, this method can be used enabling a feature flag
+  /// The `returning` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///
@@ -333,7 +362,7 @@ impl Update {
     self
   }
 
-  /// The `with` clause, this method can be used enabling a feature flag
+  /// The `with` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///

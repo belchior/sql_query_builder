@@ -33,6 +33,7 @@ pub struct Delete {
 /// # use sql_query_builder as sql;
 ///
 /// let raw = "where name = 'Foo'";
+///
 /// let delete_query = sql::Delete::new()
 ///   .delete_from("users")
 ///   .raw_after(sql::DeleteClause::DeleteFrom, raw)
@@ -88,6 +89,7 @@ pub(crate) enum InsertVars {
 /// # use sql_query_builder as sql;
 ///
 /// let raw = "values ('foo', 'Foo')";
+///
 /// let insert_query = sql::Insert::new()
 ///   .insert_into("users (login, name)")
 ///   .raw_after(sql::InsertClause::InsertInto, raw)
@@ -132,6 +134,7 @@ pub struct Select {
   pub(crate) _raw: Vec<String>,
   pub(crate) _select: Vec<String>,
   pub(crate) _where: Vec<(LogicalOperator, String)>,
+  pub(crate) _window: Vec<String>,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _except: Vec<Self>,
@@ -172,6 +175,7 @@ pub enum SelectClause {
   OrderBy,
   Select,
   Where,
+  Window,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   Except,
@@ -259,6 +263,7 @@ pub(crate) enum UpdateVars {
 /// # use sql_query_builder as sql;
 ///
 /// let raw = "set name = 'Foo'";
+///
 /// let update_query = sql::Update::new()
 ///   .update("users")
 ///   .raw_after(sql::UpdateClause::Update, raw)

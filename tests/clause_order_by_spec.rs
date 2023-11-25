@@ -49,6 +49,14 @@ mod select_command {
   }
 
   #[test]
+  fn clause_order_by_should_be_after_window_clause() {
+    let query = sql::Select::new().window("foo").order_by("created_at desc").as_string();
+    let expected_query = "WINDOW foo ORDER BY created_at desc";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_raw_before_should_add_raw_sql_before_order_by_clause() {
     let query = sql::Select::new()
       .raw_before(sql::SelectClause::OrderBy, "where orders.user_login = $1")
