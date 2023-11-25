@@ -107,6 +107,7 @@ impl Delete {
   /// ```
   /// # use sql_query_builder as sql;
   /// let raw_query = "delete from users";
+  ///
   /// let delete_query = sql::Delete::new()
   ///   .raw(raw_query)
   ///   .where_clause("login = 'foo'")
@@ -133,6 +134,7 @@ impl Delete {
   /// ```
   /// # use sql_query_builder as sql;
   /// let raw = "where name = 'Foo'";
+  ///
   /// let delete_query = sql::Delete::new()
   ///   .delete_from("users")
   ///   .raw_after(sql::DeleteClause::DeleteFrom, raw)
@@ -159,6 +161,7 @@ impl Delete {
   /// ```
   /// # use sql_query_builder as sql;
   /// let raw = "delete from users";
+  ///
   /// let delete_query = sql::Delete::new()
   ///   .raw_before(sql::DeleteClause::Where, raw)
   ///   .where_clause("name = 'Bar'")
@@ -176,6 +179,35 @@ impl Delete {
   pub fn raw_before(mut self, clause: DeleteClause, raw_sql: &str) -> Self {
     self._raw_before.push((clause, raw_sql.trim().to_string()));
     self
+  }
+
+  /// This method is un alias of `where_clause`. The `where_and` will concatenate mulltiples calls using the `and` operator.
+  /// The intention is to enable more idiomatic concatenation of conditions.
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # use sql_query_builder as sql;
+  /// let delete_query = sql::Delete::new()
+  ///   .where_clause("login = $1")
+  ///   .where_and("product_id = $2")
+  ///   .where_and("created_at >= current_date")
+  ///   .as_string();
+  ///
+  /// # let expected = "WHERE login = $1 AND product_id = $2 AND created_at >= current_date";
+  /// # assert_eq!(delete_query, expected);
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// WHERE
+  ///   login = $1
+  ///   AND product_id = $2
+  ///   AND created_at >= current_date
+  /// ```
+  pub fn where_and(self, condition: &str) -> Self {
+    self.where_clause(condition)
   }
 
   /// The `where` clause, this method will concatenate mulltiples calls using the `and` operator.
@@ -237,7 +269,7 @@ impl Delete {
 
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 impl Delete {
-  /// The `returning` clause, this method can be used enabling a feature flag
+  /// The `returning` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///
@@ -265,7 +297,7 @@ impl Delete {
     self
   }
 
-  /// The `with` clause, this method can be used enabling a feature flag
+  /// The `with` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
   ///
   /// # Example
   ///

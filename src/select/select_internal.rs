@@ -45,6 +45,7 @@ impl Concat for Select {
     );
     query = self.concat_group_by(query, &fmts);
     query = self.concat_having(query, &fmts);
+    query = self.concat_window(query, &fmts);
     query = self.concat_order_by(query, &fmts);
 
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
@@ -157,6 +158,25 @@ impl Select {
       query,
       fmts,
       SelectClause::Select,
+      sql,
+    )
+  }
+
+  fn concat_window(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { comma, lb, space, .. } = fmts;
+    let sql = if self._window.is_empty() == false {
+      let columns = self._window.join(comma);
+      format!("WINDOW{space}{columns}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::Window,
       sql,
     )
   }

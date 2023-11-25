@@ -270,6 +270,47 @@ mod where_clause {
   }
 }
 
+mod where_and {
+  mod delete_clause {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
+
+    #[test]
+    fn method_where_and_should_be_an_alias_of_where_clause() {
+      let query = sql::Delete::new().where_and("login = $1").as_string();
+      let expected_query = "WHERE login = $1";
+
+      assert_eq!(query, expected_query);
+    }
+  }
+
+  mod select_command {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
+
+    #[test]
+    fn method_where_and_should_be_an_alias_of_where_clause() {
+      let query = sql::Select::new().where_and("login = $1").as_string();
+      let expected_query = "WHERE login = $1";
+
+      assert_eq!(query, expected_query);
+    }
+  }
+
+  mod update_command {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
+
+    #[test]
+    fn method_where_and_should_be_an_alias_of_where_clause() {
+      let query = sql::Update::new().where_and("login = $1").as_string();
+      let expected_query = "WHERE login = $1";
+
+      assert_eq!(query, expected_query);
+    }
+  }
+}
+
 mod where_or {
   mod delete_clause {
     use pretty_assertions::assert_eq;
