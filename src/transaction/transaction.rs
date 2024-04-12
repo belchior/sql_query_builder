@@ -2,6 +2,7 @@ use crate::{
   behavior::{push_unique, Concat},
   fmt,
   structure::{Delete, Insert, Select, TrCmd::*, Transaction, TransactionCommand, Update},
+  CreateTable,
 };
 
 impl Transaction {
@@ -101,6 +102,53 @@ impl Transaction {
     self
   }
 
+  /// The `create table` command, access the [CreateTable] for more info
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(not(feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let users_table = sql::CreateTable::new()
+  ///   .create_table("users")
+  ///   .column("login varchar(40) not null");
+  ///
+  /// let query = sql::Transaction::new()
+  ///   .start_transaction("")
+  ///   .create_table(users_table)
+  ///   .commit("")
+  ///   .debug()
+  ///   .as_string();
+  ///
+  /// # let expected = "\
+  /// #   START TRANSACTION; \
+  /// #   CREATE TABLE users (\
+  /// #      login varchar(40) not null\
+  /// #   ); \
+  /// #   COMMIT;\
+  /// # ";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Prints to the standard output
+  ///
+  /// ```sql
+  /// -- ------------------------------------------------------------------------------
+  /// START TRANSACTION;
+  /// CREATE TABLE users (
+  ///   login varchar(40) not null
+  /// );
+  /// COMMIT;
+  /// -- ------------------------------------------------------------------------------
+  /// ```
+  pub fn create_table(mut self, create_table: CreateTable) -> Self {
+    let cmd = Box::new(create_table);
+    self._ordered_commands.push(cmd);
+    self
+  }
+
   /// The `delete` command, access the [Delete] for more info
   ///
   /// # Example
@@ -113,11 +161,12 @@ impl Transaction {
   ///   .delete_from("users")
   ///   .where_clause("login = 'foo'");
   ///
-  /// let transaction = sql::Transaction::new()
+  /// let query = sql::Transaction::new()
   ///   .start_transaction("")
   ///   .delete(delete_foo)
   ///   .commit("")
-  ///   .debug();
+  ///   .debug()
+  ///   .as_string();
   ///
   /// # let expected = "\
   /// #   START TRANSACTION; \
@@ -125,7 +174,7 @@ impl Transaction {
   /// #   WHERE login = 'foo'; \
   /// #   COMMIT;\
   /// # ";
-  /// # assert_eq!(transaction.as_string(), expected);
+  /// # assert_eq!(expected, query);
   /// # }
   /// ```
   ///
@@ -157,11 +206,12 @@ impl Transaction {
   ///   .insert_into("users (login, name)")
   ///   .values("('foo', 'Foo')");
   ///
-  /// let transaction = sql::Transaction::new()
+  /// let query = sql::Transaction::new()
   ///   .start_transaction("")
   ///   .insert(insert_foo)
   ///   .commit("")
-  ///   .debug();
+  ///   .debug()
+  ///   .as_string();
   ///
   /// # let expected = "\
   /// #   START TRANSACTION; \
@@ -169,7 +219,7 @@ impl Transaction {
   /// #   VALUES ('foo', 'Foo'); \
   /// #   COMMIT;\
   /// # ";
-  /// # assert_eq!(transaction.as_string(), expected);
+  /// # assert_eq!(expected, query);
   /// # }
   /// ```
   ///
@@ -343,18 +393,19 @@ impl Transaction {
   ///   .from("users")
   ///   .where_clause("id = $1");
   ///
-  /// let transaction = sql::Transaction::new()
+  /// let query = sql::Transaction::new()
   ///   .start_transaction("")
   ///   .select(select_foo)
   ///   .commit("")
-  ///   .debug();
+  ///   .debug()
+  ///   .as_string();
   ///
   /// # let expected = "\
   /// #   START TRANSACTION; \
   /// #   SELECT login, name FROM users WHERE id = $1; \
   /// #   COMMIT;\
   /// # ";
-  /// # assert_eq!(transaction.as_string(), expected);
+  /// # assert_eq!(expected, query);
   /// # }
   /// ```
   ///
@@ -446,18 +497,19 @@ impl Transaction {
   ///   .set("name = 'Foooo'")
   ///   .where_clause("id = $1");
   ///
-  /// let transaction = sql::Transaction::new()
+  /// let query = sql::Transaction::new()
   ///   .start_transaction("")
   ///   .update(update_foo)
   ///   .commit("")
-  ///   .debug();
+  ///   .debug()
+  ///   .as_string();
   ///
   /// # let expected = "\
   /// #   START TRANSACTION; \
   /// #   UPDATE users SET name = 'Foooo' WHERE id = $1; \
   /// #   COMMIT;\
   /// # ";
-  /// # assert_eq!(transaction.as_string(), expected);
+  /// # assert_eq!(expected, query);
   /// # }
   /// ```
   ///

@@ -1,6 +1,7 @@
 #![doc = include_str!("../README.md")]
 
 mod behavior;
+mod create_table;
 mod delete;
 mod fmt;
 mod insert;
@@ -11,6 +12,6 @@ mod update;
 mod values;
 
 pub use crate::structure::{
-  Delete, DeleteClause, Insert, InsertClause, Select, SelectClause, Transaction, Update, UpdateClause, Values,
-  ValuesClause,
+  CreateTable, CreateTableParams, Delete, DeleteClause, Insert, InsertClause, Select, SelectClause, Transaction,
+  Update, UpdateClause, Values, ValuesClause,
 };
