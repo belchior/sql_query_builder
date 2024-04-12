@@ -6,4 +6,4 @@ c_no='\033[0m'
 
 echo "\nTo access the rendered documentation open the file below\n\n${c_blue}${doc_path}${c_no}\n"
 
-cargo watch -w ./src -w ./tests -x "doc"
+RUSTDOCFLAGS="--cfg docsrs" cargo watch -w ./src -w ./tests -x "+nightly doc --all-features"

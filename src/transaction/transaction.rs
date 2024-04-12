@@ -530,9 +530,11 @@ impl Transaction {
 }
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
 impl Transaction {
   /// The `begin` command, this method will be always added at the beginning of the transation and
-  /// all consecutive call will override the previous value. The method can be used enabling a feature flag
+  /// all consecutive call will override the previous value.
   ///
   /// # Example
   ///
@@ -563,7 +565,7 @@ impl Transaction {
   }
 
   /// The `end` command, this method will be always added at the end of the transation and
-  /// all consecutive call will override the previous value. The method can be used enabling a feature flag
+  /// all consecutive call will override the previous value.
   ///
   /// # Example
   ///

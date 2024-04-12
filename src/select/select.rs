@@ -559,8 +559,10 @@ impl Select {
 }
 
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
 impl Select {
-  /// The `except` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `except` clause
   ///
   /// # Example
   ///
@@ -600,7 +602,7 @@ impl Select {
     self
   }
 
-  /// The `intersect` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `intersect` clause
   ///
   /// # Example
   ///
@@ -640,7 +642,7 @@ impl Select {
     self
   }
 
-  /// The `limit` clause, this method overrides the previous value, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `limit` clause, this method overrides the previous value
   ///
   /// # Example
   ///
@@ -664,7 +666,7 @@ impl Select {
     self
   }
 
-  /// The `offset` clause, this method overrides the previous value, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `offset` clause, this method overrides the previous value
   ///
   /// # Example
   ///
@@ -688,7 +690,7 @@ impl Select {
     self
   }
 
-  /// The `union` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `union` clause
   ///
   /// # Example
   ///
@@ -728,7 +730,7 @@ impl Select {
     self
   }
 
-  /// The `with` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `with` clause
   ///
   /// # Example
   ///

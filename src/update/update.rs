@@ -294,8 +294,10 @@ impl Update {
 }
 
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
 impl Update {
-  /// The `from` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `from` clause
   ///
   /// # Example
   ///
@@ -335,7 +337,7 @@ impl Update {
     self
   }
 
-  /// The `returning` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `returning` clause
   ///
   /// # Example
   ///
@@ -362,7 +364,7 @@ impl Update {
     self
   }
 
-  /// The `with` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `with` clause
   ///
   /// # Example
   ///
@@ -419,8 +421,9 @@ impl Update {
 }
 
 #[cfg(any(doc, feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
 impl Update {
-  /// The `cross join` clause, this method can be used enabling the feature flag `sqlite`
+  /// The `cross join` clause
   ///
   /// # Example
   ///
@@ -449,7 +452,7 @@ impl Update {
     self
   }
 
-  /// The `inner join` clause, this method can be used enabling the feature flag `sqlite`
+  /// The `inner join` clause
   ///
   /// # Example
   ///
@@ -478,7 +481,7 @@ impl Update {
     self
   }
 
-  /// The `left join` clause, this method can be used enabling the feature flag `sqlite`
+  /// The `left join` clause
   ///
   /// # Example
   ///
@@ -507,7 +510,7 @@ impl Update {
     self
   }
 
-  /// The `right join` clause, this method can be used enabling the feature flag `sqlite`
+  /// The `right join` clause
   ///
   /// # Example
   ///
@@ -554,7 +557,7 @@ impl Update {
     self
   }
 
-  /// The `update or <keyword>` clause, this method overrides the previous value and can be used enabling the feature flag `sqlite`
+  /// The `update or <keyword>` clause, this method overrides the previous value
   ///
   /// # Example
   ///
