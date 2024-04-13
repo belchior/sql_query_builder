@@ -49,12 +49,16 @@ sql_query_builder = { version = "2.x.x", features = ["postgresql"] }
 
 ## How it's works
 
-In simple terms this library will not try to understand what you are writing inside the arguments, this is good
-because it's removes a lot of complexity and verbosity to generate a SQL query, in contrast debugging tends to be more difficult and silly error can araise.
-The lib has the [debug()](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Select.html#method.debug) method with a nice output to minimize the effort to debug a complex query.
+In a simplified way, it has an API that allows you to write dynamic queries in a style
+similar to queries written in pure SQL and the result is a code idiomatic to both Rust and SQL.
+Additionally, the library will not try to understand what you write in the parameters and in some
+ways this is good as it removes a lot of verbosity to generate a SQL query, in contrast,
+debugging tends to be more difficult and silly errors can appear, the library has a
+[debug()](https://docs.rs/sql_query_builder/latest/sql_query_builder/struct.Select.html#method.debug)
+method which had a good output to minimize the effort of debugging complex queries.
 
-Consecutive calls to the same clause will accumulates values respecting the order of the calls,
-the two select produce the same SQL query
+More technically, consecutive calls to the same clause will accumulates values respecting the order
+of the calls, the two select produce the same SQL query.
 
 ```rust
 use sql_query_builder as sql;
@@ -83,7 +87,7 @@ let select = sql::Select::new()
 # }
 ```
 
-The library ignores the order between clauses so the two selects are the same
+The library ignores the order between clauses so the two selects will produce the same query
 
 ```rust
 use sql_query_builder as sql;
@@ -109,9 +113,9 @@ let mut select = sql::Select::new()
   .from("users")
   .where_clause("login = $1");
 
-let shouldIncludesAddress = true;
+let should_includes_address = true;
 
-if shouldIncludesAddress {
+if should_includes_address {
   select = select.inner_join("addresses on user.login = addresses.owner_login");
 }
 ```
@@ -155,7 +159,7 @@ let query = Some(sql::Select::new())
   .map(as_string)
   .unwrap();
 
-println!("{}", query);
+println!("{query}");
 ```
 
 Output (indented for readability)

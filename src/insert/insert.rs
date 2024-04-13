@@ -326,8 +326,10 @@ impl Insert {
 }
 
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
 impl Insert {
-  /// The `returning` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `returning` clause
   ///
   /// # Example
   ///
@@ -356,7 +358,7 @@ impl Insert {
     self
   }
 
-  /// The `with` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `with` clause
   ///
   /// # Example
   ///
@@ -408,15 +410,16 @@ impl Insert {
 }
 
 #[cfg(any(doc, feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
 impl Insert {
-  /// The `insert into` clause, this method overrides the previous value and can be used enabling the feature flag `sqlite`
+  /// The `insert into` clause, this method overrides the previous value
   #[cfg(not(doc))]
   pub fn insert_into(mut self, expression: &str) -> Self {
     self._insert = (InsertVars::InsertInto, expression.trim().to_string());
     self
   }
 
-  /// The `insert or <keyword> into` clause, this method can be used enabling the feature flag `sqlite`
+  /// The `insert or <keyword> into` clause
   ///
   /// # Example
   ///
@@ -449,7 +452,7 @@ impl Insert {
     self
   }
 
-  /// The `replace into` clause, this method overrides the previous value and can be used enabling the feature flag `sqlite`
+  /// The `replace into` clause, this method overrides the previous value
   ///
   /// # Example
   ///

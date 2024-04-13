@@ -89,8 +89,12 @@ pub enum DeleteClause {
   Where,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Returning,
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   With,
 }
 
@@ -137,13 +141,19 @@ pub enum InsertClause {
   Values,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Returning,
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   With,
 
   #[cfg(feature = "sqlite")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   InsertOr,
   #[cfg(feature = "sqlite")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   ReplaceInto,
 }
 
@@ -197,12 +207,20 @@ pub enum SelectClause {
   Window,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Except,
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Intersect,
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Union,
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   With,
 }
 
@@ -230,13 +248,19 @@ pub(crate) enum TrCmd {
   Savepoint,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Begin,
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   End,
 
   #[cfg(not(feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   SetTransaction,
   #[cfg(not(feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   StartTransaction,
 }
 
@@ -283,15 +307,23 @@ pub enum UpdateClause {
   Where,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   From,
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Returning,
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   With,
 
   #[cfg(feature = "sqlite")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   UpdateOr,
   #[cfg(feature = "sqlite")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Join,
 }
 

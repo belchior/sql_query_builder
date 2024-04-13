@@ -268,8 +268,10 @@ impl Delete {
 }
 
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
 impl Delete {
-  /// The `returning` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `returning` clause
   ///
   /// # Example
   ///
@@ -297,7 +299,7 @@ impl Delete {
     self
   }
 
-  /// The `with` clause, this method can be used enabling one of the feature flags `postgresql` or `sqlite`
+  /// The `with` clause
   ///
   /// # Example
   ///
