@@ -173,8 +173,24 @@ mod builder_methods {
   fn method_debug_should_print_at_console_in_a_human_readable_format() {
     #[cfg(not(feature = "sqlite"))]
     {
-      let query = sql::Transaction::new().start_transaction("").debug().as_string();
-      let expected_query = "START TRANSACTION;";
+      let query = sql::Transaction::new()
+        .start_transaction("")
+        .set_transaction("read only")
+        .savepoint("foo")
+        .release_savepoint("foo")
+        .rollback("transaction")
+        .commit("transaction")
+        .debug()
+        .as_string();
+
+      let expected_query = "\
+        START TRANSACTION; \
+        SET TRANSACTION read only; \
+        SAVEPOINT foo; \
+        RELEASE SAVEPOINT foo; \
+        ROLLBACK transaction; \
+        COMMIT transaction;\
+      ";
 
       assert_eq!(query, expected_query);
     }
@@ -284,6 +300,34 @@ mod builder_methods {
     let expected_query = "/* should not be repeat */";
 
     assert_eq!(query, expected_query);
+  }
+}
+
+mod create_table_method {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_create_table_should_add_a_create_table_command() {
+    let query = sql::Transaction::new()
+      .create_table(sql::CreateTable::new().create_table("users"))
+      .as_string();
+
+    let expected_query = "CREATE TABLE users;";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_create_table_should_accumulate_values_on_consecutive_calls() {
+    let query = sql::Transaction::new()
+      .create_table(sql::CreateTable::new().create_table("users"))
+      .create_table(sql::CreateTable::new().create_table("orders"))
+      .as_string();
+
+    let expected_query = "CREATE TABLE users; CREATE TABLE orders;";
+
+    assert_eq!(expected_query, query);
   }
 }
 

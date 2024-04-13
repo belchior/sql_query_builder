@@ -168,8 +168,30 @@ mod builder_methods {
 
   #[test]
   fn method_debug_should_print_at_console_in_a_human_readable_format() {
-    let query = sql::Select::new().select("current_date").debug().as_string();
-    let expected_query = "SELECT current_date";
+    let query = sql::Select::new()
+      .raw("/* all clauses in order */")
+      .select("id as user_id")
+      .from("user_list")
+      .inner_join("orders ON users.login = orders.login")
+      .where_clause("user.created_at::date >= $1")
+      .where_clause("user.login not in ($2)")
+      .group_by("login")
+      .having("active = true")
+      .order_by("login asc, created_at desc")
+      .debug()
+      .as_string();
+
+    let expected_query = "\
+      /* all clauses in order */ \
+      SELECT id as user_id \
+      FROM user_list \
+      INNER JOIN orders ON users.login = orders.login \
+      WHERE user.created_at::date >= $1 \
+      AND user.login not in ($2) \
+      GROUP BY login \
+      HAVING active = true \
+      ORDER BY login asc, created_at desc\
+    ";
 
     assert_eq!(query, expected_query);
   }
