@@ -1,8 +1,7 @@
 use crate::{
   behavior::{push_unique, Concat},
   fmt,
-  structure::{Delete, Insert, Select, TrCmd::*, Transaction, TransactionCommand, Update},
-  CreateTable,
+  structure::{AlterTable, CreateTable, Delete, Insert, Select, TrCmd::*, Transaction, TransactionCommand, Update},
 };
 
 impl Transaction {
@@ -82,23 +81,61 @@ impl Transaction {
   ///   .start_transaction("isolation level serializable")
   ///   .insert(insert_foo)
   ///   .commit("")
-  ///   .debug();
+  ///   .as_string();
   /// # }
   /// ```
   ///
-  /// Prints to the standard output
+  /// Output (indented for readability)
   ///
   /// ```sql
-  /// -- ------------------------------------------------------------------------------
   /// START TRANSACTION isolation level serializable;
   /// INSERT INTO users (login, name)
   /// VALUES ('foo', 'Foo');
   /// COMMIT;
-  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn debug(self) -> Self {
     let fmts = fmt::multiline();
     println!("{}", fmt::format(self.concat(&fmts), &fmts));
+    self
+  }
+
+  /// The `alter table` command, access the [AlterTable] for more info
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(not(feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let users_table = sql::AlterTable::new()
+  ///   .alter_table("users")
+  ///   .drop("legacy_column");
+  ///
+  /// let query = sql::Transaction::new()
+  ///   .start_transaction("")
+  ///   .alter_table(users_table)
+  ///   .commit("")
+  ///   .as_string();
+  ///
+  /// # let expected = "\
+  /// #   START TRANSACTION; \
+  /// #   ALTER TABLE users DROP legacy_column; \
+  /// #   COMMIT;\
+  /// # ";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Output (indented for readability)
+  ///
+  /// ```sql
+  /// START TRANSACTION;
+  /// ALTER TABLE users DROP legacy_column;
+  /// COMMIT;
+  /// ```
+  pub fn alter_table(mut self, alter_table: AlterTable) -> Self {
+    let cmd = Box::new(alter_table);
+    self._ordered_commands.push(cmd);
     self
   }
 
@@ -118,7 +155,6 @@ impl Transaction {
   ///   .start_transaction("")
   ///   .create_table(users_table)
   ///   .commit("")
-  ///   .debug()
   ///   .as_string();
   ///
   /// # let expected = "\
@@ -132,16 +168,14 @@ impl Transaction {
   /// # }
   /// ```
   ///
-  /// Prints to the standard output
+  /// Output (indented for readability)
   ///
   /// ```sql
-  /// -- ------------------------------------------------------------------------------
   /// START TRANSACTION;
   /// CREATE TABLE users (
   ///   login varchar(40) not null
   /// );
   /// COMMIT;
-  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn create_table(mut self, create_table: CreateTable) -> Self {
     let cmd = Box::new(create_table);
@@ -165,7 +199,6 @@ impl Transaction {
   ///   .start_transaction("")
   ///   .delete(delete_foo)
   ///   .commit("")
-  ///   .debug()
   ///   .as_string();
   ///
   /// # let expected = "\
@@ -178,15 +211,13 @@ impl Transaction {
   /// # }
   /// ```
   ///
-  /// Prints to the standard output
+  /// Output (indented for readability)
   ///
   /// ```sql
-  /// -- ------------------------------------------------------------------------------
   /// START TRANSACTION;
   /// DELETE FROM users
   /// WHERE login = 'foo';
   /// COMMIT;
-  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn delete(mut self, delete: Delete) -> Self {
     let cmd = Box::new(delete);
@@ -210,7 +241,6 @@ impl Transaction {
   ///   .start_transaction("")
   ///   .insert(insert_foo)
   ///   .commit("")
-  ///   .debug()
   ///   .as_string();
   ///
   /// # let expected = "\
@@ -223,15 +253,13 @@ impl Transaction {
   /// # }
   /// ```
   ///
-  /// Prints to the standard output
+  /// Output (indented for readability)
   ///
   /// ```sql
-  /// -- ------------------------------------------------------------------------------
   /// START TRANSACTION;
   /// INSERT INTO users (login, name)
   /// VALUES ('foo', 'Foo');
   /// COMMIT;
-  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn insert(mut self, insert: Insert) -> Self {
     let cmd = Box::new(insert);
@@ -397,7 +425,6 @@ impl Transaction {
   ///   .start_transaction("")
   ///   .select(select_foo)
   ///   .commit("")
-  ///   .debug()
   ///   .as_string();
   ///
   /// # let expected = "\
@@ -409,14 +436,12 @@ impl Transaction {
   /// # }
   /// ```
   ///
-  /// Prints to the standard output
+  /// Output (indented for readability)
   ///
   /// ```sql
-  /// -- ------------------------------------------------------------------------------
   /// START TRANSACTION;
   /// SELECT login, name FROM users WHERE id = $1;
   /// COMMIT;
-  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn select(mut self, select: Select) -> Self {
     let cmd = Box::new(select);
@@ -501,7 +526,6 @@ impl Transaction {
   ///   .start_transaction("")
   ///   .update(update_foo)
   ///   .commit("")
-  ///   .debug()
   ///   .as_string();
   ///
   /// # let expected = "\
@@ -513,14 +537,12 @@ impl Transaction {
   /// # }
   /// ```
   ///
-  /// Prints to the standard output
+  /// Output (indented for readability)
   ///
   /// ```sql
-  /// -- ------------------------------------------------------------------------------
   /// START TRANSACTION;
   /// UPDATE users SET name = 'Foooo' WHERE id = $1;
   /// COMMIT;
-  /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn update(mut self, update: Update) -> Self {
     let cmd = Box::new(update);

@@ -1,8 +1,77 @@
 use crate::behavior::TransactionQuery;
+
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 use crate::behavior::WithQuery;
+
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 use std::sync::Arc;
+
+/// Builder to contruct a [AlterTable] command
+///
+/// Basic API
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let query = sql::AlterTable::new()
+///   .alter_table("users")
+///   .add("COLUMN id serial primary key")
+///   .add("COLUMN login varchar(40) not null")
+///   .drop("CONSTRAINT users_login_key")
+///   .as_string();
+///
+/// # let expected = "\
+/// #   ALTER TABLE users \
+/// #     ADD COLUMN id serial primary key, \
+/// #     ADD COLUMN login varchar(40) not null, \
+/// #     DROP CONSTRAINT users_login_key\
+/// # ";
+/// # assert_eq!(expected, query);
+/// ```
+///
+/// Output (indented for readability)
+///
+/// ```sql
+/// ALTER TABLE users
+///   ADD COLUMN id serial primary key,
+///   ADD COLUMN login varchar(40) not null,
+///   DROP CONSTRAINT users_login_key
+/// ```
+#[derive(Default, Clone)]
+pub struct AlterTable {
+  pub(crate) _alter_table: String,
+  pub(crate) _ordered_actions: Vec<AlterTableActionItem>,
+  pub(crate) _raw_after: Vec<(AlterTableAction, String)>,
+  pub(crate) _raw_before: Vec<(AlterTableAction, String)>,
+  pub(crate) _raw: Vec<String>,
+  pub(crate) _rename_to: String,
+}
+
+#[derive(PartialEq, Clone)]
+pub(crate) struct AlterTableActionItem(pub(crate) AlterTableOrderedAction, pub(crate) String);
+
+/// Actions used to build the sequencial part of [AlterTable]
+#[derive(PartialEq, Clone)]
+pub(crate) enum AlterTableOrderedAction {
+  Add,
+  Drop,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  Rename,
+
+  #[cfg(any(feature = "postgresql"))]
+  Alter,
+}
+
+/// All available params to be used in [AlterTable::raw_before] and [AlterTable::raw_after] methods on [AlterTable] builder
+#[derive(PartialEq, Clone)]
+pub enum AlterTableAction {
+  AlterTable,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  RenameTo,
+}
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 pub(crate) enum Combinator {
@@ -78,6 +147,7 @@ pub struct Delete {
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _returning: Vec<String>,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 }
@@ -92,6 +162,7 @@ pub enum DeleteClause {
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Returning,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
@@ -112,11 +183,13 @@ pub struct Insert {
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _returning: Vec<String>,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 
   #[cfg(not(feature = "sqlite"))]
   pub(crate) _insert_into: String,
+
   #[cfg(feature = "sqlite")]
   pub(crate) _insert: (InsertVars, String),
 }
@@ -144,6 +217,7 @@ pub enum InsertClause {
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Returning,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
@@ -152,6 +226,7 @@ pub enum InsertClause {
   #[cfg(feature = "sqlite")]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   InsertOr,
+
   #[cfg(feature = "sqlite")]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   ReplaceInto,
@@ -180,14 +255,19 @@ pub struct Select {
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _except: Vec<Self>,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _intersect: Vec<Self>,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _limit: String,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _offset: String,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _union: Vec<Self>,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _with: Vec<(String, Arc<dyn WithQuery>)>,
 }
@@ -210,14 +290,17 @@ pub enum SelectClause {
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Except,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Intersect,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Union,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
@@ -235,6 +318,7 @@ pub struct Transaction {
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _begin: Option<TransactionCommand>,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _end: Option<TransactionCommand>,
 }
@@ -251,6 +335,7 @@ pub(crate) enum TrCmd {
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Begin,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
@@ -259,6 +344,7 @@ pub(crate) enum TrCmd {
   #[cfg(not(feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   SetTransaction,
+
   #[cfg(not(feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   StartTransaction,
@@ -278,15 +364,19 @@ pub struct Update {
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _from: Vec<String>,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _returning: Vec<String>,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 
   #[cfg(not(feature = "sqlite"))]
   pub(crate) _update: String,
+
   #[cfg(feature = "sqlite")]
   pub(crate) _update: (UpdateVars, String),
+
   #[cfg(feature = "sqlite")]
   pub(crate) _join: Vec<String>,
 }
@@ -310,10 +400,12 @@ pub enum UpdateClause {
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   From,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Returning,
+
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
@@ -322,6 +414,7 @@ pub enum UpdateClause {
   #[cfg(feature = "sqlite")]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   UpdateOr,
+
   #[cfg(feature = "sqlite")]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Join,

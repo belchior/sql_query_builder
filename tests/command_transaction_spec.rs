@@ -303,6 +303,34 @@ mod builder_methods {
   }
 }
 
+mod alter_table_method {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_alter_table_should_add_a_alter_table_command() {
+    let query = sql::Transaction::new()
+      .alter_table(sql::AlterTable::new().alter_table("users"))
+      .as_string();
+
+    let expected_query = "ALTER TABLE users;";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_alter_table_should_accumulate_values_on_consecutive_calls() {
+    let query = sql::Transaction::new()
+      .alter_table(sql::AlterTable::new().alter_table("users"))
+      .alter_table(sql::AlterTable::new().alter_table("orders"))
+      .as_string();
+
+    let expected_query = "ALTER TABLE users; ALTER TABLE orders;";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
 mod create_table_method {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;

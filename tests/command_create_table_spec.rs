@@ -3,7 +3,7 @@ mod builder_features {
   use sql_query_builder as sql;
 
   #[test]
-  fn select_builder_should_be_displayable() {
+  fn create_table_builder_should_be_displayable() {
     let create_table = sql::CreateTable::new()
       .create_table("orders")
       .column("id serial not null");
@@ -17,7 +17,7 @@ mod builder_features {
   }
 
   #[test]
-  fn select_builder_should_be_debuggable() {
+  fn create_table_builder_should_be_debuggable() {
     let create_table = sql::CreateTable::new()
       .create_table("orders")
       .column("id serial not null");
@@ -31,7 +31,7 @@ mod builder_features {
   }
 
   #[test]
-  fn select_builder_should_be_cloneable() {
+  fn create_table_builder_should_be_cloneable() {
     let basic_table = sql::CreateTable::new()
       .column("id serial")
       .column("created_at timestamp")
@@ -72,7 +72,7 @@ mod builder_features {
   }
 
   #[test]
-  fn select_builder_should_be_able_to_conditionally_add_clauses() {
+  fn create_table_builder_should_be_able_to_conditionally_add_clauses() {
     let mut create_table = sql::CreateTable::new().create_table("orders");
 
     if true {
@@ -86,7 +86,7 @@ mod builder_features {
   }
 
   #[test]
-  fn select_builder_should_be_composable() {
+  fn create_table_builder_should_be_composable() {
     fn create_table(select: sql::CreateTable) -> sql::CreateTable {
       select.create_table("users")
     }
