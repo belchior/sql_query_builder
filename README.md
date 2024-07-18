@@ -49,7 +49,7 @@ sql_query_builder = { version = "2.x.x", features = ["postgresql"] }
 
 ## How it's works
 
-In a simplified way, it has an API that allows you to write dynamic queries in a style
+In a simplified way, the lib has an API to allows you to write dynamic queries in a style
 similar to queries written in pure SQL and the result is a code idiomatic to both Rust and SQL.
 Additionally, the library will not try to understand what you write in the parameters and in some
 ways this is good as it removes a lot of verbosity to generate a SQL query, in contrast,

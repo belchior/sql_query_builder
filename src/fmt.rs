@@ -28,6 +28,9 @@ pub fn multiline<'a>() -> Formatter<'a> {
 
 pub fn colorize(query: String) -> String {
   let sql_syntax: Vec<(fn(&str) -> String, &str, &str)> = vec![
+    (blue, "ADD", "add"),
+    (blue, "ALTER", "alter"),
+    (blue, "COLUMN", "column"),
     (blue, "COMMIT", "commit"),
     (blue, "COMMITTED", "committed"),
     (blue, "CONFLICT", "conflict"),
