@@ -22,7 +22,7 @@ if is_admin {
 
 let query = select.as_string();
 
-println!("{}", query);
+println!("{query}");
 ```
 
 Output

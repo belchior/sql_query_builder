@@ -5,6 +5,7 @@ mod alter_table;
 mod behavior;
 mod create_table;
 mod delete;
+mod drop_table;
 mod fmt;
 mod insert;
 mod select;
@@ -14,6 +15,6 @@ mod update;
 mod values;
 
 pub use crate::structure::{
-  AlterTable, AlterTableAction, CreateTable, CreateTableParams, Delete, DeleteClause, Insert, InsertClause, Select,
-  SelectClause, Transaction, Update, UpdateClause, Values, ValuesClause,
+  AlterTable, AlterTableAction, CreateTable, CreateTableParams, Delete, DeleteClause, DropTable, DropTableParams,
+  Insert, InsertClause, Select, SelectClause, Transaction, Update, UpdateClause, Values, ValuesClause,
 };

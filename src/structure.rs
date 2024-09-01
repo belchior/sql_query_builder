@@ -136,6 +136,41 @@ pub enum CreateTableParams {
   PrimaryKey,
 }
 
+/// Builder to contruct a [DropTable] command
+///
+/// Basic API
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let query = sql::DropTable::new()
+///   .drop_table("users")
+///   .as_string();
+///
+/// # let expected = "DROP TABLE users";
+/// # assert_eq!(expected, query);
+/// ```
+///
+///
+/// Output
+///
+/// ```sql
+/// DROP TABLE users
+/// ```
+#[derive(Default, Clone)]
+pub struct DropTable {
+  pub(crate) _drop_table: Vec<String>,
+  pub(crate) _if_exists: bool,
+  pub(crate) _raw_after: Vec<(DropTableParams, String)>,
+  pub(crate) _raw_before: Vec<(DropTableParams, String)>,
+  pub(crate) _raw: Vec<String>,
+}
+
+/// All available params to be used in [DropTable::raw_before] and [DropTable::raw_after] methods on [DropTable] builder
+#[derive(PartialEq, Clone)]
+pub enum DropTableParams {
+  DropTable,
+}
+
 /// Builder to contruct a [Delete] command
 #[derive(Default, Clone)]
 pub struct Delete {

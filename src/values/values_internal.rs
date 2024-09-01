@@ -33,7 +33,6 @@ impl Concat for Values {
     let mut query = "".to_string();
 
     query = self.concat_raw(query, &fmts, &self._raw);
-
     query = self.concat_values(query, &fmts);
 
     query.trim_end().to_string()

@@ -21,7 +21,7 @@ mod insert_command {
       WHERE active = true\
     ";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -34,7 +34,7 @@ mod insert_command {
 
     let expected_query = "INSERT INTO users SELECT *";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -46,7 +46,7 @@ mod insert_command {
 
     let expected_query = "insert into users SELECT *";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -58,7 +58,7 @@ mod insert_command {
       .as_string();
     let expected_query = "INSERT INTO users SELECT * from users_bk";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -69,7 +69,7 @@ mod insert_command {
       .as_string();
     let expected_query = "INSERT INTO users (login, name) SELECT login, name";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 }
 
@@ -82,7 +82,7 @@ mod select_command {
     let query = sql::Select::new().select("id, login").as_string();
     let expected_query = "SELECT id, login";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -90,7 +90,7 @@ mod select_command {
     let query = sql::Select::new().select("id, login").select("created_at").as_string();
     let expected_query = "SELECT id, login, created_at";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -98,7 +98,7 @@ mod select_command {
     let query = sql::Select::new().select("  login, name  ").as_string();
     let expected_query = "SELECT login, name";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -109,7 +109,7 @@ mod select_command {
       .as_string();
     let expected_query = "SELECT login, name";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -120,7 +120,7 @@ mod select_command {
       .as_string();
     let expected_query = "/* list orders */ SELECT id, name";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -131,6 +131,6 @@ mod select_command {
       .as_string();
     let expected_query = "SELECT id, name from addresses";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 }
