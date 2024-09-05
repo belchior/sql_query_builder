@@ -10,6 +10,7 @@
 
 all_features='postgresql sqlite'
 features=''
+test_names=$(git status -s | grep tests/ | sed -e 's/.* //' -e 's/tests\//--test /' -e 's/.rs//' | tr '\n' ' ')
 
 case "$@" in
   "")    features="";;
@@ -19,6 +20,5 @@ esac
 
 [ ! -z "$features" ] && features="--features $features"
 
-# cargo watch -w ./src -w ./tests -x 'test --test command_alter_table_spec'
 # cargo watch -w ./src -w ./tests -x 'test --features postgresql -- --nocapture --color always'
-cargo watch -w ./src -w ./tests -x "test $features"
+cargo watch -w ./src -w ./tests -x "test $features $test_names"

@@ -212,7 +212,7 @@ impl CreateTable {
     self
   }
 
-  /// Creates instance of the CreateTable command
+  /// Creates instance of the [CreateTable] command
   pub fn new() -> Self {
     Self::default()
   }

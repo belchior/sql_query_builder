@@ -1,7 +1,9 @@
 use crate::{
   behavior::{push_unique, Concat},
   fmt,
-  structure::{AlterTable, CreateTable, Delete, Insert, Select, TrCmd::*, Transaction, TransactionCommand, Update},
+  structure::{
+    AlterTable, CreateTable, Delete, DropTable, Insert, Select, TrCmd::*, Transaction, TransactionCommand, Update,
+  },
 };
 
 impl Transaction {
@@ -221,6 +223,45 @@ impl Transaction {
   /// ```
   pub fn delete(mut self, delete: Delete) -> Self {
     let cmd = Box::new(delete);
+    self._ordered_commands.push(cmd);
+    self
+  }
+
+  /// The `drop table` command, access the [DropTable] for more info
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(not(feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let drop_users = sql::DropTable::new()
+  ///   .drop_table("users");
+  ///
+  /// let query = sql::Transaction::new()
+  ///   .start_transaction("")
+  ///   .drop_table(drop_users)
+  ///   .commit("")
+  ///   .as_string();
+  ///
+  /// # let expected = "\
+  /// #   START TRANSACTION; \
+  /// #   DROP TABLE users; \
+  /// #   COMMIT;\
+  /// # ";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Output (indented for readability)
+  ///
+  /// ```sql
+  /// START TRANSACTION;
+  /// DROP TABLE users;
+  /// COMMIT;
+  /// ```
+  pub fn drop_table(mut self, drop_table: DropTable) -> Self {
+    let cmd = Box::new(drop_table);
     self._ordered_commands.push(cmd);
     self
   }

@@ -385,6 +385,34 @@ mod delete_method {
   }
 }
 
+mod drop_table_method {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_drop_table_should_add_a_drop_table_command() {
+    let query = sql::Transaction::new()
+      .drop_table(sql::DropTable::new().drop_table("users"))
+      .as_string();
+
+    let expected_query = "DROP TABLE users;";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_drop_table_should_accumulate_values_on_consecutive_calls() {
+    let query = sql::Transaction::new()
+      .drop_table(sql::DropTable::new().drop_table("users"))
+      .drop_table(sql::DropTable::new().drop_table("orders"))
+      .as_string();
+
+    let expected_query = "DROP TABLE users; DROP TABLE orders;";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
 mod insert_method {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
