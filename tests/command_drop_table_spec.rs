@@ -28,19 +28,6 @@ mod builder_features {
 
   #[cfg(not(feature = "postgresql"))]
   #[test]
-  fn drop_table_builder_should_be_cloneable() {
-    let drop_users = sql::DropTable::new().drop_table("users");
-    let drop_users_and_orders = drop_users.clone().drop_table("orders");
-
-    let expected_drop_users = "DROP TABLE users";
-    let expected_drop_users_and_orders = "DROP TABLE orders";
-
-    assert_eq!(expected_drop_users, drop_users.as_string());
-    assert_eq!(expected_drop_users_and_orders, drop_users_and_orders.as_string());
-  }
-
-  #[cfg(not(feature = "postgresql"))]
-  #[test]
   fn drop_table_builder_should_be_able_to_conditionally_add_clauses() {
     let mut drop_table = sql::DropTable::new().drop_table("orders");
 
@@ -52,6 +39,47 @@ mod builder_features {
     let expected_query = "DROP TABLE users";
 
     assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn drop_table_builder_should_be_able_to_conditionally_add_clauses() {
+    let mut drop_table = sql::DropTable::new().drop_table("orders");
+
+    if true {
+      drop_table = drop_table.drop_table("users");
+    }
+
+    let query = drop_table.as_string();
+    let expected_query = "DROP TABLE orders, users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(not(feature = "postgresql"))]
+  #[test]
+  fn drop_table_builder_should_be_cloneable() {
+    let drop_users = sql::DropTable::new().drop_table("users");
+    let drop_users_and_orders = drop_users.clone().drop_table("orders");
+
+    let expected_drop_users = "DROP TABLE users";
+    let expected_drop_users_and_orders = "DROP TABLE orders";
+
+    assert_eq!(expected_drop_users, drop_users.as_string());
+    assert_eq!(expected_drop_users_and_orders, drop_users_and_orders.as_string());
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn drop_table_builder_should_be_cloneable() {
+    let drop_users = sql::DropTable::new().drop_table("users");
+    let drop_users_and_orders = drop_users.clone().drop_table("orders");
+
+    let expected_drop_users = "DROP TABLE users";
+    let expected_drop_users_and_orders = "DROP TABLE users, orders";
+
+    assert_eq!(expected_drop_users, drop_users.as_string());
+    assert_eq!(expected_drop_users_and_orders, drop_users_and_orders.as_string());
   }
 
   #[test]
@@ -216,6 +244,7 @@ mod method_drop_table {
     assert_eq!(expected_query, query);
   }
 
+  #[cfg(not(feature = "postgresql"))]
   #[test]
   fn method_drop_table_should_not_accumulate_arguments_with_the_same_content() {
     let query = sql::DropTable::new()
@@ -283,6 +312,7 @@ mod method_drop_table_if_exists {
     assert_eq!(expected_query, query);
   }
 
+  #[cfg(not(feature = "postgresql"))]
   #[test]
   fn method_drop_table_if_exists_should_not_accumulate_arguments_with_the_same_content() {
     let query = sql::DropTable::new()
@@ -321,32 +351,6 @@ mod method_drop_table_if_exists {
 mod postgres_feature_flag {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
-
-  #[test]
-  fn drop_table_builder_should_be_able_to_conditionally_add_clauses() {
-    let mut drop_table = sql::DropTable::new().drop_table("orders");
-
-    if true {
-      drop_table = drop_table.drop_table("users");
-    }
-
-    let query = drop_table.as_string();
-    let expected_query = "DROP TABLE orders, users";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn drop_table_builder_should_be_cloneable() {
-    let drop_users = sql::DropTable::new().drop_table("users");
-    let drop_users_and_orders = drop_users.clone().drop_table("orders");
-
-    let expected_drop_users = "DROP TABLE users";
-    let expected_drop_users_and_orders = "DROP TABLE users, orders";
-
-    assert_eq!(expected_drop_users, drop_users.as_string());
-    assert_eq!(expected_drop_users_and_orders, drop_users_and_orders.as_string());
-  }
 
   #[test]
   fn method_drop_table_should_accumulate_values_on_consecutive_calls() {
