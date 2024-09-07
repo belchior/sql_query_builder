@@ -11,6 +11,7 @@ pub trait Concat {
 pub trait TransactionQuery: Concat {}
 
 /// Represents all commands that can be used inside the with method
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 pub trait WithQuery: Concat {}
 
 pub(crate) trait ConcatSqlStandard<Clause: PartialEq> {

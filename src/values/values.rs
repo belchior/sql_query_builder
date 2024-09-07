@@ -1,8 +1,14 @@
 use crate::{
-  behavior::{push_unique, Concat, WithQuery},
+  behavior::{push_unique, Concat},
   fmt,
   structure::{Values, ValuesClause},
 };
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+use crate::behavior::WithQuery;
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl WithQuery for Values {}
 
 impl Values {
   /// Gets the current state of the [Values] and returns it as string
@@ -179,8 +185,6 @@ impl Values {
     self
   }
 }
-
-impl WithQuery for Values {}
 
 impl std::fmt::Display for Values {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {

@@ -1,12 +1,8 @@
-#[cfg(feature = "sqlite")]
-use crate::structure::InsertVars;
 use crate::{
-  behavior::{push_unique, Concat, TransactionQuery, WithQuery},
+  behavior::{push_unique, Concat, TransactionQuery},
   fmt,
   structure::{Insert, InsertClause, Select},
 };
-
-impl WithQuery for Insert {}
 
 impl TransactionQuery for Insert {}
 
@@ -325,6 +321,12 @@ impl Insert {
   }
 }
 
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+use crate::behavior::WithQuery;
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl WithQuery for Insert {}
+
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
 #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
@@ -403,11 +405,15 @@ impl Insert {
   /// SELECT *
   /// FROM active_users
   /// ```
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim().to_string(), std::sync::Arc::new(query)));
     self
   }
 }
+
+#[cfg(feature = "sqlite")]
+use crate::structure::InsertVars;
 
 #[cfg(any(doc, feature = "sqlite"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]

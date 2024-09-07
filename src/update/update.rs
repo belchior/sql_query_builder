@@ -1,12 +1,8 @@
-#[cfg(feature = "sqlite")]
-use crate::structure::UpdateVars;
 use crate::{
-  behavior::{push_unique, Concat, TransactionQuery, WithQuery},
+  behavior::{push_unique, Concat, TransactionQuery},
   fmt,
   structure::{LogicalOperator, Update, UpdateClause},
 };
-
-impl WithQuery for Update {}
 
 impl TransactionQuery for Update {}
 
@@ -293,6 +289,12 @@ impl Update {
   }
 }
 
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+use crate::behavior::WithQuery;
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl WithQuery for Update {}
+
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
 #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
@@ -414,11 +416,15 @@ impl Update {
   /// WHERE id = (select group_id from user)
   /// -- ------------------------------------------------------------------------------
   /// ```
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim().to_string(), std::sync::Arc::new(query)));
     self
   }
 }
+
+#[cfg(feature = "sqlite")]
+use crate::structure::UpdateVars;
 
 #[cfg(any(doc, feature = "sqlite"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
