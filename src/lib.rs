@@ -18,3 +18,9 @@ pub use crate::structure::{
   AlterTable, AlterTableAction, CreateTable, CreateTableParams, Delete, DeleteClause, DropTable, DropTableParams,
   Insert, InsertClause, Select, SelectClause, Transaction, Update, UpdateClause, Values, ValuesClause,
 };
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+mod drop_index;
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+pub use crate::structure::{DropIndex, DropIndexParams};

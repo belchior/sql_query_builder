@@ -136,6 +136,46 @@ pub enum CreateTableParams {
   PrimaryKey,
 }
 
+/// Builder to contruct a [DropIndex] command. This command is available only for the crate features `postgresql` and `sqlite`
+///
+/// Basic API
+/// ```
+/// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+/// # {
+/// use sql_query_builder as sql;
+///
+/// let query = sql::DropIndex::new()
+///   .drop_index("users_name_idx")
+///   .as_string();
+///
+/// # let expected = "DROP INDEX users_name_idx";
+/// # assert_eq!(expected, query);
+/// # }
+/// ```
+///
+///
+/// Output
+///
+/// ```sql
+/// DROP INDEX users_name_idx
+/// ```
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[derive(Default, Clone)]
+pub struct DropIndex {
+  pub(crate) _drop_index: Vec<String>,
+  pub(crate) _if_exists: bool,
+  pub(crate) _raw_after: Vec<(DropIndexParams, String)>,
+  pub(crate) _raw_before: Vec<(DropIndexParams, String)>,
+  pub(crate) _raw: Vec<String>,
+}
+
+/// All available params to be used in [DropIndex::raw_before] and [DropIndex::raw_after] methods on [DropIndex] builder
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[derive(PartialEq, Clone)]
+pub enum DropIndexParams {
+  DropIndex,
+}
+
 /// Builder to contruct a [DropTable] command
 ///
 /// Basic API

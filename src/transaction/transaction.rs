@@ -6,6 +6,9 @@ use crate::{
   },
 };
 
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+use crate::structure::DropIndex;
+
 impl Transaction {
   /// Gets the current state of the [Transaction] and returns it as string
   ///
@@ -223,6 +226,46 @@ impl Transaction {
   /// ```
   pub fn delete(mut self, delete: Delete) -> Self {
     let cmd = Box::new(delete);
+    self._ordered_commands.push(cmd);
+    self
+  }
+
+  /// The `drop index` command, access the [DropIndex] for more info
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(not(feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let drop_index_name = sql::DropIndex::new()
+  ///   .drop_index("users_name_idx");
+  ///
+  /// let query = sql::Transaction::new()
+  ///   .start_transaction("")
+  ///   .drop_index(drop_index_name)
+  ///   .commit("")
+  ///   .as_string();
+  ///
+  /// # let expected = "\
+  /// #   START TRANSACTION; \
+  /// #   DROP INDEX users_name_idx; \
+  /// #   COMMIT;\
+  /// # ";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Output (indented for readability)
+  ///
+  /// ```sql
+  /// START TRANSACTION;
+  /// DROP INDEX users_name_idx;
+  /// COMMIT;
+  /// ```
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  pub fn drop_index(mut self, drop_index: DropIndex) -> Self {
+    let cmd = Box::new(drop_index);
     self._ordered_commands.push(cmd);
     self
   }

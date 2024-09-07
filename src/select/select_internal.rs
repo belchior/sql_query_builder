@@ -1,10 +1,11 @@
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-use crate::behavior::ConcatCommon;
 use crate::{
   behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
   fmt,
   structure::{Select, SelectClause},
 };
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+use crate::behavior::ConcatCommon;
 
 impl ConcatSqlStandard<SelectClause> for Select {}
 
