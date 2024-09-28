@@ -1,4 +1,85 @@
 mod where_clause {
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  mod create_index_command {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
+
+    #[test]
+    fn method_where_clause_should_add_the_where_clause() {
+      let query = sql::CreateIndex::new().where_clause("created_at >= $1").as_string();
+      let expected_query = "WHERE created_at >= $1";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_clause_should_omit_the_operation_when_was_the_first_clause() {
+      let query = sql::CreateIndex::new().where_clause("status = 'active'").as_string();
+      let expected_query = "WHERE status = 'active'";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_clause_should_accumulate_values_on_consecutive_calls_using_the_and_operator() {
+      let query = sql::CreateIndex::new()
+        .where_clause("created_at >= $1")
+        .where_clause("status = 'active'")
+        .as_string();
+
+      let expected_query = "\
+        WHERE \
+          created_at >= $1 \
+          AND status = 'active'\
+      ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_clause_should_not_accumulate_arguments_with_the_same_content() {
+      let query = sql::CreateIndex::new()
+        .where_clause("status = 'active'")
+        .where_clause("status = 'active'")
+        .as_string();
+      let expected_query = "WHERE status = 'active'";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_clause_should_trim_space_of_the_argument() {
+      let query = sql::CreateIndex::new()
+        .where_clause("  status = 'active'  ")
+        .as_string();
+      let expected_query = "WHERE status = 'active'";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_raw_before_should_add_raw_sql_before_where_clause() {
+      let query = sql::CreateIndex::new()
+        .raw_before(sql::CreateIndexParams::Where, "/* uncommon parameter */")
+        .where_clause("status = 'active'")
+        .as_string();
+      let expected_query = "/* uncommon parameter */ WHERE status = 'active'";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_raw_after_should_add_raw_sql_after_where_clause() {
+      let query = sql::CreateIndex::new()
+        .where_clause("created_at >= $1")
+        .raw_after(sql::CreateIndexParams::Where, "and created_at < $2")
+        .as_string();
+      let expected_query = "WHERE created_at >= $1 and created_at < $2";
+
+      assert_eq!(query, expected_query);
+    }
+  }
+
   mod delete_command {
     use pretty_assertions::assert_eq;
     use sql_query_builder as sql;
@@ -36,7 +117,7 @@ mod where_clause {
     }
 
     #[test]
-    fn method_where_clause_clause_should_not_accumulate_arguments_with_the_same_content() {
+    fn method_where_clause_should_not_accumulate_arguments_with_the_same_content() {
       let query = sql::Delete::new()
         .where_clause("id = $1")
         .where_clause("id = $1")
@@ -271,7 +352,21 @@ mod where_clause {
 }
 
 mod where_and {
-  mod delete_clause {
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  mod create_index_command {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
+
+    #[test]
+    fn method_where_and_should_be_an_alias_of_where_clause() {
+      let query = sql::CreateIndex::new().where_and("created_at >= $1").as_string();
+      let expected_query = "WHERE created_at >= $1";
+
+      assert_eq!(query, expected_query);
+    }
+  }
+
+  mod delete_command {
     use pretty_assertions::assert_eq;
     use sql_query_builder as sql;
 
@@ -312,7 +407,86 @@ mod where_and {
 }
 
 mod where_or {
-  mod delete_clause {
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  mod create_index_command {
+    use pretty_assertions::assert_eq;
+    use sql_query_builder as sql;
+
+    #[test]
+    fn method_where_or_should_add_the_where_clause() {
+      let query = sql::CreateIndex::new().where_or("created_at >= $1").as_string();
+      let expected_query = "WHERE created_at >= $1";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_or_should_omit_the_operation_when_was_the_first_clause() {
+      let query = sql::CreateIndex::new().where_or("created_at >= $1").as_string();
+      let expected_query = "WHERE created_at >= $1";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_or_should_accumulate_values_on_consecutive_calls_using_the_or_operator() {
+      let query = sql::CreateIndex::new()
+        .where_or("created_at >= $1")
+        .where_or("status = 'active'")
+        .as_string();
+
+      let expected_query = "\
+        WHERE \
+          created_at >= $1 \
+          OR status = 'active'\
+      ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_or_should_trim_space_of_the_argument() {
+      let query = sql::CreateIndex::new().where_or("  status = 'active'  ").as_string();
+      let expected_query = "WHERE status = 'active'";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_or_should_not_accumulate_arguments_with_the_same_content() {
+      let query = sql::CreateIndex::new()
+        .where_or("status = 'active'")
+        .where_or("status = 'active'")
+        .as_string();
+      let expected_query = "WHERE status = 'active'";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_raw_before_should_add_raw_sql_before_where_clause() {
+      let query = sql::CreateIndex::new()
+        .raw_before(sql::CreateIndexParams::Where, "/* uncommon parameter */")
+        .where_or("status = 'active'")
+        .as_string();
+      let expected_query = "/* uncommon parameter */ WHERE status = 'active'";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_raw_after_should_add_raw_sql_after_where_clause() {
+      let query = sql::CreateIndex::new()
+        .where_or("status = 'active'")
+        .raw_after(sql::CreateIndexParams::Where, "/* uncommon parameter */")
+        .as_string();
+      let expected_query = "WHERE status = 'active' /* uncommon parameter */";
+
+      assert_eq!(query, expected_query);
+    }
+  }
+
+  mod delete_command {
     use pretty_assertions::assert_eq;
     use sql_query_builder as sql;
 
