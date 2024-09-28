@@ -38,7 +38,7 @@ impl CreateTable {
     self.concat(&fmts)
   }
 
-  /// Define a column to be passed as arguments to the create table command, multiples call will concatenates all column parameters
+  /// Defines a column to be passed as arguments to the create table command, multiples call will concatenates all column parameters
   ///
   /// ### Example
   ///
@@ -100,7 +100,7 @@ impl CreateTable {
     self
   }
 
-  /// Defines a create table signature. Multiples calls will overrides the previous value
+  /// Defines a create table parameter. Multiples calls will overrides the previous value
   ///
   /// ### Example
   ///
@@ -124,7 +124,7 @@ impl CreateTable {
     self
   }
 
-  /// Defines a create table signature with the modifer `if not exists`. Multiples calls will overrides the previous value
+  /// Defines a create table parameter with the `if not exists` modifier. Multiples calls will overrides the previous value
   ///
   /// ### Example
   ///
@@ -256,7 +256,7 @@ impl CreateTable {
     self
   }
 
-  /// Adds at the beginning a raw SQL query. Is useful to create a more complex create table signature like the example below.
+  /// Adds at the beginning a raw SQL query. Is useful to create a more complex create table command.
   ///
   /// ### Example
   ///

@@ -583,7 +583,7 @@ mod method_primary_key {
   }
 
   #[test]
-  fn method_primary_key_should_overrides_the_previews_value_on_consecutive_calls() {
+  fn method_primary_key_should_overrides_the_current_value_on_consecutive_calls() {
     let query = sql::CreateTable::new()
       .primary_key("id")
       .primary_key("login")

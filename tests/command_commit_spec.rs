@@ -27,7 +27,7 @@ mod commit_command {
   }
 
   #[test]
-  fn method_commit_should_override_the_previews_value_on_consecutive_calls() {
+  fn method_commit_should_overrides_the_current_value_on_consecutive_calls() {
     let query = sql::Transaction::new().commit("TRANSACTION").commit("WORK").as_string();
     let expected_query = "COMMIT WORK;";
 

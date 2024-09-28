@@ -31,7 +31,7 @@ impl DropTable {
     self.concat(&fmts)
   }
 
-  /// Defines a drop table command, this method overrides the previous value
+  /// Defines a drop table parameter, this method overrides the previous value
   ///
   /// ### Example 1
   ///
@@ -83,7 +83,7 @@ impl DropTable {
     self
   }
 
-  /// Defines a drop table comand with the modifer `if exists`, this method overrides the previous value
+  /// Defines a drop table parameter with the `if exists` modifier, this method overrides the previous value
   ///
   /// ### Example 1
   ///
@@ -175,7 +175,7 @@ impl DropTable {
     self
   }
 
-  /// Adds at the beginning a raw SQL query. Is useful to create a more complex drop table signature like the example below.
+  /// Adds at the beginning a raw SQL query. Is useful to create a more complex drop table command.
   ///
   /// ### Example
   ///
@@ -202,7 +202,7 @@ impl DropTable {
 
   /// Adds a raw SQL query after a specified parameter.
   ///
-  /// The `DropTableParams::DropTable` works for both `.drop_table` and `.drop_table_if_exist` methods
+  /// The `DropTableParams::DropTable` works both to `.drop_table` and `.drop_table_if_exist` methods
   ///
   /// ### Example
   ///
@@ -229,7 +229,7 @@ impl DropTable {
 
   /// Adds a raw SQL query before a specified parameter.
   ///
-  /// The `DropTableParams::DropTable` works for both `.drop_table` and `.drop_table_if_exist` methods
+  /// The `DropTableParams::DropTable` works both to `.drop_table` and `.drop_table_if_exist` methods
   ///
   /// ### Example
   ///

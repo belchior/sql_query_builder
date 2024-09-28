@@ -20,7 +20,7 @@ mod end_command {
   }
 
   #[test]
-  fn method_end_should_override_the_previews_value_on_consecutive_calls() {
+  fn method_end_should_overrides_the_current_value_on_consecutive_calls() {
     let query = sql::Transaction::new().end("TRANSACTION").end("").as_string();
     let expected_query = "END;";
 

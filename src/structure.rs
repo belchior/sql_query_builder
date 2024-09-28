@@ -136,7 +136,7 @@ pub enum CreateTableParams {
   PrimaryKey,
 }
 
-/// Builder to contruct a [DropIndex] command. This command is available only for the crate features `postgresql` and `sqlite`
+/// Builder to contruct a [DropIndex] command. Available only for the crate features `postgresql` and `sqlite`
 ///
 /// Basic API
 /// ```
