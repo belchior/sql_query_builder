@@ -151,8 +151,7 @@ impl CreateIndex {
   /// ```sql
   /// -- ------------------------------------------------------------------------------
   /// CREATE INDEX users_name_idx
-  /// ON users
-  /// (name)
+  /// ON users (name)
   /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn debug(self) -> Self {
@@ -223,7 +222,7 @@ impl CreateIndex {
   /// Output
   ///
   /// ```sql
-  /// /* create index command */ CREATE INDEX users_name_idx
+  /// /* start index command */ CREATE INDEX users_name_idx
   /// ```
   pub fn raw(mut self, raw_sql: &str) -> Self {
     push_unique(&mut self._raw, raw_sql.trim().to_string());
