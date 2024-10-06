@@ -359,8 +359,11 @@ mod where_and {
 
     #[test]
     fn method_where_and_should_be_an_alias_of_where_clause() {
-      let query = sql::CreateIndex::new().where_and("created_at >= $1").as_string();
-      let expected_query = "WHERE created_at >= $1";
+      let query = sql::CreateIndex::new()
+        .where_and("active = 'true'")
+        .where_and("created_at >= $1")
+        .as_string();
+      let expected_query = "WHERE active = 'true' AND created_at >= $1";
 
       assert_eq!(query, expected_query);
     }
