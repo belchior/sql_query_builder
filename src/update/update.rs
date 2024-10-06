@@ -203,8 +203,7 @@ impl Update {
     self
   }
 
-  /// This method is un alias of `where_clause`. The `where_and` will concatenate mulltiples calls using the `and` operator.
-  /// The intention is to enable more idiomatic concatenation of conditions.
+  /// The method will concatenate multiples calls using the `and` operator. This method is un alias of `where_clause`.
   ///
   /// # Example
   ///
@@ -232,7 +231,7 @@ impl Update {
     self.where_clause(condition)
   }
 
-  /// The `where` clause, this method will concatenate mulltiples calls using the `and` operator.
+  /// The `where` clause, this method will concatenate multiples calls using the `and` operator.
   /// If you intended to use the `or` operator you should use the [where_or](Update::where_or) method
   ///
   /// # Example

@@ -31,7 +31,7 @@ impl DropIndex {
     self.concat(&fmts)
   }
 
-  /// Defines a drop index command, this method overrides the previous value
+  /// Defines a drop index parameter, this method overrides the previous value
   ///
   /// ### Example 1
   ///
@@ -78,12 +78,12 @@ impl DropIndex {
   /// ```sql
   /// DROP INDEX users_name_idx, orders_product_name_idx
   /// ```
-  pub fn drop_index(mut self, table_name: &str) -> Self {
-    push_unique(&mut self._drop_index, table_name.trim().to_string());
+  pub fn drop_index(mut self, index_name: &str) -> Self {
+    push_unique(&mut self._drop_index, index_name.trim().to_string());
     self
   }
 
-  /// Defines a drop index comand with the modifer `if exists`, this method overrides the previous value
+  /// Defines a drop index parameter with the `if exists` modifier, this method overrides the previous value
   ///
   /// ### Example 1
   ///
@@ -130,8 +130,8 @@ impl DropIndex {
   /// ```sql
   /// DROP INDEX IF EXISTS users_name_idx, orders_product_name_idx
   /// ```
-  pub fn drop_index_if_exists(mut self, table_name: &str) -> Self {
-    push_unique(&mut self._drop_index, table_name.trim().to_string());
+  pub fn drop_index_if_exists(mut self, index_name: &str) -> Self {
+    push_unique(&mut self._drop_index, index_name.trim().to_string());
     self._if_exists = true;
     self
   }
@@ -175,7 +175,7 @@ impl DropIndex {
     self
   }
 
-  /// Adds at the beginning a raw SQL query. Is useful to create a more complex drop index signature like the example below.
+  /// Adds at the beginning a raw SQL query. Is useful to create a more complex drop index command.
   ///
   /// ### Example
   ///
@@ -202,7 +202,7 @@ impl DropIndex {
 
   /// Adds a raw SQL query after a specified parameter.
   ///
-  /// The `DropIndexParams::DropIndex` works for both `.drop_index` and `.drop_index_if_exist` methods
+  /// The `DropIndexParams::DropIndex` works both to `.drop_index` and `.drop_index_if_exist` methods
   ///
   /// ### Example
   ///
@@ -229,7 +229,7 @@ impl DropIndex {
 
   /// Adds a raw SQL query before a specified parameter.
   ///
-  /// The `DropIndexParams::DropIndex` works for both `.drop_index` and `.drop_index_if_exist` methods
+  /// The `DropIndexParams::DropIndex` works both to `.drop_index` and `.drop_index_if_exist` methods
   ///
   /// ### Example
   ///

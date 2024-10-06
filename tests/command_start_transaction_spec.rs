@@ -28,7 +28,7 @@ mod start_transaction_command {
   }
 
   #[test]
-  fn method_start_transaction_should_override_the_previews_value_on_consecutive_calls() {
+  fn method_start_transaction_should_overrides_the_current_value_on_consecutive_calls() {
     let query = sql::Transaction::new()
       .start_transaction("ISOLATION LEVEL SERIALIZABLE")
       .start_transaction("ISOLATION LEVEL REPEATABLE READ")

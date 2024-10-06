@@ -28,7 +28,7 @@ mod begin_command {
   }
 
   #[test]
-  fn method_begin_should_override_the_previews_value_on_consecutive_calls() {
+  fn method_begin_should_overrides_the_current_value_on_consecutive_calls() {
     let query = sql::Transaction::new()
       .begin("ISOLATION LEVEL SERIALIZABLE")
       .begin("ISOLATION LEVEL REPEATABLE READ")

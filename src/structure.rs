@@ -80,6 +80,78 @@ pub(crate) enum Combinator {
   Union,
 }
 
+/// Builder to contruct a [CreateIndex] command. Available only for the crate features `postgresql` and `sqlite`
+///
+/// Basic API
+/// ```
+/// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+/// # {
+/// use sql_query_builder as sql;
+///
+/// let query = sql::CreateIndex::new()
+///   .create_index("users_name_idx")
+///   .on("users")
+///   .column("name")
+///   .as_string();
+///
+/// # let expected = "CREATE INDEX users_name_idx ON users (name)";
+/// # assert_eq!(expected, query);
+/// # }
+/// ```
+///
+/// Output
+///
+/// ```sql
+/// CREATE INDEX users_name_idx ON users (name)
+/// ```
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[derive(Default, Clone)]
+pub struct CreateIndex {
+  pub(crate) _column: Vec<String>,
+  pub(crate) _index_name: String,
+  pub(crate) _create_index: bool,
+  pub(crate) _if_not_exists: bool,
+  pub(crate) _on: String,
+  pub(crate) _raw_after: Vec<(CreateIndexParams, String)>,
+  pub(crate) _raw_before: Vec<(CreateIndexParams, String)>,
+  pub(crate) _raw: Vec<String>,
+  pub(crate) _unique: bool,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  pub(crate) _where: Vec<(LogicalOperator, String)>,
+
+  #[cfg(feature = "postgresql")]
+  pub(crate) _concurrently: bool,
+  #[cfg(feature = "postgresql")]
+  pub(crate) _include: Vec<String>,
+  #[cfg(feature = "postgresql")]
+  pub(crate) _only: bool,
+  #[cfg(feature = "postgresql")]
+  pub(crate) _using: String,
+}
+
+/// All available params to be used in [CreateIndex::raw_before] and [CreateIndex::raw_after] methods on [CreateIndex] builder
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[derive(PartialEq, Clone)]
+pub enum CreateIndexParams {
+  Column,
+  CreateIndex,
+  On,
+  Unique,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  Where,
+
+  #[cfg(feature = "postgresql")]
+  Concurrently,
+  #[cfg(feature = "postgresql")]
+  Only,
+  #[cfg(feature = "postgresql")]
+  Using,
+  #[cfg(feature = "postgresql")]
+  Include,
+}
+
 /// Builder to contruct a [CreateTable] command
 ///
 /// Basic API
@@ -136,7 +208,7 @@ pub enum CreateTableParams {
   PrimaryKey,
 }
 
-/// Builder to contruct a [DropIndex] command. This command is available only for the crate features `postgresql` and `sqlite`
+/// Builder to contruct a [DropIndex] command. Available only for the crate features `postgresql` and `sqlite`
 ///
 /// Basic API
 /// ```

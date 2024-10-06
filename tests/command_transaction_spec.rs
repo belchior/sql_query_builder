@@ -386,6 +386,35 @@ mod delete_method {
 }
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+mod create_index_method {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_create_index_should_add_a_create_index_command() {
+    let query = sql::Transaction::new()
+      .create_index(sql::CreateIndex::new().create_index("users_name_idx"))
+      .as_string();
+
+    let expected_query = "CREATE INDEX users_name_idx;";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_create_index_should_accumulate_values_on_consecutive_calls() {
+    let query = sql::Transaction::new()
+      .create_index(sql::CreateIndex::new().create_index("users_name_idx"))
+      .create_index(sql::CreateIndex::new().create_index("orders_product_name_idx"))
+      .as_string();
+
+    let expected_query = "CREATE INDEX users_name_idx; CREATE INDEX orders_product_name_idx;";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 mod drop_index_method {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;

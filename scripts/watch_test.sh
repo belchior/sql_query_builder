@@ -20,5 +20,4 @@ esac
 
 [ ! -z "$features" ] && features="--features $features"
 
-# cargo watch -w ./src -w ./tests -x 'test --features postgresql -- --nocapture --color always'
 cargo watch -w ./src -w ./tests -x "test $features $test_names"
