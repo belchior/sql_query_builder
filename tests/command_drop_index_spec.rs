@@ -178,6 +178,20 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::DropIndex::new()
+      .raw("")
+      .raw("drop index")
+      .raw("users_name_idx")
+      .raw("")
+      .as_string();
+
+    let expected_query = "drop index users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
     let query = sql::DropIndex::new()
       .raw("/* drop index command */")
@@ -384,6 +398,19 @@ mod postgres_feature_flag {
   }
 
   #[test]
+  fn method_drop_index_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::DropIndex::new()
+      .drop_index("")
+      .drop_index("series")
+      .drop_index("")
+      .as_string();
+
+    let expected_query = "DROP INDEX series";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
   fn method_drop_index_if_exists_should_accumulate_values_on_consecutive_calls() {
     let query = sql::DropIndex::new()
       .drop_index_if_exists("films_title_idx")
@@ -391,6 +418,19 @@ mod postgres_feature_flag {
       .as_string();
 
     let expected_query = "DROP INDEX IF EXISTS films_title_idx, series";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_drop_index_if_exists_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::DropIndex::new()
+      .drop_index_if_exists("")
+      .drop_index_if_exists("series")
+      .drop_index_if_exists("")
+      .as_string();
+
+    let expected_query = "DROP INDEX IF EXISTS series";
 
     assert_eq!(expected_query, query);
   }
