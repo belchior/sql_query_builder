@@ -86,9 +86,13 @@ mod select_command {
   }
 
   #[test]
-  fn method_select_should_accumulate_values_on_consecutive_calls() {
-    let query = sql::Select::new().select("id, login").select("created_at").as_string();
-    let expected_query = "SELECT id, login, created_at";
+  fn method_select_should_not_accumulate_values_when_column_name_is_empty() {
+    let query = sql::Select::new()
+      .select("")
+      .select("created_at")
+      .select("")
+      .as_string();
+    let expected_query = "SELECT created_at";
 
     assert_eq!(expected_query, query);
   }

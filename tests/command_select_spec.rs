@@ -221,6 +221,19 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Select::new()
+      .raw("")
+      .raw("select id")
+      .raw("from users")
+      .raw("")
+      .as_string();
+    let expected_query = "select id from users";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
     let query = sql::Select::new().raw("select *").from("users").as_string();
     let expected_query = "select * FROM users";

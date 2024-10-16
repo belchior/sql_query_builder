@@ -71,7 +71,13 @@ impl Select {
   fn concat_group_by(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._group_by.is_empty() == false {
-      let columns = self._group_by.join(comma);
+      let columns = self
+        ._group_by
+        .iter()
+        .filter(|column| column.is_empty() == false)
+        .map(|column| column.as_str())
+        .collect::<Vec<_>>()
+        .join(comma);
       format!("GROUP BY{space}{columns}{space}{lb}")
     } else {
       "".to_string()
@@ -90,7 +96,13 @@ impl Select {
   fn concat_having(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._having.is_empty() == false {
-      let conditions = self._having.join(" AND ");
+      let conditions = self
+        ._having
+        .iter()
+        .filter(|item| item.is_empty() == false)
+        .map(|item| item.as_str())
+        .collect::<Vec<_>>()
+        .join(" AND ");
       format!("HAVING{space}{conditions}{space}{lb}")
     } else {
       "".to_string()
@@ -128,7 +140,13 @@ impl Select {
   fn concat_order_by(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._order_by.is_empty() == false {
-      let columns = self._order_by.join(comma);
+      let columns = self
+        ._order_by
+        .iter()
+        .filter(|item| item.is_empty() == false)
+        .map(|item| item.as_str())
+        .collect::<Vec<_>>()
+        .join(comma);
       format!("ORDER BY{space}{columns}{space}{lb}")
     } else {
       "".to_string()
@@ -147,7 +165,13 @@ impl Select {
   fn concat_select(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._select.is_empty() == false {
-      let columns = self._select.join(comma);
+      let columns = self
+        ._select
+        .iter()
+        .filter(|column| column.is_empty() == false)
+        .map(|column| column.as_str())
+        .collect::<Vec<_>>()
+        .join(comma);
       format!("SELECT{space}{columns}{space}{lb}")
     } else {
       "".to_string()
@@ -166,7 +190,13 @@ impl Select {
   fn concat_window(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._window.is_empty() == false {
-      let columns = self._window.join(comma);
+      let columns = self
+        ._window
+        .iter()
+        .filter(|item| item.is_empty() == false)
+        .map(|item| item.as_str())
+        .collect::<Vec<_>>()
+        .join(comma);
       format!("WINDOW{space}{columns}{space}{lb}")
     } else {
       "".to_string()
