@@ -263,6 +263,14 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new().raw("").raw("/* raw one */").raw("").as_string();
+    let expected_query = "/* raw one */";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
     #[cfg(not(feature = "sqlite"))]
     {
@@ -329,6 +337,19 @@ mod alter_table_method {
 
     assert_eq!(expected_query, query);
   }
+
+  #[test]
+  fn method_alter_table_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new()
+      .alter_table(sql::AlterTable::new())
+      .alter_table(sql::AlterTable::new().alter_table("orders"))
+      .alter_table(sql::AlterTable::new())
+      .as_string();
+
+    let expected_query = "ALTER TABLE orders;";
+
+    assert_eq!(expected_query, query);
+  }
 }
 
 mod create_table_method {
@@ -357,6 +378,19 @@ mod create_table_method {
 
     assert_eq!(expected_query, query);
   }
+
+  #[test]
+  fn method_create_table_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new()
+      .create_table(sql::CreateTable::new())
+      .create_table(sql::CreateTable::new().create_table("orders"))
+      .create_table(sql::CreateTable::new())
+      .as_string();
+
+    let expected_query = "CREATE TABLE orders;";
+
+    assert_eq!(expected_query, query);
+  }
 }
 
 mod delete_method {
@@ -380,6 +414,18 @@ mod delete_method {
       .delete(sql::Delete::new().delete_from("users"))
       .as_string();
     let expected_query = "DELETE FROM users; DELETE FROM users;";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_delete_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new()
+      .delete(sql::Delete::new())
+      .delete(sql::Delete::new().delete_from("users"))
+      .delete(sql::Delete::new())
+      .as_string();
+    let expected_query = "DELETE FROM users;";
 
     assert_eq!(query, expected_query);
   }
@@ -412,6 +458,19 @@ mod create_index_method {
 
     assert_eq!(expected_query, query);
   }
+
+  #[test]
+  fn method_create_index_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new()
+      .create_index(sql::CreateIndex::new())
+      .create_index(sql::CreateIndex::new().create_index("orders_product_name_idx"))
+      .create_index(sql::CreateIndex::new())
+      .as_string();
+
+    let expected_query = "CREATE INDEX orders_product_name_idx;";
+
+    assert_eq!(expected_query, query);
+  }
 }
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
@@ -438,6 +497,19 @@ mod drop_index_method {
       .as_string();
 
     let expected_query = "DROP INDEX users_name_idx; DROP INDEX orders_product_name_idx;";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_drop_index_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new()
+      .drop_index(sql::DropIndex::new())
+      .drop_index(sql::DropIndex::new().drop_index("orders_product_name_idx"))
+      .drop_index(sql::DropIndex::new())
+      .as_string();
+
+    let expected_query = "DROP INDEX orders_product_name_idx;";
 
     assert_eq!(expected_query, query);
   }
@@ -469,6 +541,19 @@ mod drop_table_method {
 
     assert_eq!(expected_query, query);
   }
+
+  #[test]
+  fn method_drop_table_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new()
+      .drop_table(sql::DropTable::new())
+      .drop_table(sql::DropTable::new().drop_table("orders"))
+      .drop_table(sql::DropTable::new())
+      .as_string();
+
+    let expected_query = "DROP TABLE orders;";
+
+    assert_eq!(expected_query, query);
+  }
 }
 
 mod insert_method {
@@ -492,6 +577,18 @@ mod insert_method {
       .insert(sql::Insert::new().insert_into("users (login, name)"))
       .as_string();
     let expected_query = "INSERT INTO users (login, name); INSERT INTO users (login, name);";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_insert_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new()
+      .insert(sql::Insert::new())
+      .insert(sql::Insert::new().insert_into("users (login, name)"))
+      .insert(sql::Insert::new())
+      .as_string();
+    let expected_query = "INSERT INTO users (login, name);";
 
     assert_eq!(query, expected_query);
   }
@@ -687,6 +784,18 @@ mod select_method {
 
     assert_eq!(query, expected_query);
   }
+
+  #[test]
+  fn method_select_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new()
+      .select(sql::Select::new())
+      .select(sql::Select::new().select("login, name"))
+      .select(sql::Select::new())
+      .as_string();
+    let expected_query = "SELECT login, name;";
+
+    assert_eq!(query, expected_query);
+  }
 }
 
 mod update_method {
@@ -710,6 +819,18 @@ mod update_method {
       .update(sql::Update::new().update("users"))
       .as_string();
     let expected_query = "UPDATE users; UPDATE users;";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_update_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new()
+      .update(sql::Update::new())
+      .update(sql::Update::new().update("users"))
+      .update(sql::Update::new())
+      .as_string();
+    let expected_query = "UPDATE users;";
 
     assert_eq!(query, expected_query);
   }
