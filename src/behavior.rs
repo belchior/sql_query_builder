@@ -26,7 +26,12 @@ pub(crate) trait ConcatSqlStandard<Clause: PartialEq> {
   ) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if items.is_empty() == false {
-      let tables = items.join(comma);
+      let tables = items
+        .iter()
+        .filter(|item| item.is_empty() == false)
+        .map(|item| item.as_str())
+        .collect::<Vec<_>>()
+        .join(comma);
       format!("FROM{space}{tables}{space}{lb}")
     } else {
       "".to_string()
@@ -40,7 +45,7 @@ pub(crate) trait ConcatSqlStandard<Clause: PartialEq> {
       return query;
     }
     let fmt::Formatter { lb, space, .. } = fmts;
-    let raw_sql = items.join(space);
+    let raw_sql = items.join(space).trim_start().to_string();
 
     format!("{query}{raw_sql}{space}{lb}")
   }
@@ -56,14 +61,17 @@ pub(crate) trait ConcatSqlStandard<Clause: PartialEq> {
   ) -> String {
     let fmt::Formatter { lb, space, indent, .. } = fmts;
     let sql = if items.is_empty() == false {
-      let ((_, cond), tail) = items.split_first().unwrap();
-
-      let first_condition = format!("{lb}{indent}{cond}");
+      let filtered_items = items
+        .iter()
+        .filter(|item| item.1.is_empty() == false)
+        .collect::<Vec<_>>();
+      let ((_, cond), tail) = filtered_items.split_first().unwrap();
+      let first_condition = format!("{indent}{cond}");
       let conditions = tail.iter().fold(first_condition, |acc, (log_op, condition)| {
         format!("{acc}{space}{lb}{indent}{log_op}{space}{condition}")
       });
 
-      format!("WHERE{space}{conditions}{space}{lb}")
+      format!("WHERE{lb}{space}{conditions}{space}{lb}")
     } else {
       "".to_string()
     };
@@ -85,7 +93,12 @@ pub(crate) trait ConcatCommon<Clause: PartialEq> {
   ) -> String {
     let fmt::Formatter { lb, space, comma, .. } = fmts;
     let sql = if items.is_empty() == false {
-      let output_names = items.join(comma);
+      let output_names = items
+        .iter()
+        .filter(|item| item.is_empty() == false)
+        .map(|item| item.as_str())
+        .collect::<Vec<_>>()
+        .join(comma);
       format!("RETURNING{space}{output_names}{space}{lb}")
     } else {
       "".to_string()
@@ -123,7 +136,11 @@ pub(crate) trait ConcatCommon<Clause: PartialEq> {
         };
         let query_string = query.concat(&inner_fmts);
 
-        format!("{acc}{name}{space}AS{space}({lb}{indent}{query_string}{lb}){comma}{lb}")
+        if query_string.is_empty() == false {
+          format!("{acc}{name}{space}AS{space}({lb}{indent}{query_string}{lb}){comma}{lb}")
+        } else {
+          acc
+        }
       });
       let with = &with[..with.len() - comma.len() - lb.len()];
 
