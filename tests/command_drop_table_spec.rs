@@ -165,6 +165,20 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::DropTable::new()
+      .raw("")
+      .raw("drop table users")
+      .raw("cascade")
+      .raw("")
+      .as_string();
+
+    let expected_query = "drop table users cascade";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
     let query = sql::DropTable::new()
       .raw("/* drop table command */")
@@ -365,6 +379,19 @@ mod postgres_feature_flag {
   }
 
   #[test]
+  fn method_drop_table_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::DropTable::new()
+      .drop_table("")
+      .drop_table("series")
+      .drop_table("")
+      .as_string();
+
+    let expected_query = "DROP TABLE series";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
   fn method_drop_table_if_exists_should_accumulate_values_on_consecutive_calls() {
     let query = sql::DropTable::new()
       .drop_table_if_exists("films")
@@ -372,6 +399,19 @@ mod postgres_feature_flag {
       .as_string();
 
     let expected_query = "DROP TABLE IF EXISTS films, series";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_drop_table_if_exists_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::DropTable::new()
+      .drop_table_if_exists("")
+      .drop_table_if_exists("series")
+      .drop_table_if_exists("")
+      .as_string();
+
+    let expected_query = "DROP TABLE IF EXISTS series";
 
     assert_eq!(expected_query, query);
   }
