@@ -168,8 +168,8 @@ impl Select {
       let columns = self
         ._select
         .iter()
-        .filter(|column| column.is_empty() == false)
-        .map(|column| column.as_str())
+        .filter(|item| item.is_empty() == false)
+        .map(|item| item.as_str())
         .collect::<Vec<_>>()
         .join(comma);
       format!("SELECT{space}{columns}{space}{lb}")
@@ -234,8 +234,8 @@ impl Select {
       Combinator::Union => (SelectClause::Union, "UNION", &self._union),
     };
 
-    let raw_before = raw_queries(&self._raw_before, &clause).join(space);
-    let raw_after = raw_queries(&self._raw_after, &clause).join(space);
+    let raw_before = raw_queries(&self._raw_before, &clause).join(space).trim().to_string();
+    let raw_after = raw_queries(&self._raw_after, &clause).join(space).trim().to_string();
 
     let space_before = if raw_before.is_empty() {
       "".to_string()

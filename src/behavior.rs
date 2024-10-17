@@ -45,7 +45,7 @@ pub(crate) trait ConcatSqlStandard<Clause: PartialEq> {
       return query;
     }
     let fmt::Formatter { lb, space, .. } = fmts;
-    let raw_sql = items.join(space).trim_start().to_string();
+    let raw_sql = items.join(space).trim().to_string();
 
     format!("{query}{raw_sql}{space}{lb}")
   }
@@ -245,8 +245,8 @@ pub(crate) fn concat_raw_before_after<Clause: PartialEq>(
   sql: String,
 ) -> String {
   let fmt::Formatter { space, .. } = fmts;
-  let raw_before = raw_queries(items_before, &clause).join(space);
-  let raw_after = raw_queries(items_after, &clause).join(space);
+  let raw_before = raw_queries(items_before, &clause).join(space).trim().to_string();
+  let raw_after = raw_queries(items_after, &clause).join(space).trim().to_string();
   let space_after = if raw_after.is_empty() == false { space } else { "" };
   let space_before = if raw_before.is_empty() == false { space } else { "" };
 
