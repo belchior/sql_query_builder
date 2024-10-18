@@ -4,11 +4,11 @@ description = "Write SQL queries in a simple and composable way"
 documentation = "https://docs.rs/sql_query_builder"
 repository = "https://github.com/belchior/sql_query_builder"
 authors = ["Belchior Oliveira <belchior@outlook.com>"]
-version = "2.4.0"
+version = "2.4.1"
 edition = "2021"
 rust-version = "1.62"
 license = "MIT"
-keywords = ["sql", "query", "postgres", "sqlite"]
+keywords = ["sql", "query", "database", "postgres", "sqlite"]
 
 [features]
 postgresql = []
@@ -20,4 +20,4 @@ rustdoc-args = ["--cfg", "docsrs"]
 features = ["postgresql", "sqlite"]
 
 [dev-dependencies]
-pretty_assertions = "1.4.0"
+pretty_assertions = "=1.4.0"
