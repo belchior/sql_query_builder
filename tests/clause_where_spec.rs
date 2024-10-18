@@ -37,6 +37,19 @@ mod where_clause {
     }
 
     #[test]
+    fn method_where_clause_should_not_accumulate_values_when_expression_is_empty() {
+      let query = sql::CreateIndex::new()
+        .where_clause("")
+        .where_clause("status = 'active'")
+        .where_clause("")
+        .as_string();
+
+      let expected_query = "WHERE status = 'active'";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
     fn method_where_clause_should_not_accumulate_arguments_with_the_same_content() {
       let query = sql::CreateIndex::new()
         .where_clause("status = 'active'")
@@ -112,6 +125,19 @@ mod where_clause {
           id = $1 \
           AND status = 'pending'\
       ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_clause_should_not_accumulate_values_when_expression_is_empty() {
+      let query = sql::Delete::new()
+        .where_clause("")
+        .where_clause("status = 'pending'")
+        .where_clause("")
+        .as_string();
+
+      let expected_query = "WHERE status = 'pending'";
 
       assert_eq!(query, expected_query);
     }
@@ -208,6 +234,19 @@ mod where_clause {
     }
 
     #[test]
+    fn method_where_clause_should_not_accumulate_values_when_expression_is_empty() {
+      let query = sql::Select::new()
+        .where_clause("")
+        .where_clause("created_at::date <= current_date")
+        .where_clause("")
+        .as_string();
+
+      let expected_query = "WHERE created_at::date <= current_date";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
     fn method_where_clause_should_trim_space_of_the_argument() {
       let query = sql::Select::new().where_clause("  id = $1  ").as_string();
       let expected_query = "WHERE id = $1";
@@ -284,6 +323,19 @@ mod where_clause {
           id = $1 \
           AND status = 'pending'\
       ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_clause_should_not_accumulate_values_when_expression_is_empty() {
+      let query = sql::Update::new()
+        .where_clause("")
+        .where_clause("status = 'pending'")
+        .where_clause("")
+        .as_string();
+
+      let expected_query = "WHERE status = 'pending'";
 
       assert_eq!(query, expected_query);
     }
@@ -448,6 +500,19 @@ mod where_or {
     }
 
     #[test]
+    fn method_where_or_should_not_accumulate_values_when_expression_is_empty() {
+      let query = sql::CreateIndex::new()
+        .where_or("")
+        .where_or("status = 'active'")
+        .where_or("")
+        .as_string();
+
+      let expected_query = "WHERE status = 'active'";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
     fn method_where_or_should_trim_space_of_the_argument() {
       let query = sql::CreateIndex::new().where_or("  status = 'active'  ").as_string();
       let expected_query = "WHERE status = 'active'";
@@ -523,6 +588,19 @@ mod where_or {
           login = 'foo' \
           OR login = 'bar'\
       ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_or_should_not_accumulate_values_when_expression_is_empty() {
+      let query = sql::Delete::new()
+        .where_or("")
+        .where_or("login = 'bar'")
+        .where_or("")
+        .as_string();
+
+      let expected_query = "WHERE login = 'bar'";
 
       assert_eq!(query, expected_query);
     }
@@ -619,6 +697,19 @@ mod where_or {
     }
 
     #[test]
+    fn method_where_or_should_not_accumulate_values_when_expression_is_empty() {
+      let query = sql::Select::new()
+        .where_or("")
+        .where_or("login = 'bar'")
+        .where_or("")
+        .as_string();
+
+      let expected_query = "WHERE login = 'bar'";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
     fn method_where_or_should_trim_space_of_the_argument() {
       let query = sql::Select::new().where_or("  id = $1  ").as_string();
       let expected_query = "WHERE id = $1";
@@ -705,6 +796,19 @@ mod where_or {
           login = 'foo' \
           OR login = 'bar'\
       ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_where_or_should_not_accumulate_values_when_expression_is_empty() {
+      let query = sql::Update::new()
+        .where_or("")
+        .where_or("login = 'bar'")
+        .where_or("")
+        .as_string();
+
+      let expected_query = "WHERE login = 'bar'";
 
       assert_eq!(query, expected_query);
     }

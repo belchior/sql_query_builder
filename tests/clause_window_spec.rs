@@ -19,6 +19,14 @@ mod select_command {
   }
 
   #[test]
+  fn method_window_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Select::new().window("").window("bar").window("").as_string();
+    let expected_query = "WINDOW bar";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_window_should_trim_space_of_the_argument() {
     let query = sql::Select::new().window("  foo  ").as_string();
     let expected_query = "WINDOW foo";

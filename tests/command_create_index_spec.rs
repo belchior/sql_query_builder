@@ -229,6 +229,20 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::CreateIndex::new()
+      .raw("")
+      .raw("on users")
+      .raw("(name)")
+      .raw("")
+      .as_string();
+
+    let expected_query = "on users (name)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
     let query = sql::CreateIndex::new()
       .raw("/* create index command */")
@@ -311,6 +325,19 @@ mod method_column {
     let query = sql::CreateIndex::new().column("login").column("name").as_string();
 
     let expected_query = "(login, name)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_column_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::CreateIndex::new()
+      .column("")
+      .column("login")
+      .column("")
+      .as_string();
+
+    let expected_query = "(login)";
 
     assert_eq!(expected_query, query);
   }
@@ -844,6 +871,19 @@ mod method_include {
     let query = sql::CreateIndex::new().include("login").include("name").as_string();
 
     let expected_query = "INCLUDE (login, name)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_include_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::CreateIndex::new()
+      .include("")
+      .include("login")
+      .include("")
+      .as_string();
+
+    let expected_query = "INCLUDE (login)";
 
     assert_eq!(expected_query, query);
   }

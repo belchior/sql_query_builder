@@ -452,8 +452,10 @@ impl Update {
   /// ```
   pub fn cross_join(mut self, table: &str) -> Self {
     let table = table.trim();
-    let table = format!("CROSS JOIN {table}");
-    push_unique(&mut self._join, table);
+    if table.is_empty() == false {
+      let table = format!("CROSS JOIN {table}");
+      push_unique(&mut self._join, table);
+    }
     self
   }
 
@@ -481,8 +483,10 @@ impl Update {
   /// ```
   pub fn inner_join(mut self, table: &str) -> Self {
     let table = table.trim();
-    let table = format!("INNER JOIN {table}");
-    push_unique(&mut self._join, table);
+    if table.is_empty() == false {
+      let table = format!("INNER JOIN {table}");
+      push_unique(&mut self._join, table);
+    }
     self
   }
 
@@ -510,8 +514,10 @@ impl Update {
   /// ```
   pub fn left_join(mut self, table: &str) -> Self {
     let table = table.trim();
-    let table = format!("LEFT JOIN {table}");
-    push_unique(&mut self._join, table);
+    if table.is_empty() == false {
+      let table = format!("LEFT JOIN {table}");
+      push_unique(&mut self._join, table);
+    }
     self
   }
 
@@ -539,8 +545,10 @@ impl Update {
   /// ```
   pub fn right_join(mut self, table: &str) -> Self {
     let table = table.trim();
-    let table = format!("RIGHT JOIN {table}");
-    push_unique(&mut self._join, table);
+    if table.is_empty() == false {
+      let table = format!("RIGHT JOIN {table}");
+      push_unique(&mut self._join, table);
+    }
     self
   }
 

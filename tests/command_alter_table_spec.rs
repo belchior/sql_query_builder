@@ -210,6 +210,19 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::AlterTable::new()
+      .raw("")
+      .raw("add column id serial")
+      .raw("")
+      .as_string();
+
+    let expected_query = "add column id serial";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
     let query = sql::AlterTable::new()
       .raw("alter table users")
@@ -286,6 +299,19 @@ mod method_add {
   }
 
   #[test]
+  fn method_add_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::AlterTable::new()
+      .add("")
+      .add("COLUMN created_at timestamp not null")
+      .add("")
+      .as_string();
+
+    let expected_query = "ADD COLUMN created_at timestamp not null";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
   fn method_add_should_preserve_the_order_of_the_actions_on_consecutive_calls() {
     let query = sql::AlterTable::new()
       .add("CONSTRAINT age check(age >= 0)")
@@ -346,6 +372,19 @@ mod method_alter {
       ALTER COLUMN login SET not null, \
       ALTER COLUMN created_at SET DEFAULT now()\
     ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_alter_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::AlterTable::new()
+      .alter("")
+      .alter("COLUMN created_at SET DEFAULT now()")
+      .alter("")
+      .as_string();
+
+    let expected_query = "ALTER COLUMN created_at SET DEFAULT now()";
 
     assert_eq!(expected_query, query);
   }
@@ -448,6 +487,19 @@ mod method_drop {
   }
 
   #[test]
+  fn method_drop_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::AlterTable::new()
+      .drop("")
+      .drop("COLUMN login")
+      .drop("")
+      .as_string();
+
+    let expected_query = "DROP COLUMN login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
   fn method_drop_should_preserve_the_order_of_the_actions_on_consecutive_calls() {
     let query = sql::AlterTable::new()
       .drop("CONSTRAINT age")
@@ -506,6 +558,19 @@ mod method_rename {
       RENAME COLUMN login TO user_login, \
       RENAME COLUMN created TO created_at\
     ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_rename_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::AlterTable::new()
+      .rename("")
+      .rename("COLUMN created TO created_at")
+      .rename("")
+      .as_string();
+
+    let expected_query = "RENAME COLUMN created TO created_at";
 
     assert_eq!(expected_query, query);
   }

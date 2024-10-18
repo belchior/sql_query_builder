@@ -22,6 +22,18 @@ mod select_command {
   }
 
   #[test]
+  fn method_order_by_should_not_accumulate_values_when_column_name_is_empty() {
+    let query = sql::Select::new()
+      .order_by("")
+      .order_by("created_at desc")
+      .order_by("")
+      .as_string();
+    let expected_query = "ORDER BY created_at desc";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_order_by_should_trim_space_of_the_argument() {
     let query = sql::Select::new().order_by("  id desc  ").as_string();
     let expected_query = "ORDER BY id desc";

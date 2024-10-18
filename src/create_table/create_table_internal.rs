@@ -32,6 +32,7 @@ impl CreateTable {
     let columns = self
       ._column
       .iter()
+      .filter(|column| column.is_empty() == false)
       .map(|column| format!("{lb}{indent}{column}"))
       .collect::<Vec<_>>()
       .join(comma)
@@ -60,6 +61,7 @@ impl CreateTable {
     let constraints = self
       ._constraint
       .iter()
+      .filter(|constraint| constraint.is_empty() == false)
       .map(|constraint| format!("{lb}{indent}CONSTRAINT{space}{constraint}"))
       .collect::<Vec<_>>()
       .join(comma);
@@ -80,6 +82,7 @@ impl CreateTable {
     let foreign_keys = self
       ._foreign_key
       .iter()
+      .filter(|foreign_key| foreign_key.is_empty() == false)
       .map(|foreign_key| format!("{lb}{indent}FOREIGN KEY{foreign_key}"))
       .collect::<Vec<_>>()
       .join(comma);

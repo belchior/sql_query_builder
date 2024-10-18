@@ -215,6 +215,20 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::CreateTable::new()
+      .raw("")
+      .raw("create table local temp users (")
+      .raw("id serial)")
+      .raw("")
+      .as_string();
+
+    let expected_query = "create table local temp users ( id serial)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
     let query = sql::CreateTable::new()
       .raw("create table local temp users")
@@ -279,6 +293,19 @@ mod method_column {
       .as_string();
 
     let expected_query = "(login varchar(40) not null, created_at timestamp not null)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_column_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::CreateTable::new()
+      .column("")
+      .column("login varchar(40) not null")
+      .column("")
+      .as_string();
+
+    let expected_query = "(login varchar(40) not null)";
 
     assert_eq!(expected_query, query);
   }
@@ -355,6 +382,19 @@ mod method_constraint {
         CONSTRAINT id users_id_key primary key(id), \
         CONSTRAINT login users_login_key unique(login)\
       )";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_constraint_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::CreateTable::new()
+      .constraint("")
+      .constraint("login users_login_key unique(login)")
+      .constraint("")
+      .as_string();
+
+    let expected_query = "(CONSTRAINT login users_login_key unique(login))";
 
     assert_eq!(expected_query, query);
   }
@@ -499,6 +539,19 @@ mod method_foreign_key {
       FOREIGN KEY(users_id) REFERENCES users(id), \
       FOREIGN KEY(users_login) REFERENCES users(login)\
     )";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_foreign_key_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::CreateTable::new()
+      .foreign_key("")
+      .foreign_key("(users_login) REFERENCES users(login)")
+      .foreign_key("")
+      .as_string();
+
+    let expected_query = "(FOREIGN KEY(users_login) REFERENCES users(login))";
 
     assert_eq!(expected_query, query);
   }

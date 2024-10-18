@@ -184,6 +184,19 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Insert::new()
+      .raw("")
+      .raw("/* raw statement */")
+      .raw("insert into addresses (state, country)")
+      .raw("")
+      .as_string();
+    let expected_query = "/* raw statement */ insert into addresses (state, country)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
     let query = sql::Insert::new()
       .raw("insert into addresses (state, country)")

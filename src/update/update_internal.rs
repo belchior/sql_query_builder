@@ -17,7 +17,13 @@ impl Update {
   fn concat_set(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._set.is_empty() == false {
-      let values = self._set.join(comma);
+      let values = self
+        ._set
+        .iter()
+        .filter(|item| item.is_empty() == false)
+        .map(|item| item.as_str())
+        .collect::<Vec<_>>()
+        .join(comma);
       format!("SET{space}{values}{space}{lb}")
     } else {
       "".to_string()

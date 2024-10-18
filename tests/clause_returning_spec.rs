@@ -20,6 +20,18 @@ mod delete_command {
   }
 
   #[test]
+  fn method_returning_should_not_accumulate_values_when_column_name_is_empty() {
+    let query = sql::Delete::new()
+      .returning("")
+      .returning("name")
+      .returning("")
+      .as_string();
+    let expected_query = "RETURNING name";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_returning_should_not_accumulate_arguments_with_the_same_content() {
     let query = sql::Delete::new().returning("id").returning("id").as_string();
     let expected_query = "RETURNING id";

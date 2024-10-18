@@ -19,6 +19,14 @@ mod select_command {
   }
 
   #[test]
+  fn method_from_should_not_accumulate_values_when_table_name_is_empty() {
+    let query = sql::Select::new().from("").from("users").from("").as_string();
+    let expected_query = "FROM users";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_from_should_trim_space_of_the_argument() {
     let query = sql::Select::new().from("  users  ").as_string();
     let expected_query = "FROM users";
@@ -85,6 +93,14 @@ mod update_command {
   fn method_from_should_accumulate_values_on_consecutive_calls() {
     let query = sql::Update::new().from("users").from("addresses").as_string();
     let expected_query = "FROM users, addresses";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_from_should_not_accumulate_values_when_table_name_is_empty() {
+    let query = sql::Update::new().from("").from("users").from("").as_string();
+    let expected_query = "FROM users";
 
     assert_eq!(query, expected_query);
   }

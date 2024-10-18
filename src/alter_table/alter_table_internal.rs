@@ -38,6 +38,7 @@ impl AlterTable {
     let actions = self
       ._ordered_actions
       .iter()
+      .filter(|item| item.1.is_empty() == false)
       .map(|item| {
         let AlterTableActionItem(action, content) = item;
         match action {
