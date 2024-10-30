@@ -123,7 +123,7 @@ mod builder_features {
     let query = sql::Select::new()
       .raw("/* all clauses in order */")
       .select("*")
-      .from("user_list")
+      .from("users")
       .inner_join("orders ON users.login = orders.login")
       .where_clause("user.login = $1")
       .group_by("login")
@@ -134,7 +134,7 @@ mod builder_features {
     let expected_query = "\
       /* all clauses in order */ \
       SELECT * \
-      FROM user_list \
+      FROM users \
       INNER JOIN orders ON users.login = orders.login \
       WHERE user.login = $1 \
       GROUP BY login \

@@ -6,9 +6,10 @@ use crate::behavior::WithQuery;
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 use std::sync::Arc;
 
-/// Builder to contruct a [AlterTable] command
+/// Builder to contruct a [AlterTable] command.
 ///
 /// Basic API
+///
 /// ```
 /// use sql_query_builder as sql;
 ///
@@ -80,9 +81,10 @@ pub(crate) enum Combinator {
   Union,
 }
 
-/// Builder to contruct a [CreateIndex] command. Available only for the crate features `postgresql` and `sqlite`
+/// Builder to contruct a [CreateIndex] command. Available only for the crate features `postgresql` and `sqlite`.
 ///
 /// Basic API
+///
 /// ```
 /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 /// # {
@@ -152,9 +154,10 @@ pub enum CreateIndexParams {
   Include,
 }
 
-/// Builder to contruct a [CreateTable] command
+/// Builder to contruct a [CreateTable] command.
 ///
 /// Basic API
+///
 /// ```
 /// use sql_query_builder as sql;
 ///
@@ -208,9 +211,10 @@ pub enum CreateTableParams {
   PrimaryKey,
 }
 
-/// Builder to contruct a [DropIndex] command. Available only for the crate features `postgresql` and `sqlite`
+/// Builder to contruct a [DropIndex] command. Available only for the crate features `postgresql` and `sqlite`.
 ///
 /// Basic API
+///
 /// ```
 /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 /// # {
@@ -248,9 +252,10 @@ pub enum DropIndexParams {
   DropIndex,
 }
 
-/// Builder to contruct a [DropTable] command
+/// Builder to contruct a [DropTable] command.
 ///
 /// Basic API
+///
 /// ```
 /// use sql_query_builder as sql;
 ///
@@ -283,7 +288,27 @@ pub enum DropTableParams {
   DropTable,
 }
 
-/// Builder to contruct a [Delete] command
+/// Builder to contruct a [Delete] command.
+///
+/// Basic API
+///
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let query = sql::Delete::new()
+///   .delete_from("users")
+///   .where_clause("id = $1")
+///   .as_string();
+///
+/// # let expected = "DELETE FROM users WHERE id = $1";
+/// # assert_eq!(expected, query);
+/// ```
+///
+/// Output
+///
+/// ```sql
+/// DELETE FROM users WHERE id = $1
+/// ```
 #[derive(Default, Clone)]
 pub struct Delete {
   pub(crate) _delete_from: String,
@@ -316,7 +341,28 @@ pub enum DeleteClause {
   With,
 }
 
-/// Builder to contruct a [Insert] command
+/// Builder to contruct a [Insert] command.
+///
+/// Basic API
+///
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let query = sql::Insert::new()
+///   .insert_into("users (login, name)")
+///   .values("('foo', 'Foo')")
+///   .values("('bar', 'Bar')")
+///   .as_string();
+///
+/// # let expected = "INSERT INTO users (login, name) VALUES ('foo', 'Foo'), ('bar', 'Bar')";
+/// # assert_eq!(expected, query);
+/// ```
+///
+/// Output
+///
+/// ```sql
+/// INSERT INTO users (login, name) VALUES ('foo', 'Foo'), ('bar', 'Bar')
+/// ```
 #[derive(Default, Clone)]
 pub struct Insert {
   pub(crate) _default_values: bool,
@@ -385,7 +431,40 @@ pub(crate) enum LogicalOperator {
   Or,
 }
 
-/// Builder to contruct a [Select] command
+/// Builder to contruct a [Select] command.
+///
+/// Basic API
+///
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let query = sql::Select::new()
+///   .select("*")
+///   .from("users")
+///   .inner_join("orders ON users.login = orders.login")
+///   .where_clause("user.login = $1")
+///   .order_by("created_at desc")
+///   .as_string();
+///
+/// # let expected = "\
+/// #   SELECT * \
+/// #   FROM users \
+/// #   INNER JOIN orders ON users.login = orders.login \
+/// #   WHERE user.login = $1 \
+/// #   ORDER BY created_at desc\
+/// # ";
+/// # assert_eq!(expected, query);
+/// ```
+///
+/// Output (indented for readability)
+///
+/// ```sql
+/// SELECT *
+/// FROM users
+/// INNER JOIN orders ON users.login = orders.login
+/// WHERE user.login = $1
+/// ORDER BY created_at desc
+/// ```
 #[derive(Default, Clone)]
 pub struct Select {
   pub(crate) _from: Vec<String>,
@@ -454,7 +533,49 @@ pub enum SelectClause {
   With,
 }
 
-/// Builder to contruct a [Transaction] block
+/// Builder to contruct a [Transaction] block.
+///
+/// Basic API
+///
+/// ```
+/// # #[cfg(not(feature = "sqlite"))]
+/// # {
+/// use sql_query_builder as sql;
+///
+/// let insert_foo = sql::Insert::new()
+///   .insert_into("users (login, name)")
+///   .values("('foo', 'Foo')");
+///
+/// let update_foo = sql::Update::new()
+///   .update("users")
+///   .set("name = 'Bar'")
+///   .where_clause("login = 'foo'");
+///
+/// let query = sql::Transaction::new()
+///   .start_transaction("isolation level serializable")
+///   .insert(insert_foo)
+///   .update(update_foo)
+///   .commit("transaction")
+///   .as_string();
+///
+/// # let expected = "\
+/// # START TRANSACTION isolation level serializable; \
+/// # INSERT INTO users (login, name) VALUES ('foo', 'Foo'); \
+/// # UPDATE users SET name = 'Bar' WHERE login = 'foo'; \
+/// # COMMIT transaction;\
+/// # ";
+/// # assert_eq!(expected, query);
+/// # }
+/// ```
+///
+/// Output (indented for readability)
+///
+/// ```sql
+/// START TRANSACTION isolation level serializable;
+/// INSERT INTO users (login, name) VALUES ('foo', 'Foo');
+/// UPDATE users SET name = 'Bar' WHERE login = 'foo';
+/// COMMIT transaction;
+/// ```
 #[derive(Default)]
 pub struct Transaction {
   pub(crate) _commit: Option<TransactionCommand>,
@@ -500,7 +621,28 @@ pub(crate) enum TrCmd {
 #[derive(PartialEq)]
 pub(crate) struct TransactionCommand(pub(crate) TrCmd, pub(crate) String);
 
-/// Builder to contruct a [Update] command
+/// Builder to contruct a [Update] command.
+///
+/// Basic API
+///
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let query = sql::Update::new()
+///   .update("users")
+///   .set("name = 'Bar'")
+///   .where_clause("id = $1")
+///   .as_string();
+///
+/// # let expected = "UPDATE users SET name = 'Bar' WHERE id = $1";
+/// # assert_eq!(expected, query);
+/// ```
+///
+/// Output
+///
+/// ```sql
+/// UPDATE users SET name = 'Bar' WHERE id = $1
+/// ```
 #[derive(Default, Clone)]
 pub struct Update {
   pub(crate) _raw_after: Vec<(UpdateClause, String)>,
@@ -567,7 +709,27 @@ pub enum UpdateClause {
   Join,
 }
 
-/// Builder to contruct a [Values] command
+/// Builder to contruct a [Values] command.
+///
+/// Basic API
+///
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let query = sql::Values::new()
+///   .values("('foo', 'Foo')")
+///   .values("('bar', 'Bar')")
+///   .as_string();
+///
+/// # let expected = "VALUES ('foo', 'Foo'), ('bar', 'Bar')";
+/// # assert_eq!(expected, query);
+/// ```
+///
+/// Output
+///
+/// ```sql
+/// VALUES ('foo', 'Foo'), ('bar', 'Bar')
+/// ```
 #[derive(Default, Clone)]
 pub struct Values {
   pub(crate) _raw_after: Vec<(ValuesClause, String)>,
