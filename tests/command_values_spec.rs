@@ -162,6 +162,14 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Values::new().raw("").raw("/* raw one */").raw("").as_string();
+    let expected_query = "/* raw one */";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
     let query = sql::Values::new()
       .values("(1, 'one')")

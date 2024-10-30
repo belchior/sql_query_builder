@@ -22,6 +22,18 @@ mod insert_command {
   }
 
   #[test]
+  fn method_values_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Insert::new()
+      .values("")
+      .values("('bar', 'Bar')")
+      .values("")
+      .as_string();
+    let expected_query = "VALUES ('bar', 'Bar')";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_values_should_trim_space_of_the_argument() {
     let query = sql::Insert::new().values("   ('Bar')  ").as_string();
     let expected_query = "VALUES ('Bar')";
@@ -93,6 +105,18 @@ mod values_command {
       .values("('bar', 'Bar')")
       .as_string();
     let expected_query = "VALUES ('foo', 'Foo'), ('bar', 'Bar')";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_values_should_not_accumulate_values_when_table_name_is_empty() {
+    let query = sql::Values::new()
+      .values("")
+      .values("('foo', 'Foo')")
+      .values("")
+      .as_string();
+    let expected_query = "VALUES ('foo', 'Foo')";
 
     assert_eq!(query, expected_query);
   }

@@ -22,6 +22,18 @@ mod select_command {
   }
 
   #[test]
+  fn method_group_by_should_not_accumulate_values_when_column_name_is_empty() {
+    let query = sql::Select::new()
+      .group_by("")
+      .group_by("created_at")
+      .group_by("")
+      .as_string();
+    let expected_query = "GROUP BY created_at";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_group_by_should_trim_space_of_the_argument() {
     let query = sql::Select::new().group_by("  id, login  ").as_string();
     let expected_query = "GROUP BY id, login";

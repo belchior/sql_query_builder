@@ -191,6 +191,14 @@ mod builder_methods {
   }
 
   #[test]
+  fn method_raw_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Update::new().raw("").raw("update addresses").raw("").as_string();
+    let expected_query = "update addresses";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_raw_should_be_the_first_to_be_concatenated() {
     let query = sql::Update::new()
       .raw("update addresses")

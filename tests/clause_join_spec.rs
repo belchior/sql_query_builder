@@ -90,6 +90,18 @@ mod cross_join_clause {
     }
 
     #[test]
+    fn method_cross_join_should_not_accumulate_values_when_table_name_is_empty() {
+      let query = sql::Select::new()
+        .cross_join("")
+        .cross_join("orders")
+        .cross_join("")
+        .as_string();
+      let expected_query = "CROSS JOIN orders";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
     fn method_cross_join_by_should_trim_space_of_the_argument() {
       let query = sql::Select::new().cross_join("  orders  ").as_string();
       let expected_query = "CROSS JOIN orders";
@@ -140,6 +152,18 @@ mod cross_join_clause {
         CROSS JOIN addresses \
         CROSS JOIN orders\
       ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_cross_join_should_not_accumulate_values_when_table_name_is_empty() {
+      let query = sql::Update::new()
+        .cross_join("")
+        .cross_join("orders")
+        .cross_join("")
+        .as_string();
+      let expected_query = "CROSS JOIN orders";
 
       assert_eq!(query, expected_query);
     }
@@ -203,6 +227,18 @@ mod inner_join_clause {
     }
 
     #[test]
+    fn method_inner_join_should_not_accumulate_values_when_table_expression_is_empty() {
+      let query = sql::Select::new()
+        .inner_join("")
+        .inner_join("orders ON users.login = orders.login")
+        .inner_join("")
+        .as_string();
+      let expected_query = "INNER JOIN orders ON users.login = orders.login";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
     fn method_inner_join_by_should_trim_space_of_the_argument() {
       let query = sql::Select::new().inner_join("  orders  ").as_string();
       let expected_query = "INNER JOIN orders";
@@ -258,6 +294,18 @@ mod inner_join_clause {
         INNER JOIN addresses ON users.login = addresses.login \
         INNER JOIN orders ON users.login = orders.login\
       ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_inner_join_should_not_accumulate_values_when_table_expression_is_empty() {
+      let query = sql::Update::new()
+        .inner_join("")
+        .inner_join("orders ON users.login = orders.login")
+        .inner_join("")
+        .as_string();
+      let expected_query = "INNER JOIN orders ON users.login = orders.login";
 
       assert_eq!(query, expected_query);
     }
@@ -324,6 +372,18 @@ mod left_join_clause {
     }
 
     #[test]
+    fn method_left_join_should_not_accumulate_values_when_table_expression_is_empty() {
+      let query = sql::Select::new()
+        .left_join("")
+        .left_join("orders ON users.login = orders.login")
+        .left_join("")
+        .as_string();
+      let expected_query = "LEFT JOIN orders ON users.login = orders.login";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
     fn method_left_join_by_should_trim_space_of_the_argument() {
       let query = sql::Select::new().left_join("  orders  ").as_string();
       let expected_query = "LEFT JOIN orders";
@@ -379,6 +439,18 @@ mod left_join_clause {
         LEFT JOIN addresses ON users.login = addresses.login \
         LEFT JOIN orders ON users.login = orders.login\
       ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_left_join_should_not_accumulate_values_when_table_expression_is_empty() {
+      let query = sql::Update::new()
+        .left_join("")
+        .left_join("orders ON users.login = orders.login")
+        .left_join("")
+        .as_string();
+      let expected_query = "LEFT JOIN orders ON users.login = orders.login";
 
       assert_eq!(query, expected_query);
     }
@@ -445,6 +517,18 @@ mod right_join_clause {
     }
 
     #[test]
+    fn method_right_join_should_not_accumulate_values_when_table_expression_is_empty() {
+      let query = sql::Select::new()
+        .right_join("")
+        .right_join("orders ON users.login = orders.login")
+        .right_join("")
+        .as_string();
+      let expected_query = "RIGHT JOIN orders ON users.login = orders.login";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
     fn method_right_join_by_should_trim_space_of_the_argument() {
       let query = sql::Select::new().right_join("  orders  ").as_string();
       let expected_query = "RIGHT JOIN orders";
@@ -500,6 +584,18 @@ mod right_join_clause {
         RIGHT JOIN addresses ON users.login = addresses.login \
         RIGHT JOIN orders ON users.login = orders.login\
       ";
+
+      assert_eq!(query, expected_query);
+    }
+
+    #[test]
+    fn method_right_join_should_not_accumulate_values_when_table_expression_is_empty() {
+      let query = sql::Update::new()
+        .right_join("")
+        .right_join("orders ON users.login = orders.login")
+        .right_join("")
+        .as_string();
+      let expected_query = "RIGHT JOIN orders ON users.login = orders.login";
 
       assert_eq!(query, expected_query);
     }

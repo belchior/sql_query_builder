@@ -62,6 +62,18 @@ mod delete_command {
   }
 
   #[test]
+  fn method_with_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Delete::new()
+      .with("deleted_products", sql::Delete::new())
+      .with("deleted_users", sql::Delete::new().delete_from("users"))
+      .with("deleted_orders", sql::Delete::new())
+      .as_string();
+    let expected_query = "WITH deleted_users AS (DELETE FROM users)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_with_should_trim_space_of_the_argument() {
     let query = sql::Delete::new()
       .with("  deleted_users  ", sql::Delete::new().delete_from("users"))
@@ -190,6 +202,18 @@ mod insert_command {
   }
 
   #[test]
+  fn method_with_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Insert::new()
+      .with("inserted_users", sql::Insert::new())
+      .with("inserted_orders", sql::Insert::new().insert_into("orders"))
+      .with("inserted_products", sql::Insert::new())
+      .as_string();
+    let expected_query = "WITH inserted_orders AS (INSERT INTO orders)";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_with_should_trim_space_of_the_argument() {
     let query = sql::Insert::new()
       .with("  inserted_users  ", sql::Insert::new().insert_into("users"))
@@ -303,6 +327,18 @@ mod select_command {
     let expected_query = "\
       WITH user_list AS (SELECT id, login FROM users), user_ids AS (SELECT id FROM user_list)\
     ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_with_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Select::new()
+      .with("user_list", sql::Select::new())
+      .with("user_ids", sql::Select::new().select("id").from("user_list"))
+      .with("user_list2", sql::Select::new())
+      .as_string();
+    let expected_query = "WITH user_ids AS (SELECT id FROM user_list)";
 
     assert_eq!(query, expected_query);
   }
@@ -426,6 +462,18 @@ mod update_command {
       WITH updated_users AS (UPDATE users), \
            updated_orders AS (UPDATE orders)\
     ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn method_with_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Update::new()
+      .with("updated_users", sql::Update::new())
+      .with("updated_orders", sql::Update::new().update("orders"))
+      .with("updated_users2", sql::Update::new())
+      .as_string();
+    let expected_query = "WITH updated_orders AS (UPDATE orders)";
 
     assert_eq!(query, expected_query);
   }

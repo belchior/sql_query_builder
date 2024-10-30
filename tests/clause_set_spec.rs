@@ -19,6 +19,14 @@ mod update_command {
   }
 
   #[test]
+  fn method_set_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Update::new().set("").set("name = 'Foo'").set("").as_string();
+    let expected_query = "SET name = 'Foo'";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
   fn method_set_should_trim_space_of_the_argument() {
     let query = sql::Update::new().set("  name = 'Bar'  ").as_string();
     let expected_query = "SET name = 'Bar'";

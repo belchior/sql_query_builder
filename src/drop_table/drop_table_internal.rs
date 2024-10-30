@@ -10,7 +10,7 @@ impl DropTable {
   fn concat_drop_table(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
 
-    let sql = if self._drop_table.len() != 0 {
+    let sql = if self._drop_table.is_empty() == false {
       let if_exists = if self._if_exists {
         format!("IF EXISTS{space}")
       } else {
@@ -18,7 +18,13 @@ impl DropTable {
       };
 
       let table_names = if cfg!(any(feature = "postgresql")) {
-        self._drop_table.join(comma)
+        self
+          ._drop_table
+          .iter()
+          .filter(|item| item.is_empty() == false)
+          .map(|item| item.as_str())
+          .collect::<Vec<_>>()
+          .join(comma)
       } else {
         self._drop_table.last().unwrap().to_string()
       };

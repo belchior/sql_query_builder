@@ -100,7 +100,12 @@ impl Transaction {
   fn concat_ordered_commands(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = self._ordered_commands.iter().fold("".to_string(), |acc, cmd| {
-      format!("{acc}{0};{space}{lb}", cmd.concat(fmts))
+      let inner_cmd = cmd.concat(fmts);
+      if inner_cmd.is_empty() == false {
+        format!("{acc}{inner_cmd};{space}{lb}")
+      } else {
+        acc
+      }
     });
 
     format!("{query}{sql}")

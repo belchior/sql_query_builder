@@ -94,6 +94,18 @@ mod select_command {
   }
 
   #[test]
+  fn method_select_should_not_accumulate_values_when_column_name_is_empty() {
+    let query = sql::Select::new()
+      .select("")
+      .select("created_at")
+      .select("")
+      .as_string();
+    let expected_query = "SELECT created_at";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
   fn method_select_by_should_trim_space_of_the_argument() {
     let query = sql::Select::new().select("  login, name  ").as_string();
     let expected_query = "SELECT login, name";

@@ -11,7 +11,13 @@ impl Values {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._values.is_empty() == false {
       let sep = format!("{comma}{lb}");
-      let values = self._values.join(&sep);
+      let values = self
+        ._values
+        .iter()
+        .filter(|item| item.is_empty() == false)
+        .map(|item| item.as_str())
+        .collect::<Vec<_>>()
+        .join(&sep);
       format!("VALUES{space}{lb}{values}{space}{lb}")
     } else {
       "".to_string()
