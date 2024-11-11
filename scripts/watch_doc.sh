@@ -1,6 +1,6 @@
 #!/bin/sh
 
-doc_path=$(realpath ./target/doc/sql_query_builder/index.html)
+doc_path=$(pwd)/target/doc/sql_query_builder/index.html
 c_blue='\033[34;1m'
 c_no='\033[0m'
 

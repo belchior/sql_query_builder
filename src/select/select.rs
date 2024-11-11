@@ -565,22 +565,23 @@ impl Select {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use crate::behavior::WithQuery;
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 impl WithQuery for Select {}
 
-#[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(doc, feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
 #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
 impl Select {
   /// The `except` clause
   ///
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let select_users = sql::Select::new()
@@ -620,7 +621,7 @@ impl Select {
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let select_users = sql::Select::new()
@@ -660,7 +661,7 @@ impl Select {
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let select = sql::Select::new()
@@ -684,7 +685,7 @@ impl Select {
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let select = sql::Select::new()
@@ -708,7 +709,7 @@ impl Select {
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let select_users = sql::Select::new()
@@ -748,7 +749,7 @@ impl Select {
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let logins = sql::Select::new()
@@ -792,9 +793,42 @@ impl Select {
   /// WHERE owner_login in (select * from logins)
   /// -- ------------------------------------------------------------------------------
   /// ```
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
     self._with.push((name.trim().to_string(), std::sync::Arc::new(query)));
+    self
+  }
+}
+
+#[cfg(any(doc, feature = "mysql"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+impl Select {
+  /// The `partition` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::Select::new()
+  ///   .select("*")
+  ///   .from("employees")
+  ///   .partition("p1")
+  ///   .to_string();
+  ///
+  /// # let expected_query = "SELECT * FROM employees PARTITION (p1)";
+  /// # assert_eq!(expected_query, query);
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// SELECT * FROM employees PARTITION (p1)
+  /// ```
+  pub fn partition(mut self, name: &str) -> Self {
+    push_unique(&mut self._partition, name.trim().to_string());
     self
   }
 }

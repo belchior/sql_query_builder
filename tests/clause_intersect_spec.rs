@@ -1,4 +1,4 @@
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod select_command {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
