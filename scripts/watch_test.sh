@@ -8,9 +8,9 @@
 # ./scripts/watch_test.sh all        # will enable all feature
 # ./scripts/watch_test.sh postgresql # will enable only the postgresql feature
 
-all_features='postgresql sqlite'
+all_features='postgresql sqlite mysql'
 features=''
-test_names=$(git status -s | grep tests/ | sed -e 's/.* //' -e 's/tests\//--test /' -e 's/.rs//' | tr '\n' ' ')
+test_names=$(git status -s | grep tests/ | sed -e 's/.* //' -e 's/tests\//--test /' -e 's/\.rs//' | tr '\n' ' ')
 
 case "$@" in
   "")    features="";;

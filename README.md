@@ -37,6 +37,7 @@ SELECT id, login FROM users WHERE login = $1 AND is_admin = true
 SQL Query Builder comes with the following optional features:
 - `postgresql` enable Postgres syntax
 - `sqlite` enable SQLite syntax
+- `mysql` enable MySQL syntax
 
 You can enable features like
 

@@ -1,9 +1,9 @@
 use crate::behavior::TransactionQuery;
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use crate::behavior::WithQuery;
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use std::sync::Arc;
 
 /// Builder to contruct a [AlterTable] command.
@@ -74,7 +74,7 @@ pub enum AlterTableAction {
   RenameTo,
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 pub(crate) enum Combinator {
   Except,
   Intersect,
@@ -489,23 +489,26 @@ pub struct Select {
   pub(crate) _where: Vec<(LogicalOperator, String)>,
   pub(crate) _window: Vec<String>,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _except: Vec<Self>,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _intersect: Vec<Self>,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _limit: String,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _offset: String,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _union: Vec<Self>,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _with: Vec<(String, Arc<dyn WithQuery>)>,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _partition: Vec<String>,
 }
 
 /// All available clauses to be used in [Select::raw_before] and [Select::raw_after] methods on [Select] builder
@@ -522,25 +525,33 @@ pub enum SelectClause {
   Where,
   Window,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   Except,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   Intersect,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   Union,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   With,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Partition,
 }
 
 /// Builder to contruct a [Transaction] block.

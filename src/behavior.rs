@@ -4,5 +4,5 @@ use crate::concat::Concat;
 pub trait TransactionQuery: Concat {}
 
 /// Represents all commands that can be used inside the with method
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 pub trait WithQuery: Concat {}
