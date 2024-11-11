@@ -27,6 +27,7 @@ echo "\n-- ---------------------------------------------------------------------
 echo "-- Testing SQLite syntax"
 echo "-- ------------------------------------------------------------------------------\n"
 RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME-%m.profraw" cargo test --target-dir $COVERAGE_TARGET --features sqlite;
+RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME-%m.profraw" cargo test --target-dir $COVERAGE_TARGET --features mysql;
 
 echo "\n-- ------------------------------------------------------------------------------"
 echo "-- Testing MySQL syntax"
