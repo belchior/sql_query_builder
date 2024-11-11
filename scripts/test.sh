@@ -17,6 +17,7 @@ echo "\n-- ---------------------------------------------------------------------
 echo "-- Testing SQLite syntax"
 echo "-- ------------------------------------------------------------------------------\n"
 cargo test $test_names --features sqlite
+cargo test $test_names --features mysql
 
 echo "\n-- ------------------------------------------------------------------------------"
 echo "-- Testing MySQL syntax"
