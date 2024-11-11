@@ -11,7 +11,7 @@ pub trait Concat {
 pub trait TransactionQuery: Concat {}
 
 /// Represents all commands that can be used inside the with method
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 pub trait WithQuery: Concat {}
 
 pub(crate) trait ConcatSqlStandard<Clause: PartialEq> {
@@ -80,7 +80,7 @@ pub(crate) trait ConcatSqlStandard<Clause: PartialEq> {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 pub(crate) trait ConcatCommon<Clause: PartialEq> {
   fn concat_returning(
     &self,

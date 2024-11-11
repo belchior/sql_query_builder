@@ -106,7 +106,7 @@ mod select_command {
   }
 
   #[test]
-  fn method_select_by_should_trim_space_of_the_argument() {
+  fn method_select_should_trim_space_of_the_argument() {
     let query = sql::Select::new().select("  login, name  ").as_string();
     let expected_query = "SELECT login, name";
 

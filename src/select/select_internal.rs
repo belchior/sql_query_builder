@@ -4,7 +4,7 @@ use crate::{
   structure::{Select, SelectClause},
 };
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use crate::behavior::ConcatCommon;
 
 impl ConcatSqlStandard<SelectClause> for Select {}
@@ -15,7 +15,7 @@ impl Concat for Select {
 
     query = self.concat_raw(query, &fmts, &self._raw);
 
-    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+    #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
     {
       query = self.concat_with(
         &self._raw_before,
@@ -36,6 +36,12 @@ impl Concat for Select {
       &self._from,
     );
     query = self.concat_join(query, &fmts);
+
+    #[cfg(feature = "mysql")]
+    {
+      query = self.concat_partition(query, &fmts);
+    }
+
     query = self.concat_where(
       &self._raw_before,
       &self._raw_after,
@@ -49,13 +55,13 @@ impl Concat for Select {
     query = self.concat_window(query, &fmts);
     query = self.concat_order_by(query, &fmts);
 
-    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+    #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
     {
       query = self.concat_limit(query, &fmts);
       query = self.concat_offset(query, &fmts);
     }
 
-    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+    #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
     {
       use crate::structure::Combinator;
       query = self.concat_combinator(query, &fmts, Combinator::Except);
@@ -213,10 +219,10 @@ impl Select {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 impl ConcatCommon<SelectClause> for Select {}
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 impl Select {
   fn concat_combinator(
     &self,
@@ -285,7 +291,7 @@ impl Select {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 impl Select {
   fn concat_offset(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
@@ -302,6 +308,40 @@ impl Select {
       query,
       fmts,
       SelectClause::Offset,
+      sql,
+    )
+  }
+}
+
+#[cfg(feature = "mysql")]
+impl Select {
+  fn concat_partition(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { comma, lb, space, .. } = fmts;
+
+    let sql = if self._partition.is_empty() == false {
+      let column_names = self
+        ._partition
+        .iter()
+        .filter(|column| column.is_empty() == false)
+        .map(|column| column.as_str())
+        .collect::<Vec<_>>()
+        .join(comma);
+
+      if column_names.is_empty() == false {
+        format!("PARTITION{space}({column_names}){space}{lb}")
+      } else {
+        "".to_string()
+      }
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      SelectClause::Partition,
       sql,
     )
   }
