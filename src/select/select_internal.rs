@@ -51,7 +51,14 @@ impl Concat for Select {
 
     #[cfg(feature = "mysql")]
     {
-      query = self.concat_partition(query, &fmts);
+      query = self.concat_partition(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Partition,
+        &self._partition,
+      );
     }
 
     query = self.concat_where(
@@ -281,35 +288,7 @@ impl Select {
 }
 
 #[cfg(feature = "mysql")]
-impl Select {
-  fn concat_partition(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { comma, lb, space, .. } = fmts;
+use crate::concat::mysql::ConcatPartition;
 
-    let sql = if self._partition.is_empty() == false {
-      let column_names = self
-        ._partition
-        .iter()
-        .filter(|column| column.is_empty() == false)
-        .map(|column| column.as_str())
-        .collect::<Vec<_>>()
-        .join(comma);
-
-      if column_names.is_empty() == false {
-        format!("PARTITION{space}({column_names}){space}{lb}")
-      } else {
-        "".to_string()
-      }
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      SelectClause::Partition,
-      sql,
-    )
-  }
-}
+#[cfg(feature = "mysql")]
+impl ConcatPartition<SelectClause> for Select {}
