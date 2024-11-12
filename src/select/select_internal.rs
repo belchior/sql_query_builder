@@ -1,13 +1,15 @@
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
+  concat::{
+    concat_raw_before_after,
+    sql_standard::{ConcatFrom, ConcatWhere},
+    Concat,
+  },
   fmt,
   structure::{Select, SelectClause},
 };
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-use crate::behavior::ConcatCommon;
-
-impl ConcatSqlStandard<SelectClause> for Select {}
+impl ConcatFrom<SelectClause> for Select {}
+impl ConcatWhere<SelectClause> for Select {}
 
 impl Concat for Select {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
@@ -214,7 +216,10 @@ impl Select {
 }
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-impl ConcatCommon<SelectClause> for Select {}
+use crate::concat::non_standard::ConcatWith;
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl ConcatWith<SelectClause> for Select {}
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 impl Select {
@@ -224,8 +229,7 @@ impl Select {
     fmts: &fmt::Formatter,
     combinator: crate::structure::Combinator,
   ) -> String {
-    use crate::behavior::raw_queries;
-    use crate::structure::Combinator;
+    use crate::{concat::raw_queries, structure::Combinator};
 
     let fmt::Formatter { lb, space, .. } = fmts;
     let (clause, clause_name, clause_list) = match combinator {

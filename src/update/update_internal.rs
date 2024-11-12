@@ -1,57 +1,15 @@
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-use crate::behavior::ConcatCommon;
-#[cfg(feature = "sqlite")]
-use crate::behavior::ConcatSqlite;
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
+  concat::{
+    concat_raw_before_after,
+    sql_standard::{ConcatFrom, ConcatWhere},
+    Concat,
+  },
   fmt,
   structure::{Update, UpdateClause},
 };
 
-impl ConcatSqlStandard<UpdateClause> for Update {}
-
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-impl ConcatCommon<UpdateClause> for Update {}
-
-impl Update {
-  fn concat_set(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { comma, lb, space, .. } = fmts;
-    let sql = if self._set.is_empty() == false {
-      let values = self
-        ._set
-        .iter()
-        .filter(|item| item.is_empty() == false)
-        .map(|item| item.as_str())
-        .collect::<Vec<_>>()
-        .join(comma);
-      format!("SET{space}{values}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(&self._raw_before, &self._raw_after, query, fmts, UpdateClause::Set, sql)
-  }
-
-  #[cfg(not(feature = "sqlite"))]
-  fn concat_update(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._update.is_empty() == false {
-      let table_name = &self._update;
-      format!("UPDATE{space}{table_name}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      UpdateClause::Update,
-      sql,
-    )
-  }
-}
+impl ConcatFrom<UpdateClause> for Update {}
+impl ConcatWhere<UpdateClause> for Update {}
 
 impl Concat for Update {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
@@ -76,7 +34,7 @@ impl Concat for Update {
     }
     #[cfg(feature = "sqlite")]
     {
-      query = ConcatSqlite::concat_update(self, &self._raw_before, &self._raw_after, query, &fmts, &self._update);
+      query = ConcatUpdate::concat_update(self, &self._raw_before, &self._raw_after, query, &fmts, &self._update);
     }
 
     query = self.concat_set(query, &fmts);
@@ -95,7 +53,7 @@ impl Concat for Update {
 
     #[cfg(feature = "sqlite")]
     {
-      query = ConcatSqlite::concat_join(
+      query = ConcatJoin::concat_join(
         self,
         &self._raw_before,
         &self._raw_after,
@@ -131,5 +89,60 @@ impl Concat for Update {
   }
 }
 
+impl Update {
+  fn concat_set(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { comma, lb, space, .. } = fmts;
+    let sql = if self._set.is_empty() == false {
+      let values = self
+        ._set
+        .iter()
+        .filter(|item| item.is_empty() == false)
+        .map(|item| item.as_str())
+        .collect::<Vec<_>>()
+        .join(comma);
+      format!("SET{space}{values}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(&self._raw_before, &self._raw_after, query, fmts, UpdateClause::Set, sql)
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+use crate::concat::non_standard::{ConcatReturning, ConcatWith};
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl ConcatReturning<UpdateClause> for Update {}
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl ConcatWith<UpdateClause> for Update {}
+
 #[cfg(feature = "sqlite")]
-impl ConcatSqlite for Update {}
+use crate::concat::sqlite::{ConcatJoin, ConcatUpdate};
+
+#[cfg(feature = "sqlite")]
+impl ConcatJoin for Update {}
+#[cfg(feature = "sqlite")]
+impl ConcatUpdate for Update {}
+
+#[cfg(not(feature = "sqlite"))]
+impl Update {
+  fn concat_update(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._update.is_empty() == false {
+      let table_name = &self._update;
+      format!("UPDATE{space}{table_name}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      UpdateClause::Update,
+      sql,
+    )
+  }
+}

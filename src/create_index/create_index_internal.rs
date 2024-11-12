@@ -1,10 +1,10 @@
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
+  concat::{concat_raw_before_after, sql_standard::ConcatWhere, Concat},
   fmt,
   structure::{CreateIndex, CreateIndexParams},
 };
 
-impl ConcatSqlStandard<CreateIndexParams> for CreateIndex {}
+impl ConcatWhere<CreateIndexParams> for CreateIndex {}
 
 impl Concat for CreateIndex {
   fn concat(&self, fmts: &fmt::Formatter) -> String {

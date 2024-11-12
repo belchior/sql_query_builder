@@ -1,9 +1,10 @@
 use crate::{
-  behavior::{push_unique, Concat},
+  concat::Concat,
   fmt,
   structure::{
     AlterTable, CreateTable, Delete, DropTable, Insert, Select, TrCmd::*, Transaction, TransactionCommand, Update,
   },
+  utils::push_unique,
 };
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]

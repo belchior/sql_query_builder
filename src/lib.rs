@@ -3,6 +3,7 @@
 
 mod alter_table;
 mod behavior;
+mod concat;
 mod create_table;
 mod delete;
 mod drop_table;
@@ -12,6 +13,7 @@ mod select;
 mod structure;
 mod transaction;
 mod update;
+mod utils;
 mod values;
 
 pub use crate::structure::{

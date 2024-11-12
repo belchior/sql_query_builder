@@ -1,10 +1,20 @@
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
+  concat::{concat_raw_before_after, Concat},
   fmt,
   structure::{CreateTable, CreateTableParams},
 };
 
-impl ConcatSqlStandard<CreateTableParams> for CreateTable {}
+impl Concat for CreateTable {
+  fn concat(&self, fmts: &fmt::Formatter) -> String {
+    let mut query = "".to_string();
+
+    query = self.concat_raw(query, &fmts, &self._raw);
+    query = self.concat_create_table(query, &fmts);
+    query = self.concat_parameters(query, &fmts);
+
+    query.trim_end().to_string()
+  }
+}
 
 impl CreateTable {
   fn concat_create_table(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -141,17 +151,5 @@ impl CreateTable {
     } else {
       query
     }
-  }
-}
-
-impl Concat for CreateTable {
-  fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_string();
-
-    query = self.concat_raw(query, &fmts, &self._raw);
-    query = self.concat_create_table(query, &fmts);
-    query = self.concat_parameters(query, &fmts);
-
-    query.trim_end().to_string()
   }
 }

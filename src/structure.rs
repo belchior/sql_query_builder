@@ -431,6 +431,16 @@ pub(crate) enum LogicalOperator {
   Or,
 }
 
+impl std::fmt::Display for LogicalOperator {
+  fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+    let v = match self {
+      LogicalOperator::And => "AND",
+      LogicalOperator::Or => "OR",
+    };
+    write!(f, "{}", v)
+  }
+}
+
 /// Builder to contruct a [Select] command.
 ///
 /// Basic API

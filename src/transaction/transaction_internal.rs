@@ -1,13 +1,12 @@
 use crate::{
-  behavior::{Concat, ConcatSqlStandard, TransactionQuery},
+  behavior::TransactionQuery,
+  concat::Concat,
   fmt,
   structure::{
     TrCmd::{self, *},
     Transaction, TransactionCommand,
   },
 };
-
-impl ConcatSqlStandard<TransactionCommand> for Transaction {}
 
 impl TransactionQuery for TransactionCommand {}
 
