@@ -1,7 +1,7 @@
 use crate::{
   concat::{
     concat_raw_before_after,
-    sql_standard::{ConcatFrom, ConcatJoin, ConcatWhere},
+    sql_standard::{ConcatFrom, ConcatJoin, ConcatOrderBy, ConcatWhere},
     Concat,
   },
   fmt,
@@ -11,6 +11,7 @@ use crate::{
 impl ConcatFrom<SelectClause> for Select {}
 impl ConcatWhere<SelectClause> for Select {}
 impl ConcatJoin<SelectClause> for Select {}
+impl ConcatOrderBy<SelectClause> for Select {}
 
 impl Concat for Select {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
@@ -59,11 +60,25 @@ impl Concat for Select {
     query = self.concat_group_by(query, &fmts);
     query = self.concat_having(query, &fmts);
     query = self.concat_window(query, &fmts);
-    query = self.concat_order_by(query, &fmts);
+    query = self.concat_order_by(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      &fmts,
+      SelectClause::OrderBy,
+      &self._order_by,
+    );
 
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
-      query = self.concat_limit(query, &fmts);
+      query = self.concat_limit(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Limit,
+        &self._limit,
+      );
       query = self.concat_offset(query, &fmts);
     }
 
@@ -130,31 +145,6 @@ impl Select {
     )
   }
 
-  fn concat_order_by(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { comma, lb, space, .. } = fmts;
-    let sql = if self._order_by.is_empty() == false {
-      let columns = self
-        ._order_by
-        .iter()
-        .filter(|item| item.is_empty() == false)
-        .map(|item| item.as_str())
-        .collect::<Vec<_>>()
-        .join(comma);
-      format!("ORDER BY{space}{columns}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      SelectClause::OrderBy,
-      sql,
-    )
-  }
-
   fn concat_select(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._select.is_empty() == false {
@@ -207,10 +197,12 @@ impl Select {
 }
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-use crate::concat::non_standard::ConcatWith;
+use crate::concat::non_standard::{ConcatLimit, ConcatWith};
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 impl ConcatWith<SelectClause> for Select {}
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl ConcatLimit<SelectClause> for Select {}
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 impl Select {
@@ -258,25 +250,6 @@ impl Select {
     let left_stmt = format!("({query}{raw_before}){space_before}");
 
     format!("{left_stmt}{right_stmt}{raw_after}{space_after}")
-  }
-
-  fn concat_limit(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._limit.is_empty() == false {
-      let count = &self._limit;
-      format!("LIMIT{space}{count}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      SelectClause::Limit,
-      sql,
-    )
   }
 }
 

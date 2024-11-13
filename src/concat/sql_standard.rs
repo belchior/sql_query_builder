@@ -49,6 +49,34 @@ pub(crate) trait ConcatJoin<Clause: PartialEq> {
   }
 }
 
+pub(crate) trait ConcatOrderBy<Clause: PartialEq> {
+  fn concat_order_by(
+    &self,
+    items_raw_before: &Vec<(Clause, String)>,
+    items_raw_after: &Vec<(Clause, String)>,
+    query: String,
+    fmts: &fmt::Formatter,
+    clause: Clause,
+    items: &Vec<String>,
+  ) -> String {
+    let fmt::Formatter { comma, lb, space, .. } = fmts;
+    let sql = if items.is_empty() == false {
+      let columns = items
+        .iter()
+        .filter(|item| item.is_empty() == false)
+        .map(|item| item.as_str())
+        .collect::<Vec<_>>()
+        .join(comma);
+
+      format!("ORDER BY{space}{columns}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
+  }
+}
+
 pub(crate) trait ConcatWhere<Clause: PartialEq> {
   fn concat_where(
     &self,

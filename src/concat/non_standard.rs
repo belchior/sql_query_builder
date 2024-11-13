@@ -2,6 +2,28 @@
 use crate::{behavior::WithQuery, concat::concat_raw_before_after, fmt};
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+pub(crate) trait ConcatLimit<Clause: PartialEq> {
+  fn concat_limit(
+    &self,
+    items_raw_before: &Vec<(Clause, String)>,
+    items_raw_after: &Vec<(Clause, String)>,
+    query: String,
+    fmts: &fmt::Formatter,
+    clause: Clause,
+    limit: &str,
+  ) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if limit.is_empty() == false {
+      format!("LIMIT{space}{limit}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
 pub(crate) trait ConcatReturning<Clause: PartialEq> {
   fn concat_returning(
     &self,
