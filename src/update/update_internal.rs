@@ -1,7 +1,7 @@
 use crate::{
   concat::{
     concat_raw_before_after,
-    sql_standard::{ConcatFrom, ConcatWhere},
+    sql_standard::{ConcatFrom, ConcatJoin, ConcatWhere},
     Concat,
   },
   fmt,
@@ -10,12 +10,14 @@ use crate::{
 
 impl ConcatFrom<UpdateClause> for Update {}
 impl ConcatWhere<UpdateClause> for Update {}
+impl ConcatJoin<UpdateClause> for Update {}
 
 impl Concat for Update {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_string();
 
     query = self.concat_raw(query, &fmts, &self._raw);
+
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
       query = self.concat_with(
@@ -32,9 +34,10 @@ impl Concat for Update {
     {
       query = self.concat_update(query, &fmts);
     }
+
     #[cfg(feature = "sqlite")]
     {
-      query = ConcatUpdate::concat_update(self, &self._raw_before, &self._raw_after, query, &fmts, &self._update);
+      query = self.concat_update(&self._raw_before, &self._raw_after, query, &fmts, &self._update);
     }
 
     query = self.concat_set(query, &fmts);
@@ -53,8 +56,7 @@ impl Concat for Update {
 
     #[cfg(feature = "sqlite")]
     {
-      query = ConcatJoin::concat_join(
-        self,
+      query = self.concat_join(
         &self._raw_before,
         &self._raw_after,
         query,
@@ -118,10 +120,8 @@ impl ConcatReturning<UpdateClause> for Update {}
 impl ConcatWith<UpdateClause> for Update {}
 
 #[cfg(feature = "sqlite")]
-use crate::concat::sqlite::{ConcatJoin, ConcatUpdate};
+use crate::concat::sqlite::ConcatUpdate;
 
-#[cfg(feature = "sqlite")]
-impl ConcatJoin for Update {}
 #[cfg(feature = "sqlite")]
 impl ConcatUpdate for Update {}
 

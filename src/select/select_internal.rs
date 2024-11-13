@@ -1,7 +1,7 @@
 use crate::{
   concat::{
     concat_raw_before_after,
-    sql_standard::{ConcatFrom, ConcatWhere},
+    sql_standard::{ConcatFrom, ConcatJoin, ConcatWhere},
     Concat,
   },
   fmt,
@@ -10,6 +10,7 @@ use crate::{
 
 impl ConcatFrom<SelectClause> for Select {}
 impl ConcatWhere<SelectClause> for Select {}
+impl ConcatJoin<SelectClause> for Select {}
 
 impl Concat for Select {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
@@ -28,6 +29,7 @@ impl Concat for Select {
         &self._with,
       );
     }
+
     query = self.concat_select(query, &fmts);
     query = self.concat_from(
       &self._raw_before,
@@ -37,7 +39,15 @@ impl Concat for Select {
       SelectClause::From,
       &self._from,
     );
-    query = self.concat_join(query, &fmts);
+    query = self.concat_join(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      &fmts,
+      SelectClause::Join,
+      &self._join,
+    );
+
     query = self.concat_where(
       &self._raw_before,
       &self._raw_after,
@@ -116,25 +126,6 @@ impl Select {
       query,
       fmts,
       SelectClause::Having,
-      sql,
-    )
-  }
-
-  fn concat_join(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._join.is_empty() == false {
-      let joins = self._join.join(format!("{space}{lb}").as_str());
-      format!("{joins}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      SelectClause::Join,
       sql,
     )
   }

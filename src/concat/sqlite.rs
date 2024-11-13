@@ -36,29 +36,6 @@ pub(crate) trait ConcatInsert {
 }
 
 #[cfg(feature = "sqlite")]
-pub(crate) trait ConcatJoin {
-  fn concat_join<Clause: PartialEq>(
-    &self,
-    items_raw_before: &Vec<(Clause, String)>,
-    items_raw_after: &Vec<(Clause, String)>,
-    query: String,
-    fmts: &fmt::Formatter,
-    clause: Clause,
-    join: &Vec<String>,
-  ) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if join.is_empty() == false {
-      let joins = join.join(format!("{space}{lb}").as_str());
-      format!("{joins}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(&items_raw_before, &items_raw_after, query, fmts, clause, sql)
-  }
-}
-
-#[cfg(feature = "sqlite")]
 pub(crate) trait ConcatUpdate {
   fn concat_update(
     &self,
