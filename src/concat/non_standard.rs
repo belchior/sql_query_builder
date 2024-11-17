@@ -1,7 +1,7 @@
 #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use crate::{behavior::WithQuery, concat::concat_raw_before_after, fmt};
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 pub(crate) trait ConcatLimit<Clause: PartialEq> {
   fn concat_limit(
     &self,
