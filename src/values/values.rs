@@ -1,7 +1,8 @@
 use crate::{
-  behavior::{push_unique, Concat},
+  concat::Concat,
   fmt,
   structure::{Values, ValuesClause},
+  utils::push_unique,
 };
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]

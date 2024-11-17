@@ -1,7 +1,9 @@
 use crate::{
-  behavior::{push_unique, Concat, TransactionQuery},
+  behavior::TransactionQuery,
+  concat::Concat,
   fmt,
   structure::{LogicalOperator, Select, SelectClause},
+  utils::push_unique,
 };
 
 impl TransactionQuery for Select {}
@@ -169,8 +171,8 @@ impl Select {
   pub fn cross_join(mut self, table: &str) -> Self {
     let table = table.trim();
     if table.is_empty() == false {
-      let table = format!("CROSS JOIN {table}");
-      push_unique(&mut self._join, table);
+      let join = format!("CROSS JOIN {table}");
+      push_unique(&mut self._join, join);
     }
     self
   }
@@ -198,8 +200,8 @@ impl Select {
   pub fn inner_join(mut self, table: &str) -> Self {
     let table = table.trim();
     if table.is_empty() == false {
-      let table = format!("INNER JOIN {table}");
-      push_unique(&mut self._join, table);
+      let join = format!("INNER JOIN {table}");
+      push_unique(&mut self._join, join);
     }
     self
   }
@@ -227,8 +229,8 @@ impl Select {
   pub fn left_join(mut self, table: &str) -> Self {
     let table = table.trim();
     if table.is_empty() == false {
-      let table = format!("LEFT JOIN {table}");
-      push_unique(&mut self._join, table);
+      let join = format!("LEFT JOIN {table}");
+      push_unique(&mut self._join, join);
     }
     self
   }
@@ -256,8 +258,8 @@ impl Select {
   pub fn right_join(mut self, table: &str) -> Self {
     let table = table.trim();
     if table.is_empty() == false {
-      let table = format!("RIGHT JOIN {table}");
-      push_unique(&mut self._join, table);
+      let join = format!("RIGHT JOIN {table}");
+      push_unique(&mut self._join, join);
     }
     self
   }

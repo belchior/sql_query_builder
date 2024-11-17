@@ -1,13 +1,17 @@
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
+  concat::{
+    concat_raw_before_after,
+    sql_standard::{ConcatFrom, ConcatJoin, ConcatOrderBy, ConcatWhere},
+    Concat,
+  },
   fmt,
   structure::{Select, SelectClause},
 };
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-use crate::behavior::ConcatCommon;
-
-impl ConcatSqlStandard<SelectClause> for Select {}
+impl ConcatFrom<SelectClause> for Select {}
+impl ConcatWhere<SelectClause> for Select {}
+impl ConcatJoin<SelectClause> for Select {}
+impl ConcatOrderBy<SelectClause> for Select {}
 
 impl Concat for Select {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
@@ -26,6 +30,7 @@ impl Concat for Select {
         &self._with,
       );
     }
+
     query = self.concat_select(query, &fmts);
     query = self.concat_from(
       &self._raw_before,
@@ -35,7 +40,15 @@ impl Concat for Select {
       SelectClause::From,
       &self._from,
     );
-    query = self.concat_join(query, &fmts);
+    query = self.concat_join(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      &fmts,
+      SelectClause::Join,
+      &self._join,
+    );
+
     query = self.concat_where(
       &self._raw_before,
       &self._raw_after,
@@ -47,11 +60,25 @@ impl Concat for Select {
     query = self.concat_group_by(query, &fmts);
     query = self.concat_having(query, &fmts);
     query = self.concat_window(query, &fmts);
-    query = self.concat_order_by(query, &fmts);
+    query = self.concat_order_by(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      &fmts,
+      SelectClause::OrderBy,
+      &self._order_by,
+    );
 
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
-      query = self.concat_limit(query, &fmts);
+      query = self.concat_limit(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Limit,
+        &self._limit,
+      );
       query = self.concat_offset(query, &fmts);
     }
 
@@ -118,50 +145,6 @@ impl Select {
     )
   }
 
-  fn concat_join(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._join.is_empty() == false {
-      let joins = self._join.join(format!("{space}{lb}").as_str());
-      format!("{joins}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      SelectClause::Join,
-      sql,
-    )
-  }
-
-  fn concat_order_by(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { comma, lb, space, .. } = fmts;
-    let sql = if self._order_by.is_empty() == false {
-      let columns = self
-        ._order_by
-        .iter()
-        .filter(|item| item.is_empty() == false)
-        .map(|item| item.as_str())
-        .collect::<Vec<_>>()
-        .join(comma);
-      format!("ORDER BY{space}{columns}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      SelectClause::OrderBy,
-      sql,
-    )
-  }
-
   fn concat_select(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._select.is_empty() == false {
@@ -214,7 +197,12 @@ impl Select {
 }
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-impl ConcatCommon<SelectClause> for Select {}
+use crate::concat::non_standard::{ConcatLimit, ConcatWith};
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl ConcatWith<SelectClause> for Select {}
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl ConcatLimit<SelectClause> for Select {}
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 impl Select {
@@ -224,8 +212,7 @@ impl Select {
     fmts: &fmt::Formatter,
     combinator: crate::structure::Combinator,
   ) -> String {
-    use crate::behavior::raw_queries;
-    use crate::structure::Combinator;
+    use crate::{concat::raw_queries, structure::Combinator};
 
     let fmt::Formatter { lb, space, .. } = fmts;
     let (clause, clause_name, clause_list) = match combinator {
@@ -263,25 +250,6 @@ impl Select {
     let left_stmt = format!("({query}{raw_before}){space_before}");
 
     format!("{left_stmt}{right_stmt}{raw_after}{space_after}")
-  }
-
-  fn concat_limit(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._limit.is_empty() == false {
-      let count = &self._limit;
-      format!("LIMIT{space}{count}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      SelectClause::Limit,
-      sql,
-    )
   }
 }
 

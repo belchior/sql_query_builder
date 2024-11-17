@@ -1,7 +1,9 @@
 use crate::{
-  behavior::{push_unique, Concat, TransactionQuery},
+  behavior::TransactionQuery,
+  concat::Concat,
   fmt,
   structure::{Delete, DeleteClause, LogicalOperator},
+  utils::push_unique,
 };
 
 impl TransactionQuery for Delete {}

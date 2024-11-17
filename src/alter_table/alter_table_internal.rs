@@ -1,10 +1,25 @@
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
+  concat::{concat_raw_before_after, Concat},
   fmt,
   structure::{AlterTable, AlterTableAction, AlterTableActionItem, AlterTableOrderedAction},
 };
 
-impl ConcatSqlStandard<AlterTableAction> for AlterTable {}
+impl Concat for AlterTable {
+  fn concat(&self, fmts: &fmt::Formatter) -> String {
+    let mut query = "".to_string();
+
+    query = self.concat_raw(query, &fmts, &self._raw);
+    query = self.concat_alter_table(query, &fmts);
+
+    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+    {
+      query = self.concat_rename_to(query, &fmts);
+    }
+    query = self.concat_ordered_actions(query, &fmts);
+
+    query.trim_end().to_string()
+  }
+}
 
 impl AlterTable {
   fn concat_alter_table(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -77,22 +92,5 @@ impl AlterTable {
       AlterTableAction::RenameTo,
       sql,
     )
-  }
-}
-
-impl Concat for AlterTable {
-  fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_string();
-
-    query = self.concat_raw(query, &fmts, &self._raw);
-    query = self.concat_alter_table(query, &fmts);
-
-    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-    {
-      query = self.concat_rename_to(query, &fmts);
-    }
-    query = self.concat_ordered_actions(query, &fmts);
-
-    query.trim_end().to_string()
   }
 }

@@ -1,10 +1,19 @@
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
+  concat::{concat_raw_before_after, Concat},
   fmt,
   structure::{Values, ValuesClause},
 };
 
-impl ConcatSqlStandard<ValuesClause> for Values {}
+impl Concat for Values {
+  fn concat(&self, fmts: &fmt::Formatter) -> String {
+    let mut query = "".to_string();
+
+    query = self.concat_raw(query, &fmts, &self._raw);
+    query = self.concat_values(query, &fmts);
+
+    query.trim_end().to_string()
+  }
+}
 
 impl Values {
   fn concat_values(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -31,16 +40,5 @@ impl Values {
       ValuesClause::Values,
       sql,
     )
-  }
-}
-
-impl Concat for Values {
-  fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_string();
-
-    query = self.concat_raw(query, &fmts, &self._raw);
-    query = self.concat_values(query, &fmts);
-
-    query.trim_end().to_string()
   }
 }

@@ -1,7 +1,9 @@
 use crate::{
-  behavior::{push_unique, Concat, TransactionQuery},
+  behavior::TransactionQuery,
+  concat::Concat,
   fmt,
   structure::{DropIndex, DropIndexParams},
+  utils::push_unique,
 };
 
 impl TransactionQuery for DropIndex {}

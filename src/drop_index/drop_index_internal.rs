@@ -1,10 +1,19 @@
 use crate::{
-  behavior::{concat_raw_before_after, Concat, ConcatSqlStandard},
+  concat::{concat_raw_before_after, Concat},
   fmt,
   structure::{DropIndex, DropIndexParams},
 };
 
-impl ConcatSqlStandard<DropIndexParams> for DropIndex {}
+impl Concat for DropIndex {
+  fn concat(&self, fmts: &fmt::Formatter) -> String {
+    let mut query = "".to_string();
+
+    query = self.concat_raw(query, &fmts, &self._raw);
+    query = self.concat_drop_index(query, &fmts);
+
+    query.trim_end().to_string()
+  }
+}
 
 impl DropIndex {
   fn concat_drop_index(&self, query: String, fmts: &fmt::Formatter) -> String {
@@ -42,16 +51,5 @@ impl DropIndex {
       DropIndexParams::DropIndex,
       sql,
     )
-  }
-}
-
-impl Concat for DropIndex {
-  fn concat(&self, fmts: &fmt::Formatter) -> String {
-    let mut query = "".to_string();
-
-    query = self.concat_raw(query, &fmts, &self._raw);
-    query = self.concat_drop_index(query, &fmts);
-
-    query.trim_end().to_string()
   }
 }

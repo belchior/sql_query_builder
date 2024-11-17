@@ -3,8 +3,6 @@ mod raw_methods {
     use pretty_assertions::assert_eq;
     use sql_query_builder as sql;
 
-    // Raw after method
-
     #[test]
     fn method_raw_after_should_add_raw_sql_after_join_clause() {
       let query = sql::Select::new()
@@ -13,10 +11,8 @@ mod raw_methods {
         .as_string();
       let expected_query = "INNER JOIN addresses ON users.login = addresses.login where id = $1";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
-
-    // Raw before method
 
     #[test]
     fn method_raw_before_should_add_raw_sql_before_join_clause() {
@@ -26,7 +22,7 @@ mod raw_methods {
         .as_string();
       let expected_query = "from orders INNER JOIN addresses ON addresses.user_login = orders.user_login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
   }
 
@@ -35,7 +31,6 @@ mod raw_methods {
     use pretty_assertions::assert_eq;
     use sql_query_builder as sql;
 
-    // Raw after method
     #[test]
     fn method_raw_after_should_add_raw_sql_after_join_clause() {
       let query = sql::Update::new()
@@ -44,10 +39,8 @@ mod raw_methods {
         .as_string();
       let expected_query = "INNER JOIN orders ON orders.user_id = user.id WHERE user.id = $1";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
-
-    // Raw before method
 
     #[test]
     fn method_raw_before_should_add_raw_sql_before_join_clause() {
@@ -57,7 +50,7 @@ mod raw_methods {
         .as_string();
       let expected_query = "FROM users INNER JOIN orders ON orders.user_id = user.id";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
   }
 }
@@ -72,7 +65,7 @@ mod cross_join_clause {
       let query = sql::Select::new().cross_join("addresses").as_string();
       let expected_query = "CROSS JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -86,7 +79,7 @@ mod cross_join_clause {
         CROSS JOIN orders\
       ";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -98,7 +91,7 @@ mod cross_join_clause {
         .as_string();
       let expected_query = "CROSS JOIN orders";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -106,7 +99,7 @@ mod cross_join_clause {
       let query = sql::Select::new().cross_join("  orders  ").as_string();
       let expected_query = "CROSS JOIN orders";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -117,7 +110,7 @@ mod cross_join_clause {
         .as_string();
       let expected_query = "CROSS JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -125,7 +118,7 @@ mod cross_join_clause {
       let query = sql::Select::new().from("users").cross_join("addresses").as_string();
       let expected_query = "FROM users CROSS JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
   }
 
@@ -139,7 +132,7 @@ mod cross_join_clause {
       let query = sql::Update::new().cross_join("addresses").as_string();
       let expected_query = "CROSS JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -153,7 +146,7 @@ mod cross_join_clause {
         CROSS JOIN orders\
       ";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -165,7 +158,7 @@ mod cross_join_clause {
         .as_string();
       let expected_query = "CROSS JOIN orders";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -173,7 +166,7 @@ mod cross_join_clause {
       let query = sql::Update::new().cross_join("  orders  ").as_string();
       let expected_query = "CROSS JOIN orders";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -184,7 +177,7 @@ mod cross_join_clause {
         .as_string();
       let expected_query = "CROSS JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -192,7 +185,7 @@ mod cross_join_clause {
       let query = sql::Update::new().from("users").cross_join("addresses").as_string();
       let expected_query = "FROM users CROSS JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
   }
 }
@@ -209,7 +202,7 @@ mod inner_join_clause {
         .as_string();
       let expected_query = "INNER JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -223,7 +216,7 @@ mod inner_join_clause {
         INNER JOIN orders ON users.login = orders.login\
       ";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -235,7 +228,7 @@ mod inner_join_clause {
         .as_string();
       let expected_query = "INNER JOIN orders ON users.login = orders.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -243,7 +236,7 @@ mod inner_join_clause {
       let query = sql::Select::new().inner_join("  orders  ").as_string();
       let expected_query = "INNER JOIN orders";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -254,7 +247,7 @@ mod inner_join_clause {
         .as_string();
       let expected_query = "INNER JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -265,7 +258,7 @@ mod inner_join_clause {
         .as_string();
       let expected_query = "FROM users INNER JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
   }
 
@@ -281,7 +274,7 @@ mod inner_join_clause {
         .as_string();
       let expected_query = "INNER JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -295,7 +288,7 @@ mod inner_join_clause {
         INNER JOIN orders ON users.login = orders.login\
       ";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -307,7 +300,7 @@ mod inner_join_clause {
         .as_string();
       let expected_query = "INNER JOIN orders ON users.login = orders.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -315,7 +308,7 @@ mod inner_join_clause {
       let query = sql::Update::new().inner_join("  orders  ").as_string();
       let expected_query = "INNER JOIN orders";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -326,7 +319,7 @@ mod inner_join_clause {
         .as_string();
       let expected_query = "INNER JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -337,7 +330,7 @@ mod inner_join_clause {
         .as_string();
       let expected_query = "FROM users INNER JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
   }
 }
@@ -354,7 +347,7 @@ mod left_join_clause {
         .as_string();
       let expected_query = "LEFT JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -368,7 +361,7 @@ mod left_join_clause {
         LEFT JOIN orders ON users.login = orders.login\
       ";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -380,7 +373,7 @@ mod left_join_clause {
         .as_string();
       let expected_query = "LEFT JOIN orders ON users.login = orders.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -388,7 +381,7 @@ mod left_join_clause {
       let query = sql::Select::new().left_join("  orders  ").as_string();
       let expected_query = "LEFT JOIN orders";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -399,7 +392,7 @@ mod left_join_clause {
         .as_string();
       let expected_query = "LEFT JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -410,7 +403,7 @@ mod left_join_clause {
         .as_string();
       let expected_query = "FROM users LEFT JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
   }
 
@@ -426,7 +419,7 @@ mod left_join_clause {
         .as_string();
       let expected_query = "LEFT JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -440,7 +433,7 @@ mod left_join_clause {
         LEFT JOIN orders ON users.login = orders.login\
       ";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -452,7 +445,7 @@ mod left_join_clause {
         .as_string();
       let expected_query = "LEFT JOIN orders ON users.login = orders.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -460,7 +453,7 @@ mod left_join_clause {
       let query = sql::Update::new().left_join("  orders  ").as_string();
       let expected_query = "LEFT JOIN orders";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -471,7 +464,7 @@ mod left_join_clause {
         .as_string();
       let expected_query = "LEFT JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -482,7 +475,7 @@ mod left_join_clause {
         .as_string();
       let expected_query = "FROM users LEFT JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
   }
 }
@@ -499,7 +492,7 @@ mod right_join_clause {
         .as_string();
       let expected_query = "RIGHT JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -513,7 +506,7 @@ mod right_join_clause {
         RIGHT JOIN orders ON users.login = orders.login\
       ";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -525,7 +518,7 @@ mod right_join_clause {
         .as_string();
       let expected_query = "RIGHT JOIN orders ON users.login = orders.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -533,7 +526,7 @@ mod right_join_clause {
       let query = sql::Select::new().right_join("  orders  ").as_string();
       let expected_query = "RIGHT JOIN orders";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -544,7 +537,7 @@ mod right_join_clause {
         .as_string();
       let expected_query = "RIGHT JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -555,7 +548,7 @@ mod right_join_clause {
         .as_string();
       let expected_query = "FROM users RIGHT JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
   }
 
@@ -571,7 +564,7 @@ mod right_join_clause {
         .as_string();
       let expected_query = "RIGHT JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -585,7 +578,7 @@ mod right_join_clause {
         RIGHT JOIN orders ON users.login = orders.login\
       ";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -597,7 +590,7 @@ mod right_join_clause {
         .as_string();
       let expected_query = "RIGHT JOIN orders ON users.login = orders.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -605,7 +598,7 @@ mod right_join_clause {
       let query = sql::Update::new().right_join("  orders  ").as_string();
       let expected_query = "RIGHT JOIN orders";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -616,7 +609,7 @@ mod right_join_clause {
         .as_string();
       let expected_query = "RIGHT JOIN addresses";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
 
     #[test]
@@ -627,7 +620,7 @@ mod right_join_clause {
         .as_string();
       let expected_query = "FROM users RIGHT JOIN addresses ON users.login = addresses.login";
 
-      assert_eq!(query, expected_query);
+      assert_eq!(expected_query, query);
     }
   }
 }
