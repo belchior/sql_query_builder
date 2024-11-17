@@ -11,7 +11,7 @@ mod builder_features {
     let query = delete.as_string();
     let expected_query = "DELETE FROM users WHERE login = 'foo'";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -26,7 +26,7 @@ mod builder_features {
     let expected_query = "DELETE FROM users WHERE name = 'Foo' AND login = 'foo'";
     let query = delete.as_string();
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -73,7 +73,7 @@ mod builder_features {
     let query = delete.as_string();
     let expected_query = "DELETE FROM users WHERE name = 'Bar' AND login = 'bar'";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -107,7 +107,7 @@ mod builder_features {
         AND created_at::date = current_date\
     ";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -122,7 +122,7 @@ mod builder_features {
       WHERE users.login = $1\
     ";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 }
 
@@ -135,7 +135,7 @@ mod builder_methods {
     let query = sql::Delete::new().as_string();
     let expected_query = "";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -143,7 +143,7 @@ mod builder_methods {
     let query = sql::Delete::new().delete_from("users").debug().as_string();
     let expected_query = "DELETE FROM users";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -151,7 +151,7 @@ mod builder_methods {
     let query = sql::Delete::new().as_string();
     let expected_query = "";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -159,7 +159,7 @@ mod builder_methods {
     let query = sql::Delete::new().delete_from("users").print().as_string();
     let expected_query = "DELETE FROM users";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -167,7 +167,7 @@ mod builder_methods {
     let query = sql::Delete::new().raw("delete from addresses").as_string();
     let expected_query = "delete from addresses";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -178,7 +178,7 @@ mod builder_methods {
       .as_string();
     let expected_query = "delete from addresses where city = 'Foo'";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -190,7 +190,7 @@ mod builder_methods {
       .as_string();
     let expected_query = "delete from addresses";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -201,7 +201,7 @@ mod builder_methods {
       .as_string();
     let expected_query = "delete from addresses WHERE country = 'Bar'";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -209,7 +209,7 @@ mod builder_methods {
     let query = sql::Delete::new().raw("  delete from users  ").as_string();
     let expected_query = "delete from users";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -220,17 +220,18 @@ mod builder_methods {
       .as_string();
     let expected_query = "delete from users";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
   fn method_raw_after_should_trim_space_of_the_argument() {
     let query = sql::Delete::new()
+      .delete_from("users")
       .raw_after(sql::DeleteClause::DeleteFrom, "  where name = 'Bar'  ")
       .as_string();
-    let expected_query = "where name = 'Bar'";
+    let expected_query = "DELETE FROM users where name = 'Bar'";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -240,6 +241,165 @@ mod builder_methods {
       .as_string();
     let expected_query = "where name = 'Bar'";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
+  }
+}
+
+mod delete_from_method {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_delete_should_add_a_delete_clause() {
+    let query = sql::Delete::new().delete_from("users").as_string();
+    let expected_query = "DELETE FROM users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_delete_should_override_value_on_consecutive_calls() {
+    let query = sql::Delete::new()
+      .delete_from("users")
+      .delete_from("orders")
+      .as_string();
+    let expected_query = "DELETE FROM orders";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_delete_should_trim_space_of_the_argument() {
+    let query = sql::Delete::new().delete_from("  orders  ").as_string();
+    let expected_query = "DELETE FROM orders";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_delete_clause() {
+    let query = sql::Delete::new()
+      .raw_before(sql::DeleteClause::DeleteFrom, "/* delete users */")
+      .delete_from("users")
+      .as_string();
+    let expected_query = "/* delete users */ DELETE FROM users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_delete_clause() {
+    let query = sql::Delete::new()
+      .delete_from("users")
+      .raw_after(sql::DeleteClause::DeleteFrom, "where login = 'foo'")
+      .as_string();
+    let expected_query = "DELETE FROM users where login = 'foo'";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(feature = "mysql")]
+mod delete_method {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_delete_should_add_the_delete_clause() {
+    let query = sql::Delete::new().delete("users").as_string();
+    let expected_query = "DELETE users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_delete_should_accumulate_values_on_consecutive_calls() {
+    let query = sql::Delete::new().delete("users").delete("employees").as_string();
+    let expected_query = "DELETE users, employees";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_delete_should_not_accumulate_values_when_table_name_is_empty() {
+    let query = sql::Delete::new().delete("").delete("users").delete("").as_string();
+    let expected_query = "DELETE users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_delete_should_trim_space_of_the_argument() {
+    let query = sql::Delete::new().delete("  users  ").as_string();
+    let expected_query = "DELETE users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_delete_should_not_accumulate_arguments_with_the_same_content() {
+    let query = sql::Delete::new().delete("employees").delete("employees").as_string();
+    let expected_query = "DELETE employees";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_delete_clause() {
+    let query = sql::Delete::new()
+      .raw_before(sql::DeleteClause::Delete, "/* uncommon parameter */")
+      .delete("orders")
+      .as_string();
+    let expected_query = "/* uncommon parameter */ DELETE orders";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_delete_clause() {
+    let query = sql::Delete::new()
+      .delete("LOW_PRIORITY")
+      .raw_after(sql::DeleteClause::Delete, "FROM users")
+      .as_string();
+    let expected_query = "DELETE LOW_PRIORITY FROM users";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(feature = "mysql")]
+mod relation_between_delete_and_from {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn when_delete_from_method_was_called_with_delete_method_the_values_of_delete_method_should_be_preserved() {
+    let query = sql::Delete::new().delete("quick").delete_from("users").as_string();
+    let expected_query = "DELETE quick FROM users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn when_delete_from_method_was_called_with_from_method_the_values_both_methods_should_be_preserved() {
+    // the value of delete_from should be concatenated first
+    let query = sql::Delete::new().from("t1").delete_from("t2").from("t3").as_string();
+    let expected_query = "DELETE FROM t2, t1, t3";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn when_delete_from_method_was_called_with_delete_and_from_method_the_values_of_all_methods_should_be_preserved() {
+    // the value of delete_from should be concatenated first
+    let query = sql::Delete::new()
+      .delete("low_priority")
+      .from("t1")
+      .delete_from("t2")
+      .from("t3")
+      .as_string();
+    let expected_query = "DELETE low_priority FROM t2, t1, t3";
+
+    assert_eq!(expected_query, query);
   }
 }
