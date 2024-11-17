@@ -21,7 +21,7 @@ impl Delete {
   ///   .as_string();
   ///
   /// # let expected = "DELETE FROM users WHERE id = $1";
-  /// # assert_eq!(query, expected);
+  /// # assert_eq!(expected, query);
   /// ```
   ///
   /// Output
@@ -41,11 +41,11 @@ impl Delete {
   ///
   /// ```
   /// # use sql_query_builder as sql;
-  /// let delete_query = sql::Delete::new()
+  /// let query = sql::Delete::new()
   ///   .delete_from("users")
   ///   .where_clause("login = 'foo'")
-  ///   .debug()
   ///   .where_clause("name = 'Foo'")
+  ///   .debug()
   ///   .as_string();
   /// ```
   ///
@@ -54,7 +54,9 @@ impl Delete {
   /// ```sql
   /// -- ------------------------------------------------------------------------------
   /// DELETE FROM users
-  /// WHERE login = 'foo'
+  /// WHERE
+  ///   login = 'foo'
+  ///   AND name = 'Foo'
   /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn debug(self) -> Self {
@@ -63,7 +65,7 @@ impl Delete {
     self
   }
 
-  /// The `delete` clause. This method overrides the previous value
+  /// The `delete` and `from` clauses. This method overrides the previous value
   ///
   /// # Example
   ///
@@ -73,17 +75,23 @@ impl Delete {
   ///   .delete_from("orders");
   /// #
   /// # let expected = "DELETE FROM orders";
-  /// # assert_eq!(delete.to_string(), expected);
+  /// # assert_eq!(expected, delete.to_string());
   ///
   /// let delete = sql::Delete::new()
   ///   .delete_from("addresses")
   ///   .delete_from("orders");
   ///
   /// # let expected = "DELETE FROM orders";
-  /// # assert_eq!(delete.to_string(), expected);
+  /// # assert_eq!(expected, delete.to_string());
   /// ```
-  pub fn delete_from(mut self, table_name: &str) -> Self {
-    self._delete_from = table_name.trim().to_string();
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// DELETE FROM orders
+  /// ```
+  pub fn delete_from(mut self, table: &str) -> Self {
+    self._delete_from = table.trim().to_string();
     self
   }
 
@@ -108,13 +116,13 @@ impl Delete {
   /// # use sql_query_builder as sql;
   /// let raw_query = "delete from users";
   ///
-  /// let delete_query = sql::Delete::new()
+  /// let query = sql::Delete::new()
   ///   .raw(raw_query)
   ///   .where_clause("login = 'foo'")
   ///   .as_string();
   ///
   /// # let expected = "delete from users WHERE login = 'foo'";
-  /// # assert_eq!(delete_query, expected);
+  /// # assert_eq!(expected, query);
   /// ```
   ///
   /// Output
@@ -135,13 +143,13 @@ impl Delete {
   /// # use sql_query_builder as sql;
   /// let raw = "where name = 'Foo'";
   ///
-  /// let delete_query = sql::Delete::new()
+  /// let query = sql::Delete::new()
   ///   .delete_from("users")
   ///   .raw_after(sql::DeleteClause::DeleteFrom, raw)
   ///   .as_string();
   ///
   /// # let expected = "DELETE FROM users where name = 'Foo'";
-  /// # assert_eq!(delete_query, expected);
+  /// # assert_eq!(expected, query);
   /// ```
   ///
   /// Output
@@ -162,13 +170,13 @@ impl Delete {
   /// # use sql_query_builder as sql;
   /// let raw = "delete from users";
   ///
-  /// let delete_query = sql::Delete::new()
+  /// let query = sql::Delete::new()
   ///   .raw_before(sql::DeleteClause::Where, raw)
   ///   .where_clause("name = 'Bar'")
   ///   .as_string();
   ///
   /// # let expected = "delete from users WHERE name = 'Bar'";
-  /// # assert_eq!(delete_query, expected);
+  /// # assert_eq!(expected, query);
   /// ```
   ///
   /// Output
@@ -187,14 +195,14 @@ impl Delete {
   ///
   /// ```
   /// # use sql_query_builder as sql;
-  /// let delete_query = sql::Delete::new()
+  /// let query = sql::Delete::new()
   ///   .where_clause("login = $1")
   ///   .where_and("product_id = $2")
   ///   .where_and("created_at >= current_date")
   ///   .as_string();
   ///
   /// # let expected = "WHERE login = $1 AND product_id = $2 AND created_at >= current_date";
-  /// # assert_eq!(delete_query, expected);
+  /// # assert_eq!(expected, query);
   /// ```
   ///
   /// Outputs
@@ -216,13 +224,13 @@ impl Delete {
   ///
   /// ```
   /// # use sql_query_builder as sql;
-  /// let delete_query = sql::Delete::new()
+  /// let query = sql::Delete::new()
   ///   .where_clause("login = $1")
   ///   .where_clause("status = 'deactivated'")
   ///   .as_string();
   ///
   /// # let expected = "WHERE login = $1 AND status = 'deactivated'";
-  /// # assert_eq!(delete_query, expected);
+  /// # assert_eq!(expected, query);
   /// ```
   ///
   /// Outputs
@@ -244,13 +252,13 @@ impl Delete {
   ///
   /// ```
   /// # use sql_query_builder as sql;
-  /// let delete_query = sql::Delete::new()
+  /// let query = sql::Delete::new()
   ///   .where_clause("login = 'foo'")
   ///   .where_or("login = 'bar'")
   ///   .as_string();
   ///
   /// # let expected = "WHERE login = 'foo' OR login = 'bar'";
-  /// # assert_eq!(delete_query, expected);
+  /// # assert_eq!(expected, query);
   /// ```
   ///
   /// Output
@@ -266,11 +274,66 @@ impl Delete {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use crate::behavior::WithQuery;
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 impl WithQuery for Delete {}
+
+#[cfg(any(doc, feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+impl Delete {
+  /// The `with` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let deactivated_users = sql::Select::new()
+  ///   .select("id")
+  ///   .from("users")
+  ///   .where_clause("ative = false");
+  ///
+  /// let delete = sql::Delete::new()
+  ///   .with("deactivated_users", deactivated_users)
+  ///   .delete_from("users")
+  ///   .where_clause("id in (select * from deactivated_users)")
+  ///   .debug();
+  ///
+  /// # let expected = "\
+  /// #   WITH deactivated_users AS (\
+  /// #     SELECT id \
+  /// #     FROM users \
+  /// #     WHERE ative = false\
+  /// #   ) \
+  /// #   DELETE FROM users \
+  /// #   WHERE id in (select * from deactivated_users)\
+  /// # ";
+  /// # assert_eq!(expected, delete.to_string());
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// WITH deactivated_users AS (
+  ///   SELECT id
+  ///   FROM users
+  ///   WHERE ative = false
+  /// )
+  /// DELETE FROM users
+  /// WHERE id in (select * from deactivated_users)
+  /// ```
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+  pub fn with(mut self, name: &str, query: impl WithQuery + 'static + Send + Sync) -> Self {
+    self._with.push((name.trim().to_string(), std::sync::Arc::new(query)));
+    self
+  }
+}
 
 #[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
@@ -290,7 +353,7 @@ impl Delete {
   ///   .returning("login");
   ///
   /// # let expected = "DELETE FROM users RETURNING id, login";
-  /// # assert_eq!(delete.to_string(), expected);
+  /// # assert_eq!(expected, delete.to_string());
   /// # }
   /// ```
   ///
@@ -303,49 +366,333 @@ impl Delete {
     push_unique(&mut self._returning, output_name.trim().to_string());
     self
   }
+}
 
-  /// The `with` clause
+#[cfg(any(doc, feature = "mysql"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+impl Delete {
+  /// The `delete` clause. MySQL allow single and multi-table deletes
   ///
-  /// # Example
+  /// # Single-table delete
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(feature = "mysql")]
   /// # {
   /// # use sql_query_builder as sql;
-  /// let deactivated_users = sql::Select::new().select("id").from("users").where_clause("ative = false");
   /// let delete = sql::Delete::new()
-  ///   .with("deactivated_users", deactivated_users)
-  ///   .delete_from("users")
-  ///   .where_clause("id in (select * from deactivated_users)")
-  ///   .debug();
+  ///   .delete("low_priority")
+  ///   .from("t1")
+  ///   .where_clause("t1.id = '123'");
   ///
-  /// # let expected = "\
-  ///   WITH deactivated_users AS (\
-  ///     SELECT id \
-  ///     FROM users \
-  ///     WHERE ative = false\
-  ///   ) \
-  ///   DELETE FROM users \
-  ///   WHERE id in (select * from deactivated_users)\
-  /// ";
-  /// # assert_eq!(delete.to_string(), expected);
+  /// # let expected = "DELETE low_priority FROM t1 WHERE t1.id = '123'";
+  /// # assert_eq!(expected, delete.to_string());
   /// # }
   /// ```
   ///
   /// Output
   ///
   /// ```sql
-  /// WITH deactivated_users AS (
-  ///   SELECT id
-  ///   FROM users
-  ///   WHERE ative = false
-  /// )
-  /// DELETE FROM users
-  /// WHERE id in (select * from deactivated_users)
+  /// DELETE low_priority FROM t1 WHERE t1.id = '123'
   /// ```
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  pub fn with(mut self, name: &str, query: impl WithQuery + 'static + Send + Sync) -> Self {
-    self._with.push((name.trim().to_string(), std::sync::Arc::new(query)));
+  ///
+  /// If the delete clause has no argument you can use the [delete_from](Delete::delete_from) method
+  ///
+  /// # Single-table delete
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let delete = sql::Delete::new()
+  ///   .delete_from("t1")
+  ///   .where_clause("t1.id = '123'");
+  ///
+  /// # let expected = "DELETE FROM t1 WHERE t1.id = '123'";
+  /// # assert_eq!(expected, delete.to_string());
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// DELETE FROM t1 WHERE t1.id = '123'
+  /// ```
+  ///
+  /// # Multi-table deletes
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let delete = sql::Delete::new()
+  ///   .delete("t1")
+  ///   .delete("t2")
+  ///   .from("t1")
+  ///   .inner_join("t2")
+  ///   .inner_join("t3")
+  ///   .where_clause("t1.id = t2.id")
+  ///   .where_and("t2.id = t3.id");
+  ///
+  /// # let expected = "\
+  /// #   DELETE t1, t2 \
+  /// #   FROM t1 \
+  /// #   INNER JOIN t2 \
+  /// #   INNER JOIN t3 \
+  /// #   WHERE \
+  /// #     t1.id = t2.id \
+  /// #     AND t2.id = t3.id\
+  /// # ";
+  /// # assert_eq!(expected, delete.to_string());
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// DELETE t1, t2
+  /// FROM t1
+  /// INNER JOIN t2
+  /// INNER JOIN t3
+  /// WHERE
+  ///   t1.id = t2.id
+  ///   AND t2.id = t3.id
+  /// ```
+  pub fn delete(mut self, table: &str) -> Self {
+    push_unique(&mut self._delete, table.trim().to_string());
+    self
+  }
+
+  /// The `from` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let select = sql::Delete::new()
+  ///   .from("users");
+  ///
+  /// # let expected = "FROM users";
+  /// # assert_eq!(expected, select.as_string());
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// FROM users
+  /// ```
+  pub fn from(mut self, table: &str) -> Self {
+    push_unique(&mut self._from, table.trim().to_string());
+    self
+  }
+
+  /// The `cross join` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::Delete::new()
+  ///   .cross_join("addresses")
+  ///   .as_string();
+  ///
+  /// # let expected = "CROSS JOIN addresses";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// CROSS JOIN addresses
+  /// ```
+  pub fn cross_join(mut self, table: &str) -> Self {
+    let table = table.trim();
+    if table.is_empty() == false {
+      let join = format!("CROSS JOIN {table}");
+      push_unique(&mut self._join, join);
+    }
+    self
+  }
+
+  /// The `inner join` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::Delete::new()
+  ///   .inner_join("addresses on addresses.user_login = users.login")
+  ///   .as_string();
+  ///
+  /// # let expected = "INNER JOIN addresses on addresses.user_login = users.login";
+  /// # assert_eq!(query, expected);
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// INNER JOIN addresses on addresses.user_login = users.login
+  /// ```
+  pub fn inner_join(mut self, table: &str) -> Self {
+    let table = table.trim();
+    if table.is_empty() == false {
+      let join = format!("INNER JOIN {table}");
+      push_unique(&mut self._join, join);
+    }
+    self
+  }
+
+  /// The `left join` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::Delete::new()
+  ///   .left_join("addresses on addresses.user_login = users.login")
+  ///   .as_string();
+  ///
+  /// # let expected = "LEFT JOIN addresses on addresses.user_login = users.login";
+  /// # assert_eq!(query, expected);
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// LEFT JOIN addresses on addresses.user_login = users.login
+  /// ```
+  pub fn left_join(mut self, table: &str) -> Self {
+    let table = table.trim();
+    if table.is_empty() == false {
+      let join = format!("LEFT JOIN {table}");
+      push_unique(&mut self._join, join);
+    }
+    self
+  }
+
+  /// The `right join` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::Delete::new()
+  ///   .right_join("addresses on addresses.user_login = users.login")
+  ///   .as_string();
+  ///
+  /// # let expected = "RIGHT JOIN addresses on addresses.user_login = users.login";
+  /// # assert_eq!(query, expected);
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// RIGHT JOIN addresses on addresses.user_login = users.login
+  /// ```
+  pub fn right_join(mut self, table: &str) -> Self {
+    let table = table.trim();
+    if table.is_empty() == false {
+      let join = format!("RIGHT JOIN {table}");
+      push_unique(&mut self._join, join);
+    }
+    self
+  }
+
+  /// The `limit` clause, this method overrides the previous value
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let delete = sql::Delete::new()
+  ///   .limit("123");
+  ///
+  /// let delete = sql::Delete::new()
+  ///   .limit("1000")
+  ///   .limit("123");
+  ///
+  /// # let expected = "LIMIT 123";
+  /// # assert_eq!(expected, delete.as_string());
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// LIMIT 123
+  /// ```
+  pub fn limit(mut self, num: &str) -> Self {
+    self._limit = num.trim().to_string();
+    self
+  }
+
+  /// The `order by` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let delete = sql::Delete::new()
+  ///   .order_by("created_at asc");
+  ///
+  /// # let expected = "ORDER BY created_at asc";
+  /// # assert_eq!(expected, delete.as_string());
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// ORDER BY created_at asc
+  /// ```
+  pub fn order_by(mut self, column: &str) -> Self {
+    push_unique(&mut self._order_by, column.trim().to_string());
+    self
+  }
+
+  /// The `partition` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::Delete::new()
+  ///   .delete_from("employees")
+  ///   .partition("p1")
+  ///   .to_string();
+  ///
+  /// # let expected = "DELETE FROM employees PARTITION (p1)";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// DELETE FROM employees PARTITION (p1)
+  /// ```
+  pub fn partition(mut self, name: &str) -> Self {
+    push_unique(&mut self._partition, name.trim().to_string());
     self
   }
 }
