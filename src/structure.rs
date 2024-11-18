@@ -1,9 +1,9 @@
 use crate::behavior::TransactionQuery;
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use crate::behavior::WithQuery;
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use std::sync::Arc;
 
 /// Builder to contruct a [AlterTable] command.
@@ -74,7 +74,7 @@ pub enum AlterTableAction {
   RenameTo,
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 pub(crate) enum Combinator {
   Except,
   Intersect,
@@ -211,6 +211,102 @@ pub enum CreateTableParams {
   PrimaryKey,
 }
 
+/// Builder to contruct a [Delete] command.
+///
+/// Basic API
+///
+/// ```
+/// use sql_query_builder as sql;
+///
+/// let query = sql::Delete::new()
+///   .delete_from("users")
+///   .where_clause("id = $1")
+///   .as_string();
+///
+/// # let expected = "DELETE FROM users WHERE id = $1";
+/// # assert_eq!(expected, query);
+/// ```
+///
+/// Output
+///
+/// ```sql
+/// DELETE FROM users WHERE id = $1
+/// ```
+#[derive(Default, Clone)]
+pub struct Delete {
+  pub(crate) _delete_from: String,
+  pub(crate) _raw_after: Vec<(DeleteClause, String)>,
+  pub(crate) _raw_before: Vec<(DeleteClause, String)>,
+  pub(crate) _raw: Vec<String>,
+  pub(crate) _where: Vec<(LogicalOperator, String)>,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+  pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  pub(crate) _returning: Vec<String>,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _delete: Vec<String>,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _from: Vec<String>,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _join: Vec<String>,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _limit: String,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _order_by: Vec<String>,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _partition: Vec<String>,
+}
+
+/// All available clauses to be used in [Delete::raw_before] and [Delete::raw_after] methods on [Delete] builder
+#[derive(PartialEq, Clone)]
+pub enum DeleteClause {
+  DeleteFrom,
+  Where,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  With,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  Returning,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Limit,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Delete,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  From,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Join,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  OrderBy,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Partition,
+}
+
 /// Builder to contruct a [DropIndex] command. Available only for the crate features `postgresql` and `sqlite`.
 ///
 /// Basic API
@@ -286,59 +382,6 @@ pub struct DropTable {
 #[derive(PartialEq, Clone)]
 pub enum DropTableParams {
   DropTable,
-}
-
-/// Builder to contruct a [Delete] command.
-///
-/// Basic API
-///
-/// ```
-/// use sql_query_builder as sql;
-///
-/// let query = sql::Delete::new()
-///   .delete_from("users")
-///   .where_clause("id = $1")
-///   .as_string();
-///
-/// # let expected = "DELETE FROM users WHERE id = $1";
-/// # assert_eq!(expected, query);
-/// ```
-///
-/// Output
-///
-/// ```sql
-/// DELETE FROM users WHERE id = $1
-/// ```
-#[derive(Default, Clone)]
-pub struct Delete {
-  pub(crate) _delete_from: String,
-  pub(crate) _raw_after: Vec<(DeleteClause, String)>,
-  pub(crate) _raw_before: Vec<(DeleteClause, String)>,
-  pub(crate) _raw: Vec<String>,
-  pub(crate) _where: Vec<(LogicalOperator, String)>,
-
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  pub(crate) _returning: Vec<String>,
-
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
-}
-
-/// All available clauses to be used in [Delete::raw_before] and [Delete::raw_after] methods on [Delete] builder
-#[derive(PartialEq, Clone)]
-pub enum DeleteClause {
-  DeleteFrom,
-  Where,
-
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
-  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
-  Returning,
-
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
-  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
-  With,
 }
 
 /// Builder to contruct a [Insert] command.
@@ -489,23 +532,26 @@ pub struct Select {
   pub(crate) _where: Vec<(LogicalOperator, String)>,
   pub(crate) _window: Vec<String>,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _except: Vec<Self>,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _intersect: Vec<Self>,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _limit: String,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _offset: String,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _union: Vec<Self>,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _with: Vec<(String, Arc<dyn WithQuery>)>,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _partition: Vec<String>,
 }
 
 /// All available clauses to be used in [Select::raw_before] and [Select::raw_after] methods on [Select] builder
@@ -522,25 +568,33 @@ pub enum SelectClause {
   Where,
   Window,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   Except,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   Intersect,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   Union,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   With,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Partition,
 }
 
 /// Builder to contruct a [Transaction] block.
