@@ -99,10 +99,10 @@ impl Select {
   ///   .from("users");
   ///
   /// # let expected = "FROM users";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// ```
-  pub fn from(mut self, tables: &str) -> Self {
-    push_unique(&mut self._from, tables.trim().to_string());
+  pub fn from(mut self, table: &str) -> Self {
+    push_unique(&mut self._from, table.trim().to_string());
     self
   }
 
