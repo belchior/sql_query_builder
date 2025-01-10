@@ -2,6 +2,7 @@ use crate::{
   concat::{concat_raw_before_after, Concat},
   fmt,
   structure::{Insert, InsertClause},
+  utils,
 };
 
 impl Concat for Insert {
@@ -22,25 +23,67 @@ impl Concat for Insert {
       );
     }
 
-    #[cfg(not(feature = "sqlite"))]
-    {
-      query = self.concat_insert_into(query, &fmts);
-    }
+    query = self.concat_insert_into(query, &fmts);
+
     #[cfg(feature = "sqlite")]
     {
-      query = ConcatInsert::concat_insert(self, &self._raw_before, &self._raw_after, query, &fmts, &self._insert);
+      query = self.concat_insert_or(query, &fmts);
+      query = self.concat_replace_into(query, &fmts);
     }
 
-    query = self.concat_overriding(query, &fmts);
+    #[cfg(feature = "mysql")]
+    {
+      query = self.concat_insert(query, &fmts);
+      query = self.concat_into(query, &fmts);
+      query = self.concat_partition(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        InsertClause::Partition,
+        &self._partition,
+      );
+      query = self.concat_column(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        InsertClause::Column,
+        &self._column,
+      );
+      query = self.concat_set(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        InsertClause::Set,
+        &self._set,
+      );
+    }
+
+    #[cfg(not(any(feature = "sqlite", feature = "mysql")))]
+    {
+      query = self.concat_overriding(query, &fmts);
+    }
+
+    #[cfg(not(any(feature = "mysql")))]
+    {
+      query = self.concat_default_values(query, &fmts);
+    }
 
     query = self.concat_values(query, &fmts);
 
     query = self.concat_select(query, &fmts);
 
-    query = self.concat_on_conflict(query, &fmts);
+    #[cfg(feature = "mysql")]
+    {
+      query = self.concat_on_duplicate_key_update(query, &fmts);
+    }
 
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
+      query = self.concat_on_conflict(query, &fmts);
+
       query = self.concat_returning(
         &self._raw_before,
         &self._raw_after,
@@ -56,12 +99,11 @@ impl Concat for Insert {
 }
 
 impl Insert {
-  #[cfg(not(feature = "sqlite"))]
   fn concat_insert_into(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._insert_into.is_empty() == false {
-      let insert_into = &self._insert_into;
-      format!("INSERT INTO{space}{insert_into}{space}{lb}")
+      let expression = &self._insert_into;
+      format!("INSERT INTO{space}{expression}{space}{lb}")
     } else {
       "".to_string()
     };
@@ -76,6 +118,7 @@ impl Insert {
     )
   }
 
+  #[cfg(not(any(feature = "sqlite", feature = "mysql")))]
   fn concat_overriding(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = if self._overriding.is_empty() == false {
@@ -91,25 +134,6 @@ impl Insert {
       query,
       fmts,
       InsertClause::Overriding,
-      sql,
-    )
-  }
-
-  fn concat_on_conflict(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._on_conflict.is_empty() == false {
-      let overriding = &self._on_conflict;
-      format!("ON CONFLICT{space}{overriding}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      InsertClause::OnConflict,
       sql,
     )
   }
@@ -133,26 +157,43 @@ impl Insert {
     )
   }
 
-  fn concat_values(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { comma, lb, space, .. } = fmts;
-
-    let (clause, sql) = if self._default_values {
-      (InsertClause::DefaultValues, format!("DEFAULT VALUES{space}{lb}"))
-    } else if self._values.is_empty() == false {
-      let sep = format!("{comma}{lb}");
-      let values = self
-        ._values
-        .iter()
-        .filter(|item| item.is_empty() == false)
-        .map(|item| item.as_str())
-        .collect::<Vec<_>>()
-        .join(&sep);
-      (InsertClause::Values, format!("VALUES{space}{lb}{values}{space}{lb}"))
+  #[cfg(not(feature = "mysql"))]
+  fn concat_default_values(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._default_values {
+      format!("DEFAULT VALUES{space}{lb}")
     } else {
-      (InsertClause::Values, "".to_string())
+      "".to_string()
     };
 
-    concat_raw_before_after(&self._raw_before, &self._raw_after, query, fmts, clause, sql)
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::DefaultValues,
+      sql,
+    )
+  }
+
+  fn concat_values(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { comma, lb, space, .. } = fmts;
+    let sql = if self._values.is_empty() == false {
+      let sep = format!("{comma}{lb}");
+      let values = utils::join(&self._values, &sep);
+      format!("VALUES{space}{lb}{values}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::Values,
+      sql,
+    )
   }
 }
 
@@ -164,8 +205,135 @@ impl ConcatReturning<InsertClause> for Insert {}
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 impl ConcatWith<InsertClause> for Insert {}
 
-#[cfg(feature = "sqlite")]
-use crate::concat::sqlite::ConcatInsert;
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl Insert {
+  fn concat_on_conflict(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._on_conflict.is_empty() == false {
+      let overriding = &self._on_conflict;
+      format!("ON CONFLICT{space}{overriding}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::OnConflict,
+      sql,
+    )
+  }
+}
 
 #[cfg(feature = "sqlite")]
-impl ConcatInsert for Insert {}
+impl Insert {
+  fn concat_insert_or(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._insert_or.is_empty() == false {
+      let expression = &self._insert_or;
+      format!("INSERT OR{space}{expression}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::InsertOr,
+      sql,
+    )
+  }
+
+  fn concat_replace_into(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._replace_into.is_empty() == false {
+      let table_name = &self._replace_into;
+      format!("REPLACE INTO{space}{table_name}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::ReplaceInto,
+      sql,
+    )
+  }
+}
+
+#[cfg(feature = "mysql")]
+use crate::concat::{mysql::ConcatPartition, non_standard::ConcatColumn, sql_standard::ConcatSet};
+
+#[cfg(feature = "mysql")]
+impl ConcatColumn<InsertClause> for Insert {}
+#[cfg(feature = "mysql")]
+impl ConcatPartition<InsertClause> for Insert {}
+#[cfg(feature = "mysql")]
+impl ConcatSet<InsertClause> for Insert {}
+
+#[cfg(feature = "mysql")]
+impl Insert {
+  fn concat_insert(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { space, .. } = fmts;
+    let sql = if self._insert.is_empty() == false {
+      let modifiers = &self._insert;
+      format!("INSERT{space}{modifiers}{space}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::Insert,
+      sql,
+    )
+  }
+
+  fn concat_into(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { space, .. } = fmts;
+    let sql = if self._into.is_empty() == false {
+      let table_name = &self._into;
+      format!("INTO{space}{table_name}{space}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::Into,
+      sql,
+    )
+  }
+
+  fn concat_on_duplicate_key_update(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { comma, lb, space, .. } = fmts;
+    let sql = if self._on_duplicate_key_update.is_empty() == false {
+      let values = utils::join(&self._on_duplicate_key_update, comma);
+      format!("ON DUPLICATE KEY UPDATE{space}{values}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      InsertClause::OnDuplicateKeyUpdate,
+      sql,
+    )
+  }
+}
