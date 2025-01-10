@@ -1,5 +1,5 @@
 #[cfg(feature = "mysql")]
-use crate::{concat::concat_raw_before_after, fmt};
+use crate::{concat::concat_raw_before_after, fmt, utils};
 
 #[cfg(feature = "mysql")]
 pub(crate) trait ConcatPartition<Clause: PartialEq> {
@@ -15,12 +15,7 @@ pub(crate) trait ConcatPartition<Clause: PartialEq> {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
 
     let sql = if items.is_empty() == false {
-      let column_names = items
-        .iter()
-        .filter(|column| column.is_empty() == false)
-        .map(|column| column.as_str())
-        .collect::<Vec<_>>()
-        .join(comma);
+      let column_names = utils::join(items, comma);
 
       if column_names.is_empty() == false {
         format!("PARTITION{space}({column_names}){space}{lb}")
