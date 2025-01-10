@@ -408,9 +408,7 @@ pub enum DropTableParams {
 /// ```
 #[derive(Default, Clone)]
 pub struct Insert {
-  pub(crate) _default_values: bool,
-  pub(crate) _on_conflict: String,
-  pub(crate) _overriding: String,
+  pub(crate) _insert_into: String,
   pub(crate) _raw_after: Vec<(InsertClause, String)>,
   pub(crate) _raw_before: Vec<(InsertClause, String)>,
   pub(crate) _raw: Vec<String>,
@@ -418,25 +416,43 @@ pub struct Insert {
   pub(crate) _values: Vec<String>,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  pub(crate) _on_conflict: String,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _returning: Vec<String>,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
 
-  #[cfg(not(feature = "sqlite"))]
-  pub(crate) _insert_into: String,
+  #[cfg(not(any(feature = "sqlite", feature = "mysql")))]
+  pub(crate) _overriding: String,
 
   #[cfg(feature = "sqlite")]
-  pub(crate) _insert: (InsertVars, String),
-}
+  pub(crate) _insert_or: String,
 
-#[cfg(feature = "sqlite")]
-#[derive(Default, Clone, PartialEq)]
-pub(crate) enum InsertVars {
-  #[default]
-  InsertInto,
-  InsertOr,
-  ReplaceInto,
+  #[cfg(feature = "sqlite")]
+  pub(crate) _replace_into: String,
+
+  #[cfg(not(feature = "mysql"))]
+  pub(crate) _default_values: bool,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _column: Vec<String>,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _insert: String,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _into: String,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _on_duplicate_key_update: Vec<String>,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _partition: Vec<String>,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _set: Vec<String>,
 }
 
 /// All available clauses to be used in [Insert::raw_before] and [Insert::raw_after] methods on [Insert] builder
@@ -466,6 +482,30 @@ pub enum InsertClause {
   #[cfg(feature = "sqlite")]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   ReplaceInto,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Column,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Insert,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Into,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  OnDuplicateKeyUpdate,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Partition,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Set,
 }
 
 #[derive(Clone, PartialEq)]

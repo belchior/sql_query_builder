@@ -1,4 +1,4 @@
-use crate::{concat::concat_raw_before_after, fmt, structure::LogicalOperator};
+use crate::{concat::concat_raw_before_after, fmt, structure::LogicalOperator, utils};
 
 pub(crate) trait ConcatFrom<Clause: PartialEq> {
   fn concat_from(
@@ -12,12 +12,7 @@ pub(crate) trait ConcatFrom<Clause: PartialEq> {
   ) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if items.is_empty() == false {
-      let tables = items
-        .iter()
-        .filter(|item| item.is_empty() == false)
-        .map(|item| item.as_str())
-        .collect::<Vec<_>>()
-        .join(comma);
+      let tables = utils::join(items, comma);
       format!("FROM{space}{tables}{space}{lb}")
     } else {
       "".to_string()
@@ -61,14 +56,31 @@ pub(crate) trait ConcatOrderBy<Clause: PartialEq> {
   ) -> String {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if items.is_empty() == false {
-      let columns = items
-        .iter()
-        .filter(|item| item.is_empty() == false)
-        .map(|item| item.as_str())
-        .collect::<Vec<_>>()
-        .join(comma);
+      let columns = utils::join(items, comma);
 
       format!("ORDER BY{space}{columns}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
+  }
+}
+
+pub(crate) trait ConcatSet<Clause: PartialEq> {
+  fn concat_set(
+    &self,
+    items_raw_before: &Vec<(Clause, String)>,
+    items_raw_after: &Vec<(Clause, String)>,
+    query: String,
+    fmts: &fmt::Formatter,
+    clause: Clause,
+    items: &Vec<String>,
+  ) -> String {
+    let fmt::Formatter { comma, lb, space, .. } = fmts;
+    let sql = if items.is_empty() == false {
+      let values = utils::join(items, comma);
+      format!("SET{space}{values}{space}{lb}")
     } else {
       "".to_string()
     };
