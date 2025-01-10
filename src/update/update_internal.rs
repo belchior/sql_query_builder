@@ -1,7 +1,6 @@
 use crate::{
   concat::{
-    concat_raw_before_after,
-    sql_standard::{ConcatFrom, ConcatJoin, ConcatWhere},
+    sql_standard::{ConcatFrom, ConcatJoin, ConcatSet, ConcatWhere},
     Concat,
   },
   fmt,
@@ -11,6 +10,7 @@ use crate::{
 impl ConcatFrom<UpdateClause> for Update {}
 impl ConcatWhere<UpdateClause> for Update {}
 impl ConcatJoin<UpdateClause> for Update {}
+impl ConcatSet<UpdateClause> for Update {}
 
 impl Concat for Update {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
@@ -40,7 +40,14 @@ impl Concat for Update {
       query = self.concat_update(&self._raw_before, &self._raw_after, query, &fmts, &self._update);
     }
 
-    query = self.concat_set(query, &fmts);
+    query = self.concat_set(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      &fmts,
+      UpdateClause::Set,
+      &self._set,
+    );
 
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
@@ -91,26 +98,6 @@ impl Concat for Update {
   }
 }
 
-impl Update {
-  fn concat_set(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { comma, lb, space, .. } = fmts;
-    let sql = if self._set.is_empty() == false {
-      let values = self
-        ._set
-        .iter()
-        .filter(|item| item.is_empty() == false)
-        .map(|item| item.as_str())
-        .collect::<Vec<_>>()
-        .join(comma);
-      format!("SET{space}{values}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(&self._raw_before, &self._raw_after, query, fmts, UpdateClause::Set, sql)
-  }
-}
-
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 use crate::concat::non_standard::{ConcatReturning, ConcatWith};
 
@@ -124,6 +111,9 @@ use crate::concat::sqlite::ConcatUpdate;
 
 #[cfg(feature = "sqlite")]
 impl ConcatUpdate for Update {}
+
+#[cfg(not(feature = "sqlite"))]
+use crate::concat::concat_raw_before_after;
 
 #[cfg(not(feature = "sqlite"))]
 impl Update {
