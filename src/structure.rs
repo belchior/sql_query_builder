@@ -772,6 +772,12 @@ pub struct Update {
 
   #[cfg(feature = "sqlite")]
   pub(crate) _join: Vec<String>,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _limit: String,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _order_by: Vec<String>,
 }
 
 #[cfg(feature = "sqlite")]
@@ -811,6 +817,14 @@ pub enum UpdateClause {
   #[cfg(feature = "sqlite")]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Join,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  Limit,
+
+  #[cfg(feature = "mysql")]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  OrderBy,
 }
 
 /// Builder to contruct a [Values] command.
