@@ -116,7 +116,7 @@ impl Select {
   ///   .group_by("id");
   ///
   /// # let expected = "GROUP BY id";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// ```
   pub fn group_by(mut self, column: &str) -> Self {
     push_unique(&mut self._group_by, column.trim().to_string());
@@ -280,7 +280,7 @@ impl Select {
   ///   .order_by("login asc");
   ///
   /// # let expected = "SELECT name, login ORDER BY login asc";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// ```
   pub fn order_by(mut self, column: &str) -> Self {
     push_unique(&mut self._order_by, column.trim().to_string());
@@ -397,7 +397,7 @@ impl Select {
   ///   .select("count(id)");
   ///
   /// # let expected = "SELECT count(id)";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// ```
   pub fn select(mut self, column: &str) -> Self {
     push_unique(&mut self._select, column.trim().to_string());
@@ -672,7 +672,7 @@ impl Select {
   ///   .limit("123");
   ///
   /// # let expected = "LIMIT 123";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// # }
   /// ```
   pub fn limit(mut self, num: &str) -> Self {
@@ -696,7 +696,7 @@ impl Select {
   ///   .offset("1500");
   ///
   /// # let expected = "OFFSET 1500";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// # }
   /// ```
   pub fn offset(mut self, num: &str) -> Self {
@@ -774,7 +774,7 @@ impl Select {
   /// #   FROM orders \
   /// #   WHERE owner_login in (select * from logins)\
   /// # ";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// # }
   /// ```
   ///

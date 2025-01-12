@@ -82,6 +82,26 @@ impl Concat for Update {
       &self._where,
     );
 
+    #[cfg(feature = "mysql")]
+    {
+      query = self.concat_order_by(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::OrderBy,
+        &self._order_by,
+      );
+      query = self.concat_limit(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Limit,
+        &self._limit,
+      );
+    }
+
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
       query = self.concat_returning(
@@ -136,3 +156,11 @@ impl Update {
     )
   }
 }
+
+#[cfg(feature = "mysql")]
+use crate::concat::{non_standard::ConcatLimit, sql_standard::ConcatOrderBy};
+
+#[cfg(feature = "mysql")]
+impl ConcatLimit<UpdateClause> for Update {}
+#[cfg(feature = "mysql")]
+impl ConcatOrderBy<UpdateClause> for Update {}
