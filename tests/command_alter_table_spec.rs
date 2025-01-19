@@ -101,19 +101,15 @@ mod builder_features {
       // start respecting the order of the calls
       .add("COLUMN login varchar(40) not null")
       .alter("COLUMN login TYPE varchar(80)")
-      .rename("COLUMN login TO user_login")
       .drop("COLUMN user_login")
       // end respecting the order of the calls
-      .rename_to("films")
       .alter_table("users")
       .as_string();
 
     let expected_query = "\
       ALTER TABLE users \
-      RENAME TO films, \
       ADD COLUMN login varchar(40) not null, \
       ALTER COLUMN login TYPE varchar(80), \
-      RENAME COLUMN login TO user_login, \
       DROP COLUMN user_login\
     ";
 
@@ -548,55 +544,13 @@ mod method_rename {
   }
 
   #[test]
-  fn method_rename_should_accumulate_rename_actions_on_consecutive_calls() {
+  fn method_rename_should_override_on_consecutive_calls() {
     let query = sql::AlterTable::new()
       .rename("COLUMN login TO user_login")
       .rename("COLUMN created TO created_at")
-      .as_string();
-
-    let expected_query = "\
-      RENAME COLUMN login TO user_login, \
-      RENAME COLUMN created TO created_at\
-    ";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_rename_should_not_accumulate_values_when_expression_is_empty() {
-    let query = sql::AlterTable::new()
-      .rename("")
-      .rename("COLUMN created TO created_at")
-      .rename("")
       .as_string();
 
     let expected_query = "RENAME COLUMN created TO created_at";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_rename_should_preserve_the_order_of_the_actions_on_consecutive_calls() {
-    let query = sql::AlterTable::new()
-      .rename("CONSTRAINT age TO birthdate")
-      .rename("COLUMN age TO birthdate")
-      .as_string();
-
-    let expected_query = "\
-      RENAME CONSTRAINT age TO birthdate, \
-      RENAME COLUMN age TO birthdate\
-    ";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_rename_should_not_accumulate_actions_with_the_same_content() {
-    let query = sql::AlterTable::new()
-      .rename("COLUMN login TO user_login")
-      .rename("COLUMN login TO user_login")
-      .as_string();
-    let expected_query = "RENAME COLUMN login TO user_login";
 
     assert_eq!(expected_query, query);
   }

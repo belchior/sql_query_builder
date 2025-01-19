@@ -247,8 +247,7 @@ impl AlterTable {
 #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
 #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
 impl AlterTable {
-  /// Changes the column names or table constraints.
-  /// Multiples call of this method will build the SQL respecting the order of the calls
+  /// Changes the column name or table constraints, this method overrides the previous value
   ///
   /// ### Example
   ///
@@ -271,13 +270,12 @@ impl AlterTable {
   /// ```sql
   /// ALTER TABLE users RENAME COLUMN address TO city
   /// ```
-  pub fn rename(mut self, rename_exp: &str) -> Self {
-    let action = AlterTableActionItem(AlterTableOrderedAction::Rename, rename_exp.trim().to_string());
-    push_unique(&mut self._ordered_actions, action);
+  pub fn rename(mut self, action: &str) -> Self {
+    self._rename = action.trim().to_string();
     self
   }
 
-  /// Changes the name of the table
+  /// Changes the name of the table, this method overrides the previous value
   ///
   /// ### Example
   ///

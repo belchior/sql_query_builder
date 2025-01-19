@@ -13,6 +13,7 @@ impl Concat for AlterTable {
 
     #[cfg(any(feature = "postgresql", feature = "sqlite"))]
     {
+      query = self.concat_rename(query, &fmts);
       query = self.concat_rename_to(query, &fmts);
     }
     query = self.concat_ordered_actions(query, &fmts);
@@ -59,8 +60,6 @@ impl AlterTable {
         match action {
           AlterTableOrderedAction::Add => format!("{lb}{indent}ADD {content}"),
           AlterTableOrderedAction::Drop => format!("{lb}{indent}DROP {content}"),
-          #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-          AlterTableOrderedAction::Rename => format!("{lb}{indent}RENAME {content}"),
           #[cfg(any(feature = "postgresql"))]
           AlterTableOrderedAction::Alter => format!("{lb}{indent}ALTER {content}"),
         }
@@ -70,6 +69,27 @@ impl AlterTable {
       .to_string();
 
     format!("{query}{actions}{space}")
+  }
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  fn concat_rename(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if self._rename.is_empty() == false {
+      let action = &self._rename;
+
+      format!("RENAME{space}{action}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      AlterTableAction::Rename,
+      sql,
+    )
   }
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]

@@ -44,6 +44,11 @@ pub struct AlterTable {
   pub(crate) _raw_after: Vec<(AlterTableAction, String)>,
   pub(crate) _raw_before: Vec<(AlterTableAction, String)>,
   pub(crate) _raw: Vec<String>,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  pub(crate) _rename: String,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _rename_to: String,
 }
 
@@ -56,9 +61,6 @@ pub(crate) enum AlterTableOrderedAction {
   Add,
   Drop,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  Rename,
-
   #[cfg(any(feature = "postgresql"))]
   Alter,
 }
@@ -67,6 +69,11 @@ pub(crate) enum AlterTableOrderedAction {
 #[derive(PartialEq, Clone)]
 pub enum AlterTableAction {
   AlterTable,
+
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  Rename,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
