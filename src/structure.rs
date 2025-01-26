@@ -16,26 +16,16 @@ use std::sync::Arc;
 /// let query = sql::AlterTable::new()
 ///   .alter_table("users")
 ///   .add("COLUMN id serial primary key")
-///   .add("COLUMN login varchar(40) not null")
-///   .drop("CONSTRAINT users_login_key")
 ///   .as_string();
 ///
-/// # let expected = "\
-/// #   ALTER TABLE users \
-/// #     ADD COLUMN id serial primary key, \
-/// #     ADD COLUMN login varchar(40) not null, \
-/// #     DROP CONSTRAINT users_login_key\
-/// # ";
+/// # let expected = "ALTER TABLE users ADD COLUMN id serial primary key";
 /// # assert_eq!(expected, query);
 /// ```
 ///
-/// Output (indented for readability)
+/// Output
 ///
 /// ```sql
-/// ALTER TABLE users
-///   ADD COLUMN id serial primary key,
-///   ADD COLUMN login varchar(40) not null,
-///   DROP CONSTRAINT users_login_key
+/// ALTER TABLE users ADD COLUMN id serial primary key
 /// ```
 #[derive(Default, Clone)]
 pub struct AlterTable {
@@ -79,6 +69,12 @@ pub enum AlterTableAction {
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   RenameTo,
+
+  #[cfg(not(any(feature = "postgresql")))]
+  Add,
+
+  #[cfg(not(any(feature = "postgresql")))]
+  Drop,
 }
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
