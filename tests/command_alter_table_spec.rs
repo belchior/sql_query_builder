@@ -575,6 +575,88 @@ mod method_drop {
 
     assert_eq!(expected_query, query);
   }
+
+  #[cfg(not(any(feature = "postgresql")))]
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_add_action() {
+    let query = sql::AlterTable::new()
+      .raw_before(sql::AlterTableAction::Add, "alter table users")
+      .add("COLUMN login")
+      .as_string();
+    let expected_query = "alter table users ADD COLUMN login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(not(any(feature = "postgresql")))]
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_add_action() {
+    let query = sql::AlterTable::new()
+      .add("COLUMN login")
+      .raw_after(sql::AlterTableAction::Add, "/* uncommon paramenter */")
+      .as_string();
+    let expected_query = "ADD COLUMN login /* uncommon paramenter */";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(not(any(feature = "postgresql")))]
+mod method_drop {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_drop_should_define_a_drop_action() {
+    let query = sql::AlterTable::new().drop("COLUMN login").as_string();
+    let expected_query = "DROP COLUMN login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_drop_should_override_the_current_value() {
+    let query = sql::AlterTable::new()
+      .drop("COLUMN login")
+      .drop("COLUMN created_at")
+      .as_string();
+
+    let expected_query = "DROP COLUMN created_at";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_drop_should_trim_space_of_the_argument() {
+    let query = sql::AlterTable::new().drop("   COLUMN login  ").as_string();
+    let expected_query = "DROP COLUMN login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(not(any(feature = "postgresql")))]
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_drop_action() {
+    let query = sql::AlterTable::new()
+      .raw_before(sql::AlterTableAction::Drop, "alter table users")
+      .drop("COLUMN login")
+      .as_string();
+    let expected_query = "alter table users DROP COLUMN login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(not(any(feature = "postgresql")))]
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_drop_action() {
+    let query = sql::AlterTable::new()
+      .drop("COLUMN login")
+      .raw_after(sql::AlterTableAction::Drop, "/* uncommon paramenter */")
+      .as_string();
+    let expected_query = "DROP COLUMN login /* uncommon paramenter */";
+
+    assert_eq!(expected_query, query);
+  }
 }
 
 #[cfg(any(feature = "postgresql"))]
