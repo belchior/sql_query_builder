@@ -63,13 +63,7 @@ mod builder_features {
     }
 
     fn add_columns(alter_table: sql::AlterTable) -> sql::AlterTable {
-      alter_table.add("column id serial").add("column login varchar(40)")
-    }
-
-    fn add_constraints(alter_table: sql::AlterTable) -> sql::AlterTable {
-      alter_table
-        .add("constraint users_id_key primary key(id)")
-        .add("constraint users_login_key unique(login)")
+      alter_table.add("column id serial")
     }
 
     fn as_string(alter_table: sql::AlterTable) -> String {
@@ -79,16 +73,12 @@ mod builder_features {
     let query = Some(sql::AlterTable::new())
       .map(alter_table)
       .map(add_columns)
-      .map(add_constraints)
       .map(as_string)
       .unwrap();
 
     let expected_query = "\
       ALTER TABLE users \
-        ADD column id serial, \
-        ADD column login varchar(40), \
-        ADD constraint users_id_key primary key(id), \
-        ADD constraint users_login_key unique(login)\
+        ADD column id serial\
     ";
 
     assert_eq!(expected_query, query);
@@ -141,18 +131,12 @@ mod builder_methods {
   fn method_debug_should_print_at_console_in_a_human_readable_format() {
     let query = sql::AlterTable::new()
       .alter_table("users")
-      .add("column id serial not null")
-      .add("column login varchar(40) not null")
-      .add("constraint users_id_key primary key(id)")
       .add("constraint users_login_key unique(login)")
       .debug()
       .as_string();
 
     let expected_query = "\
       ALTER TABLE users \
-        ADD column id serial not null, \
-        ADD column login varchar(40) not null, \
-        ADD constraint users_id_key primary key(id), \
         ADD constraint users_login_key unique(login)\
     ";
 
@@ -163,18 +147,12 @@ mod builder_methods {
   fn method_print_should_print_in_one_line_the_current_state_of_builder() {
     let query = sql::AlterTable::new()
       .alter_table("users")
-      .add("column id serial not null")
-      .add("column login varchar(40) not null")
-      .add("constraint users_id_key primary key(id)")
       .add("constraint users_login_key unique(login)")
       .print()
       .as_string();
 
     let expected_query = "\
       ALTER TABLE users \
-        ADD column id serial not null, \
-        ADD column login varchar(40) not null, \
-        ADD constraint users_id_key primary key(id), \
         ADD constraint users_login_key unique(login)\
     ";
 
@@ -265,6 +243,110 @@ mod builder_methods {
   }
 }
 
+mod method_alter_table {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_alter_table_should_add_the_alter_table_signature() {
+    let query = sql::AlterTable::new().alter_table("films").as_string();
+    let expected_query = "ALTER TABLE films";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_alter_table_should_override_the_current_value() {
+    let query = sql::AlterTable::new()
+      .alter_table("films")
+      .alter_table("tv_shows")
+      .as_string();
+
+    let expected_query = "ALTER TABLE tv_shows";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_alter_table_should_trim_space_of_the_argument() {
+    let query = sql::AlterTable::new().alter_table("   films   ").as_string();
+    let expected_query = "ALTER TABLE films";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+mod method_rename {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_rename_should_define_a_rename_action() {
+    let query = sql::AlterTable::new().rename("COLUMN login TO user_login").as_string();
+    let expected_query = "RENAME COLUMN login TO user_login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_rename_should_override_on_consecutive_calls() {
+    let query = sql::AlterTable::new()
+      .rename("COLUMN login TO user_login")
+      .rename("COLUMN created TO created_at")
+      .as_string();
+
+    let expected_query = "RENAME COLUMN created TO created_at";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_rename_should_trim_space_of_the_argument() {
+    let query = sql::AlterTable::new()
+      .rename("   COLUMN login TO user_login  ")
+      .as_string();
+    let expected_query = "RENAME COLUMN login TO user_login";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+mod method_rename_to {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_rename_to_should_add_the_rename_to_action() {
+    let query = sql::AlterTable::new().rename_to("films").as_string();
+    let expected_query = "RENAME TO films";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_rename_to_should_override_the_current_value() {
+    let query = sql::AlterTable::new()
+      .rename_to("films")
+      .rename_to("tv_shows")
+      .as_string();
+
+    let expected_query = "RENAME TO tv_shows";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_rename_to_should_trim_space_of_the_argument() {
+    let query = sql::AlterTable::new().rename_to("   films   ").as_string();
+    let expected_query = "RENAME TO films";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(not(any(feature = "postgresql")))]
 mod method_add {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -280,26 +362,10 @@ mod method_add {
   }
 
   #[test]
-  fn method_add_should_accumulate_add_actions_on_consecutive_calls() {
+  fn method_add_should_override_the_current_value() {
     let query = sql::AlterTable::new()
       .add("COLUMN login varchar(40) not null")
       .add("COLUMN created_at timestamp not null")
-      .as_string();
-
-    let expected_query = "\
-      ADD COLUMN login varchar(40) not null, \
-      ADD COLUMN created_at timestamp not null\
-    ";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_add_should_not_accumulate_values_when_expression_is_empty() {
-    let query = sql::AlterTable::new()
-      .add("")
-      .add("COLUMN created_at timestamp not null")
-      .add("")
       .as_string();
 
     let expected_query = "ADD COLUMN created_at timestamp not null";
@@ -308,35 +374,91 @@ mod method_add {
   }
 
   #[test]
-  fn method_add_should_preserve_the_order_of_the_actions_on_consecutive_calls() {
-    let query = sql::AlterTable::new()
-      .add("CONSTRAINT age check(age >= 0)")
-      .add("COLUMN age int not null")
-      .as_string();
-
-    let expected_query = "\
-      ADD CONSTRAINT age check(age >= 0), \
-      ADD COLUMN age int not null\
-    ";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_add_should_not_accumulate_actions_with_the_same_content() {
-    let query = sql::AlterTable::new()
-      .add("COLUMN login varchar(40) not null")
-      .add("COLUMN login varchar(40) not null")
-      .as_string();
-    let expected_query = "ADD COLUMN login varchar(40) not null";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
   fn method_add_should_trim_space_of_the_argument() {
     let query = sql::AlterTable::new().add("   COLUMN login  ").as_string();
     let expected_query = "ADD COLUMN login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(not(any(feature = "postgresql")))]
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_add_action() {
+    let query = sql::AlterTable::new()
+      .raw_before(sql::AlterTableAction::Add, "alter table users")
+      .add("COLUMN login")
+      .as_string();
+    let expected_query = "alter table users ADD COLUMN login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(not(any(feature = "postgresql")))]
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_add_action() {
+    let query = sql::AlterTable::new()
+      .add("COLUMN login")
+      .raw_after(sql::AlterTableAction::Add, "/* uncommon paramenter */")
+      .as_string();
+    let expected_query = "ADD COLUMN login /* uncommon paramenter */";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(not(any(feature = "postgresql")))]
+mod method_drop {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_drop_should_define_a_drop_action() {
+    let query = sql::AlterTable::new().drop("COLUMN login").as_string();
+    let expected_query = "DROP COLUMN login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_drop_should_override_the_current_value() {
+    let query = sql::AlterTable::new()
+      .drop("COLUMN login")
+      .drop("COLUMN created_at")
+      .as_string();
+
+    let expected_query = "DROP COLUMN created_at";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_drop_should_trim_space_of_the_argument() {
+    let query = sql::AlterTable::new().drop("   COLUMN login  ").as_string();
+    let expected_query = "DROP COLUMN login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(not(any(feature = "postgresql")))]
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_drop_action() {
+    let query = sql::AlterTable::new()
+      .raw_before(sql::AlterTableAction::Drop, "alter table users")
+      .drop("COLUMN login")
+      .as_string();
+    let expected_query = "alter table users DROP COLUMN login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(not(any(feature = "postgresql")))]
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_drop_action() {
+    let query = sql::AlterTable::new()
+      .drop("COLUMN login")
+      .raw_after(sql::AlterTableAction::Drop, "/* uncommon paramenter */")
+      .as_string();
+    let expected_query = "DROP COLUMN login /* uncommon paramenter */";
 
     assert_eq!(expected_query, query);
   }
@@ -422,50 +544,70 @@ mod method_alter {
   }
 }
 
-mod method_alter_table {
+#[cfg(feature = "postgresql")]
+mod method_add_postgresql {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
 
   #[test]
-  fn method_alter_table_should_add_the_alter_table_signature() {
-    let query = sql::AlterTable::new().alter_table("films").as_string();
-    let expected_query = "ALTER TABLE films";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_alter_table_should_override_the_current_value() {
+  fn method_add_should_accumulate_add_actions_on_consecutive_calls() {
     let query = sql::AlterTable::new()
-      .alter_table("films")
-      .alter_table("tv_shows")
+      .add("COLUMN login varchar(40) not null")
+      .add("COLUMN created_at timestamp not null")
       .as_string();
 
-    let expected_query = "ALTER TABLE tv_shows";
+    let expected_query = "\
+      ADD COLUMN login varchar(40) not null, \
+      ADD COLUMN created_at timestamp not null\
+    ";
 
     assert_eq!(expected_query, query);
   }
 
   #[test]
-  fn method_alter_table_should_trim_space_of_the_argument() {
-    let query = sql::AlterTable::new().alter_table("   films   ").as_string();
-    let expected_query = "ALTER TABLE films";
+  fn method_add_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::AlterTable::new()
+      .add("")
+      .add("COLUMN created_at timestamp not null")
+      .add("")
+      .as_string();
+
+    let expected_query = "ADD COLUMN created_at timestamp not null";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_add_should_preserve_the_order_of_the_actions_on_consecutive_calls() {
+    let query = sql::AlterTable::new()
+      .add("CONSTRAINT age check(age >= 0)")
+      .add("COLUMN age int not null")
+      .as_string();
+
+    let expected_query = "\
+      ADD CONSTRAINT age check(age >= 0), \
+      ADD COLUMN age int not null\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_add_should_not_accumulate_actions_with_the_same_content() {
+    let query = sql::AlterTable::new()
+      .add("COLUMN login varchar(40) not null")
+      .add("COLUMN login varchar(40) not null")
+      .as_string();
+    let expected_query = "ADD COLUMN login varchar(40) not null";
 
     assert_eq!(expected_query, query);
   }
 }
 
-mod method_drop {
+#[cfg(feature = "postgresql")]
+mod method_drop_postgresql {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
-
-  #[test]
-  fn method_drop_should_define_a_drop_action() {
-    let query = sql::AlterTable::new().drop("COLUMN login").as_string();
-    let expected_query = "DROP COLUMN login";
-
-    assert_eq!(expected_query, query);
-  }
 
   #[test]
   fn method_drop_should_accumulate_drop_actions_on_consecutive_calls() {
@@ -517,84 +659,6 @@ mod method_drop {
       .drop("COLUMN login")
       .as_string();
     let expected_query = "DROP COLUMN login";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_drop_should_trim_space_of_the_argument() {
-    let query = sql::AlterTable::new().drop("   COLUMN login  ").as_string();
-    let expected_query = "DROP COLUMN login";
-
-    assert_eq!(expected_query, query);
-  }
-}
-
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-mod method_rename {
-  use pretty_assertions::assert_eq;
-  use sql_query_builder as sql;
-
-  #[test]
-  fn method_rename_should_define_a_rename_action() {
-    let query = sql::AlterTable::new().rename("COLUMN login TO user_login").as_string();
-    let expected_query = "RENAME COLUMN login TO user_login";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_rename_should_override_on_consecutive_calls() {
-    let query = sql::AlterTable::new()
-      .rename("COLUMN login TO user_login")
-      .rename("COLUMN created TO created_at")
-      .as_string();
-
-    let expected_query = "RENAME COLUMN created TO created_at";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_rename_should_trim_space_of_the_argument() {
-    let query = sql::AlterTable::new()
-      .rename("   COLUMN login TO user_login  ")
-      .as_string();
-    let expected_query = "RENAME COLUMN login TO user_login";
-
-    assert_eq!(expected_query, query);
-  }
-}
-
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-mod method_rename_to {
-  use pretty_assertions::assert_eq;
-  use sql_query_builder as sql;
-
-  #[test]
-  fn method_rename_to_should_add_the_rename_to_action() {
-    let query = sql::AlterTable::new().rename_to("films").as_string();
-    let expected_query = "RENAME TO films";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_rename_to_should_override_the_current_value() {
-    let query = sql::AlterTable::new()
-      .rename_to("films")
-      .rename_to("tv_shows")
-      .as_string();
-
-    let expected_query = "RENAME TO tv_shows";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_rename_to_should_trim_space_of_the_argument() {
-    let query = sql::AlterTable::new().rename_to("   films   ").as_string();
-    let expected_query = "RENAME TO films";
 
     assert_eq!(expected_query, query);
   }
