@@ -25,3 +25,8 @@ jobs:
         with:
           command: test
           args: --features sqlite
+      - uses: actions-rs/cargo@v1
+        name: Test MySQL syntax
+        with:
+          command: test
+          args: --features mysql

@@ -62,6 +62,7 @@ pub fn colorize(query: String) -> String {
     (blue, "ONLY ", "only "),
     (blue, "ORDER BY", "order by"),
     (blue, "OVERRIDING", "overriding"),
+    (blue, "PARTITION", "partition"),
     (blue, "PRIMARY", "primary"),
     (blue, "READ ONLY", "read only"),
     (blue, "READ WRITE", "read write"),
