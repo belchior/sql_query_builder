@@ -9,8 +9,7 @@ use crate::{
 impl TransactionQuery for AlterTable {}
 
 impl AlterTable {
-  /// Adds columns or table constraints.
-  /// Multiples call of this method will build the SQL respecting the order of the calls
+  /// Adds columns or table constraints, this method overrides the previous value
   ///
   /// ### Example
   ///
@@ -18,21 +17,43 @@ impl AlterTable {
   /// # use sql_query_builder as sql;
   /// let query = sql::AlterTable::new()
   ///   .add("COLUMN age int not null")
-  ///   .add("CONSTRAINT age check(age >= 0)")
   ///   .as_string();
   ///
-  /// # let expected = "\
-  /// #   ADD COLUMN age int not null, \
-  /// #   ADD CONSTRAINT age check(age >= 0)\
-  /// # ";
+  /// # let expected = "ADD COLUMN age int not null";
   /// # assert_eq!(expected, query);
   /// ```
   ///
   /// Outputs
   ///
   /// ```sql
-  /// ADD COLUMN age int not null,
-  /// ADD CONSTRAINT age check(age >= 0)
+  /// ADD COLUMN age int not null
+  /// ```
+  ///
+  ///
+  /// Available on crate feature `postgresql` only.
+  /// Multiples call of this method will build the SQL respecting the order of the calls
+  ///
+  /// ### Example
+  ///
+  /// ```
+  /// # #[cfg(any(feature = "postgresql"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::AlterTable::new()
+  ///   .add("COLUMN login varchar not null")
+  ///   .add("CONSTRAINT login_unique unique(login)")
+  ///   .as_string();
+  ///
+  /// # let expected = "ADD COLUMN login varchar not null, ADD CONSTRAINT login_unique unique(login)";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// ADD COLUMN login varchar not null,
+  /// ADD CONSTRAINT login_unique unique(login)
   /// ```
   pub fn add(mut self, add_exp: &str) -> Self {
     let action = AlterTableActionItem(AlterTableOrderedAction::Add, add_exp.trim().to_string());
@@ -102,8 +123,6 @@ impl AlterTable {
   /// let query = sql::AlterTable::new()
   ///   .alter_table("users")
   ///   .add("name varchar(100) not null")
-  ///   .add("login varchar(40) not null")
-  ///   .add("constraint users_login_key unique(login)")
   ///   .debug()
   ///   .as_string();
   /// ```
@@ -113,9 +132,7 @@ impl AlterTable {
   /// ```sql
   /// -- ------------------------------------------------------------------------------
   /// ALTER TABLE users
-  ///   ADD name varchar(100) not null,
-  ///   ADD login varchar(40) not null,
-  ///   ADD constraint users_login_key unique(login)
+  ///   ADD name varchar(100) not null
   /// -- ------------------------------------------------------------------------------
   /// ```
   pub fn debug(self) -> Self {
@@ -124,8 +141,7 @@ impl AlterTable {
     self
   }
 
-  /// Drops columns or table constraints.
-  /// Multiples call of this method will build the SQL respecting the order of the calls
+  /// Drops columns or table constraints, this method overrides the previous value.
   ///
   /// ### Example
   ///
@@ -143,6 +159,31 @@ impl AlterTable {
   ///
   /// ```sql
   /// DROP column login
+  /// ```
+  ///
+  /// Available on crate feature `postgresql` only.
+  /// Multiples call of this method will build the SQL respecting the order of the calls
+  ///
+  /// ### Example
+  ///
+  /// ```
+  /// # #[cfg(any(feature = "postgresql"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::AlterTable::new()
+  ///   .drop("column login")
+  ///   .drop("constraint login_unique")
+  ///   .as_string();
+  ///
+  /// # let expected = "DROP column login, DROP constraint login_unique";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// DROP column login, DROP constraint login_unique
   /// ```
   pub fn drop(mut self, drop_exp: &str) -> Self {
     let action = AlterTableActionItem(AlterTableOrderedAction::Drop, drop_exp.trim().to_string());
@@ -163,7 +204,7 @@ impl AlterTable {
     self
   }
 
-  /// Adds at the beginning a raw SQL query. Is useful to create a more complex alter table signature like the example below.
+  /// Adds at the beginning a raw SQL query. Is useful to create a more complex alter table signature.
   ///
   /// ### Example
   ///
@@ -221,21 +262,21 @@ impl AlterTable {
   ///
   /// ```
   /// # use sql_query_builder as sql;
-  /// let raw = "ALTER TABLE users";
+  /// let raw = "/* alter table command */";
   ///
   /// let query = sql::AlterTable::new()
   ///   .raw_before(sql::AlterTableAction::AlterTable, raw)
-  ///   .add("COLUMN id")
+  ///   .alter_table("users")
   ///   .as_string();
   ///
-  /// # let expected = "ALTER TABLE users ADD COLUMN id";
+  /// # let expected = "/* alter table command */ ALTER TABLE users";
   /// # assert_eq!(expected, query);
   /// ```
   ///
   /// Output
   ///
   /// ```sql
-  /// ALTER TABLE users RENAME TO users_old
+  /// /* alter table command */ ALTER TABLE users
   /// ```
   pub fn raw_before(mut self, action: AlterTableAction, raw_sql: &str) -> Self {
     self._raw_before.push((action, raw_sql.trim().to_string()));
@@ -247,8 +288,7 @@ impl AlterTable {
 #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
 #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
 impl AlterTable {
-  /// Changes the column names or table constraints.
-  /// Multiples call of this method will build the SQL respecting the order of the calls
+  /// Changes the column name or table constraints, this method overrides the previous value
   ///
   /// ### Example
   ///
@@ -271,13 +311,12 @@ impl AlterTable {
   /// ```sql
   /// ALTER TABLE users RENAME COLUMN address TO city
   /// ```
-  pub fn rename(mut self, rename_exp: &str) -> Self {
-    let action = AlterTableActionItem(AlterTableOrderedAction::Rename, rename_exp.trim().to_string());
-    push_unique(&mut self._ordered_actions, action);
+  pub fn rename(mut self, action: &str) -> Self {
+    self._rename = action.trim().to_string();
     self
   }
 
-  /// Changes the name of the table
+  /// Changes the name of the table, this method overrides the previous value
   ///
   /// ### Example
   ///
