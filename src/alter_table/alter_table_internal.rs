@@ -45,7 +45,7 @@ impl AlterTable {
   fn concat_ordered_actions(&self, query: String, fmts: &fmt::Formatter) -> String {
     let actions = self._ordered_actions.iter().filter(|item| item.1.is_empty() == false);
 
-    #[cfg(any(feature = "postgresql"))]
+    #[cfg(any(feature = "postgresql", feature = "mysql"))]
     {
       use crate::structure::AlterTableActionItem;
 
@@ -63,8 +63,9 @@ impl AlterTable {
           match action {
             AlterTableOrderedAction::Add => format!("{lb}{indent}ADD{space}{content}"),
             AlterTableOrderedAction::Drop => format!("{lb}{indent}DROP{space}{content}"),
-            #[cfg(any(feature = "postgresql"))]
             AlterTableOrderedAction::Alter => format!("{lb}{indent}ALTER{space}{content}"),
+            #[cfg(feature = "mysql")]
+            AlterTableOrderedAction::Rename => format!("{lb}{indent}RENAME{space}{content}"),
           }
         })
         .collect::<Vec<_>>()
@@ -74,7 +75,7 @@ impl AlterTable {
       format!("{query}{sql}{space}")
     }
 
-    #[cfg(not(any(feature = "postgresql")))]
+    #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
     {
       let fmt::Formatter { lb, space, .. } = fmts;
 

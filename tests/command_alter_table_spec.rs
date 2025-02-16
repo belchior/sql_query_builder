@@ -82,7 +82,7 @@ mod builder_features {
   }
 
   #[test]
-  #[cfg(any(feature = "postgresql"))]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   fn ordered_actions_should_respect_the_orders_of_the_call() {
     let query = sql::AlterTable::new()
       // start respecting the order of the calls
@@ -273,7 +273,7 @@ mod method_alter_table {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod method_rename {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -287,6 +287,17 @@ mod method_rename {
   }
 
   #[test]
+  fn method_rename_should_trim_space_of_the_argument() {
+    let query = sql::AlterTable::new()
+      .rename("   COLUMN login TO user_login   ")
+      .as_string();
+    let expected_query = "RENAME COLUMN login TO user_login";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(not(feature = "mysql"))]
+  #[test]
   fn method_rename_should_override_on_consecutive_calls() {
     let query = sql::AlterTable::new()
       .rename("COLUMN login TO user_login")
@@ -298,12 +309,60 @@ mod method_rename {
     assert_eq!(expected_query, query);
   }
 
+  #[cfg(feature = "mysql")]
   #[test]
-  fn method_rename_should_trim_space_of_the_argument() {
+  fn method_rename_should_accumulate_rename_actions_on_consecutive_calls() {
     let query = sql::AlterTable::new()
-      .rename("   COLUMN login TO user_login   ")
+      .rename("TO users_old")
+      .rename("COLUMN name TO full_name")
       .as_string();
-    let expected_query = "RENAME COLUMN login TO user_login";
+
+    let expected_query = "\
+      RENAME TO users_old, \
+      RENAME COLUMN name TO full_name\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn method_rename_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::AlterTable::new()
+      .rename("")
+      .rename("COLUMN name TO full_name")
+      .rename("")
+      .as_string();
+
+    let expected_query = "RENAME COLUMN name TO full_name";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn method_rename_should_preserve_the_order_of_the_actions_on_consecutive_calls() {
+    let query = sql::AlterTable::new()
+      .rename("TO users_one")
+      .rename("TO users_two")
+      .as_string();
+
+    let expected_query = "\
+      RENAME TO users_one, \
+      RENAME TO users_two\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn method_rename_should_not_accumulate_actions_with_the_same_content() {
+    let query = sql::AlterTable::new()
+      .rename("COLUMN street TO street_name")
+      .rename("COLUMN street TO street_name")
+      .as_string();
+    let expected_query = "RENAME COLUMN street TO street_name";
 
     assert_eq!(expected_query, query);
   }
@@ -365,7 +424,7 @@ mod method_add {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(any(feature = "postgresql")))]
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   #[test]
   fn method_add_should_override_the_current_value() {
     let query = sql::AlterTable::new()
@@ -378,7 +437,7 @@ mod method_add {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(any(feature = "postgresql")))]
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   #[test]
   fn method_raw_before_should_add_raw_sql_before_add_action() {
     let query = sql::AlterTable::new()
@@ -390,7 +449,7 @@ mod method_add {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(any(feature = "postgresql")))]
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   #[test]
   fn method_raw_after_should_add_raw_sql_after_add_action() {
     let query = sql::AlterTable::new()
@@ -402,7 +461,7 @@ mod method_add {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn method_add_should_accumulate_add_actions_on_consecutive_calls() {
     let query = sql::AlterTable::new()
@@ -418,7 +477,7 @@ mod method_add {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn method_add_should_not_accumulate_values_when_expression_is_empty() {
     let query = sql::AlterTable::new()
@@ -432,7 +491,7 @@ mod method_add {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn method_add_should_preserve_the_order_of_the_actions_on_consecutive_calls() {
     let query = sql::AlterTable::new()
@@ -448,7 +507,7 @@ mod method_add {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn method_add_should_not_accumulate_actions_with_the_same_content() {
     let query = sql::AlterTable::new()
@@ -481,7 +540,7 @@ mod method_drop {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(any(feature = "postgresql")))]
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   #[test]
   fn method_drop_should_override_the_current_value() {
     let query = sql::AlterTable::new()
@@ -494,7 +553,7 @@ mod method_drop {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(any(feature = "postgresql")))]
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   #[test]
   fn method_raw_before_should_add_raw_sql_before_drop_action() {
     let query = sql::AlterTable::new()
@@ -506,7 +565,7 @@ mod method_drop {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(any(feature = "postgresql")))]
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   #[test]
   fn method_raw_after_should_add_raw_sql_after_drop_action() {
     let query = sql::AlterTable::new()
@@ -518,7 +577,7 @@ mod method_drop {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn method_drop_should_accumulate_drop_actions_on_consecutive_calls() {
     let query = sql::AlterTable::new()
@@ -534,7 +593,7 @@ mod method_drop {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn method_drop_should_not_accumulate_values_when_expression_is_empty() {
     let query = sql::AlterTable::new()
@@ -548,7 +607,7 @@ mod method_drop {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn method_drop_should_preserve_the_order_of_the_actions_on_consecutive_calls() {
     let query = sql::AlterTable::new()
@@ -564,7 +623,7 @@ mod method_drop {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn method_drop_should_not_accumulate_actions_with_the_same_content() {
     let query = sql::AlterTable::new()
@@ -575,91 +634,9 @@ mod method_drop {
 
     assert_eq!(expected_query, query);
   }
-
-  #[cfg(not(any(feature = "postgresql")))]
-  #[test]
-  fn method_raw_before_should_add_raw_sql_before_add_action() {
-    let query = sql::AlterTable::new()
-      .raw_before(sql::AlterTableAction::Add, "alter table users")
-      .add("COLUMN login")
-      .as_string();
-    let expected_query = "alter table users ADD COLUMN login";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[cfg(not(any(feature = "postgresql")))]
-  #[test]
-  fn method_raw_after_should_add_raw_sql_after_add_action() {
-    let query = sql::AlterTable::new()
-      .add("COLUMN login")
-      .raw_after(sql::AlterTableAction::Add, "/* uncommon paramenter */")
-      .as_string();
-    let expected_query = "ADD COLUMN login /* uncommon paramenter */";
-
-    assert_eq!(expected_query, query);
-  }
 }
 
-#[cfg(not(any(feature = "postgresql")))]
-mod method_drop {
-  use pretty_assertions::assert_eq;
-  use sql_query_builder as sql;
-
-  #[test]
-  fn method_drop_should_define_a_drop_action() {
-    let query = sql::AlterTable::new().drop("COLUMN login").as_string();
-    let expected_query = "DROP COLUMN login";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_drop_should_override_the_current_value() {
-    let query = sql::AlterTable::new()
-      .drop("COLUMN login")
-      .drop("COLUMN created_at")
-      .as_string();
-
-    let expected_query = "DROP COLUMN created_at";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_drop_should_trim_space_of_the_argument() {
-    let query = sql::AlterTable::new().drop("   COLUMN login  ").as_string();
-    let expected_query = "DROP COLUMN login";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[cfg(not(any(feature = "postgresql")))]
-  #[test]
-  fn method_raw_before_should_add_raw_sql_before_drop_action() {
-    let query = sql::AlterTable::new()
-      .raw_before(sql::AlterTableAction::Drop, "alter table users")
-      .drop("COLUMN login")
-      .as_string();
-    let expected_query = "alter table users DROP COLUMN login";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[cfg(not(any(feature = "postgresql")))]
-  #[test]
-  fn method_raw_after_should_add_raw_sql_after_drop_action() {
-    let query = sql::AlterTable::new()
-      .drop("COLUMN login")
-      .raw_after(sql::AlterTableAction::Drop, "/* uncommon paramenter */")
-      .as_string();
-    let expected_query = "DROP COLUMN login /* uncommon paramenter */";
-
-    assert_eq!(expected_query, query);
-  }
-}
-
-#[cfg(any(feature = "postgresql"))]
+#[cfg(any(feature = "postgresql", feature = "mysql"))]
 mod method_alter {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;

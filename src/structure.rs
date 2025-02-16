@@ -51,8 +51,11 @@ pub(crate) enum AlterTableOrderedAction {
   Add,
   Drop,
 
-  #[cfg(any(feature = "postgresql"))]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   Alter,
+
+  #[cfg(feature = "mysql")]
+  Rename,
 }
 
 /// All available params to be used in [AlterTable::raw_before] and [AlterTable::raw_after] methods on [AlterTable] builder
