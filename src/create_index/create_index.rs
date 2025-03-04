@@ -2,7 +2,7 @@ use crate::{
   behavior::TransactionQuery,
   concat::Concat,
   fmt,
-  structure::{CreateIndex, CreateIndexParams, LogicalOperator},
+  structure::{CreateIndex, CreateIndexParams},
   utils::push_unique,
 };
 
@@ -14,7 +14,7 @@ impl CreateIndex {
   /// ### Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::CreateIndex::new()
@@ -41,7 +41,7 @@ impl CreateIndex {
   /// ### Example
   ///
   ///```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::CreateIndex::new()
@@ -70,7 +70,7 @@ impl CreateIndex {
   /// ### Example
   ///
   ///```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::CreateIndex::new()
@@ -94,43 +94,13 @@ impl CreateIndex {
     self
   }
 
-  /// Defines a create index parameter with the `if not exists` modifier, this method overrides the previous value
-  ///
-  /// ### Example
-  ///
-  /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  /// # {
-  /// # use sql_query_builder as sql;
-  /// let query = sql::CreateIndex::new()
-  ///   .create_index("users_name_idx")
-  ///   .create_index_if_not_exists("orders_product_name_idx")
-  ///   .to_string();
-  ///
-  /// # let expected = "CREATE INDEX IF NOT EXISTS orders_product_name_idx";
-  /// # assert_eq!(expected, query);
-  /// # }
-  /// ```
-  ///
-  /// Outputs
-  ///
-  /// ```sql
-  /// CREATE INDEX IF NOT EXISTS orders_product_name_idx
-  /// ```
-  pub fn create_index_if_not_exists(mut self, index_name: &str) -> Self {
-    self._index_name = index_name.trim().to_string();
-    self._create_index = true;
-    self._if_not_exists = true;
-    self
-  }
-
   /// Prints the current state of the [CreateIndex] to the standard output in a more ease to read version.
   /// This method is useful to debug complex queries or just print the generated SQL while you type
   ///
   /// ### Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::CreateIndex::new()
@@ -172,7 +142,7 @@ impl CreateIndex {
   /// ### Example
   ///
   ///```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::CreateIndex::new()
@@ -208,7 +178,7 @@ impl CreateIndex {
   /// ### Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let create_index_query = sql::CreateIndex::new()
@@ -238,7 +208,7 @@ impl CreateIndex {
   /// ### Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let raw = "/* after create index */";
@@ -278,7 +248,7 @@ impl CreateIndex {
   /// ### Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let raw = "/* before create index */";
@@ -316,7 +286,7 @@ impl CreateIndex {
   /// ### Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::CreateIndex::new()
@@ -336,6 +306,50 @@ impl CreateIndex {
   /// ```
   pub fn unique(mut self) -> Self {
     self._unique = true;
+
+    #[cfg(feature = "mysql")]
+    {
+      self._fulltext = false;
+      self._spatial = false;
+    }
+    self
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+use crate::structure::LogicalOperator;
+
+#[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+impl CreateIndex {
+  /// Defines a create index parameter with the `if not exists` modifier, this method overrides the previous value
+  ///
+  /// ### Example
+  ///
+  /// ```
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::CreateIndex::new()
+  ///   .create_index("users_name_idx")
+  ///   .create_index_if_not_exists("orders_product_name_idx")
+  ///   .to_string();
+  ///
+  /// # let expected = "CREATE INDEX IF NOT EXISTS orders_product_name_idx";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// CREATE INDEX IF NOT EXISTS orders_product_name_idx
+  /// ```
+  pub fn create_index_if_not_exists(mut self, index_name: &str) -> Self {
+    self._index_name = index_name.trim().to_string();
+    self._create_index = true;
+    self._if_not_exists = true;
     self
   }
 
@@ -454,6 +468,38 @@ impl CreateIndex {
   }
 }
 
+#[cfg(any(doc, feature = "postgresql", feature = "mysql"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+impl CreateIndex {
+  /// Defines the index algorithm to be used to create the index, this method overrides the previous value
+  ///
+  /// ### Example
+  ///
+  ///```
+  /// # #[cfg(any(feature = "postgresql", feature = "mysql"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::CreateIndex::new()
+  ///   .using("btree")
+  ///   .as_string();
+  ///
+  /// # let expected = "USING btree";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// USING btree
+  /// ```
+  pub fn using(mut self, index_method: &str) -> Self {
+    self._using = index_method.trim().to_string();
+    self
+  }
+}
+
 #[cfg(any(doc, feature = "postgresql"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
 impl CreateIndex {
@@ -540,21 +586,25 @@ impl CreateIndex {
     self._only = true;
     self
   }
+}
 
-  /// Defines the index method to be used to create the index, this method overrides the previous value
+#[cfg(any(doc, feature = "mysql"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+impl CreateIndex {
+  /// Defines the `fulltext` parameter of the create index
   ///
   /// ### Example
   ///
-  ///```
-  /// # #[cfg(feature = "postgresql")]
+  /// ```
+  /// # #[cfg(feature = "mysql")]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::CreateIndex::new()
-  ///   .using("btree")
-  ///   .using("gist")
-  ///   .as_string();
+  ///   .create_index("idx_users")
+  ///   .fulltext()
+  ///   .to_string();
   ///
-  /// # let expected = "USING gist";
+  /// # let expected = "CREATE FULLTEXT INDEX idx_users";
   /// # assert_eq!(expected, query);
   /// # }
   /// ```
@@ -562,10 +612,70 @@ impl CreateIndex {
   /// Outputs
   ///
   /// ```sql
-  /// USING gist
+  /// CREATE FULLTEXT INDEX idx_users
   /// ```
-  pub fn using(mut self, index_method: &str) -> Self {
-    self._using = index_method.trim().to_string();
+  pub fn fulltext(mut self) -> Self {
+    self._fulltext = true;
+    self._unique = false;
+    self._spatial = false;
+    self
+  }
+
+  /// Defines the `lock` option
+  ///
+  /// ### Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::CreateIndex::new()
+  ///   .create_index("idx_users")
+  ///   .lock("exclusive")
+  ///   .to_string();
+  ///
+  /// # let expected = "CREATE INDEX idx_users LOCK exclusive";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// CREATE INDEX idx_users LOCK exclusive
+  /// ```
+  pub fn lock(mut self, lock_option: &str) -> Self {
+    self._lock = lock_option.trim().to_string();
+    self
+  }
+
+  /// Defines the `spatial` parameter of the create index
+  ///
+  /// ### Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::CreateIndex::new()
+  ///   .create_index("idx_users")
+  ///   .spatial()
+  ///   .to_string();
+  ///
+  /// # let expected = "CREATE SPATIAL INDEX idx_users";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// CREATE SPATIAL INDEX idx_users
+  /// ```
+  pub fn spatial(mut self) -> Self {
+    self._spatial = true;
+    self._unique = false;
+    self._fulltext = false;
     self
   }
 }
