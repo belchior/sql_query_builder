@@ -112,13 +112,12 @@ pub(crate) enum Combinator {
 /// ```sql
 /// CREATE INDEX users_name_idx ON users (name)
 /// ```
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 #[derive(Default, Clone)]
 pub struct CreateIndex {
   pub(crate) _column: Vec<String>,
   pub(crate) _index_name: String,
   pub(crate) _create_index: bool,
-  pub(crate) _if_not_exists: bool,
   pub(crate) _on: String,
   pub(crate) _raw_after: Vec<(CreateIndexParams, String)>,
   pub(crate) _raw_before: Vec<(CreateIndexParams, String)>,
@@ -126,7 +125,12 @@ pub struct CreateIndex {
   pub(crate) _unique: bool,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  pub(crate) _if_not_exists: bool,
+  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _where: Vec<(LogicalOperator, String)>,
+
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
+  pub(crate) _using: String,
 
   #[cfg(feature = "postgresql")]
   pub(crate) _concurrently: bool,
@@ -134,12 +138,17 @@ pub struct CreateIndex {
   pub(crate) _include: Vec<String>,
   #[cfg(feature = "postgresql")]
   pub(crate) _only: bool,
-  #[cfg(feature = "postgresql")]
-  pub(crate) _using: String,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _fulltext: bool,
+  #[cfg(feature = "mysql")]
+  pub(crate) _lock: String,
+  #[cfg(feature = "mysql")]
+  pub(crate) _spatial: bool,
 }
 
 /// All available params to be used in [CreateIndex::raw_before] and [CreateIndex::raw_after] methods on [CreateIndex] builder
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 #[derive(PartialEq, Clone)]
 pub enum CreateIndexParams {
   Column,
@@ -150,14 +159,22 @@ pub enum CreateIndexParams {
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   Where,
 
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
+  Using,
+
   #[cfg(feature = "postgresql")]
   Concurrently,
   #[cfg(feature = "postgresql")]
   Only,
   #[cfg(feature = "postgresql")]
-  Using,
-  #[cfg(feature = "postgresql")]
   Include,
+
+  #[cfg(feature = "mysql")]
+  Fulltext,
+  #[cfg(feature = "mysql")]
+  Lock,
+  #[cfg(feature = "mysql")]
+  Spatial,
 }
 
 /// Builder to contruct a [CreateTable] command.
