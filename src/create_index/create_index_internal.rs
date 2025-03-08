@@ -1,10 +1,8 @@
 use crate::{
-  concat::{concat_raw_before_after, sql_standard::ConcatWhere, Concat},
+  concat::{concat_raw_before_after, Concat},
   fmt,
   structure::{CreateIndex, CreateIndexParams},
 };
-
-impl ConcatWhere<CreateIndexParams> for CreateIndex {}
 
 impl Concat for CreateIndex {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
@@ -17,29 +15,41 @@ impl Concat for CreateIndex {
       query = self.concat_create_index_postgres(query, &fmts);
       query = self.concat_on_postgres(query, &fmts);
       query = self.concat_using(query, &fmts);
+      query = self.concat_column(query, &fmts);
+      query = self.concat_include(query, &fmts);
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        CreateIndexParams::Where,
+        &self._where,
+      );
     }
 
     #[cfg(feature = "sqlite")]
     {
       query = self.concat_create_index_sqlite(query, &fmts);
-      query = self.concat_on_sqlite(query, &fmts);
+      query = self.concat_on(query, &fmts);
+      query = self.concat_column(query, &fmts);
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        CreateIndexParams::Where,
+        &self._where,
+      );
     }
 
-    query = self.concat_column(query, &fmts);
-
-    #[cfg(feature = "postgresql")]
+    #[cfg(feature = "mysql")]
     {
-      query = self.concat_include(query, &fmts);
+      query = self.concat_create_index_mysql(query, &fmts);
+      query = self.concat_using(query, &fmts);
+      query = self.concat_on(query, &fmts);
+      query = self.concat_column(query, &fmts);
+      query = self.concat_lock(query, &fmts);
     }
-
-    query = self.concat_where(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      &fmts,
-      CreateIndexParams::Where,
-      &self._where,
-    );
 
     query.trim_end().to_string()
   }
@@ -73,6 +83,59 @@ impl CreateIndex {
       query,
       fmts,
       CreateIndexParams::Column,
+      sql,
+    )
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+use crate::concat::sql_standard::ConcatWhere;
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl ConcatWhere<CreateIndexParams> for CreateIndex {}
+
+#[cfg(any(feature = "postgresql", feature = "mysql"))]
+impl CreateIndex {
+  fn concat_using(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { space, .. } = fmts;
+
+    let sql = if self._using.is_empty() == false {
+      let index_method = &self._using;
+      format!("USING{space}{index_method}{space}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      CreateIndexParams::Using,
+      sql,
+    )
+  }
+}
+
+#[cfg(any(feature = "sqlite", feature = "mysql"))]
+impl CreateIndex {
+  fn concat_on(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { space, .. } = fmts;
+
+    let sql = if self._on.is_empty() == false {
+      let table_name = &self._on;
+
+      format!("ON{space}{table_name}{space}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      CreateIndexParams::On,
       sql,
     )
   }
@@ -204,26 +267,6 @@ impl CreateIndex {
       sql,
     )
   }
-
-  fn concat_using(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { space, .. } = fmts;
-
-    let sql = if self._using.is_empty() == false {
-      let index_method = &self._using;
-      format!("USING{space}{index_method}{space}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      CreateIndexParams::Using,
-      sql,
-    )
-  }
 }
 
 #[cfg(feature = "sqlite")]
@@ -271,14 +314,60 @@ impl CreateIndex {
       sql,
     )
   }
+}
 
-  fn concat_on_sqlite(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { space, .. } = fmts;
+#[cfg(feature = "mysql")]
+impl CreateIndex {
+  fn concat_create_index_mysql(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
 
-    let sql = if self._on.is_empty() == false {
-      let table_name = &self._on;
+    let unique = if self._unique {
+      concat_raw_before_after(
+        &self._raw_before,
+        &self._raw_after,
+        "".to_string(),
+        fmts,
+        CreateIndexParams::Unique,
+        format!("UNIQUE{space}"),
+      )
+    } else {
+      "".to_string()
+    };
 
-      format!("ON{space}{table_name}{space}")
+    let fulltext = if self._fulltext {
+      concat_raw_before_after(
+        &self._raw_before,
+        &self._raw_after,
+        "".to_string(),
+        fmts,
+        CreateIndexParams::Fulltext,
+        format!("FULLTEXT{space}"),
+      )
+    } else {
+      "".to_string()
+    };
+
+    let spatial = if self._spatial {
+      concat_raw_before_after(
+        &self._raw_before,
+        &self._raw_after,
+        "".to_string(),
+        fmts,
+        CreateIndexParams::Spatial,
+        format!("SPATIAL{space}"),
+      )
+    } else {
+      "".to_string()
+    };
+
+    let index_name = if self._index_name.is_empty() == false {
+      format!("{}{space}", &self._index_name)
+    } else {
+      "".to_string()
+    };
+
+    let sql = if index_name.is_empty() == false {
+      format!("CREATE{space}{unique}{fulltext}{spatial}INDEX{space}{index_name}{lb}")
     } else {
       "".to_string()
     };
@@ -288,7 +377,27 @@ impl CreateIndex {
       &self._raw_after,
       query,
       fmts,
-      CreateIndexParams::On,
+      CreateIndexParams::CreateIndex,
+      sql,
+    )
+  }
+
+  fn concat_lock(&self, query: String, fmts: &fmt::Formatter) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+
+    let sql = if self._lock.is_empty() == false {
+      let lock_option = &self._lock;
+      format!("LOCK{space}{lock_option}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(
+      &self._raw_before,
+      &self._raw_after,
+      query,
+      fmts,
+      CreateIndexParams::Lock,
       sql,
     )
   }
