@@ -330,12 +330,12 @@ pub enum DeleteClause {
   Partition,
 }
 
-/// Builder to contruct a [DropIndex] command. Available only for the crate features `postgresql` and `sqlite`.
+/// Builder to contruct a [DropIndex] command. Available only for the crate features `postgresql` and `sqlite` and `mysql`.
 ///
 /// Basic API
 ///
 /// ```
-/// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+/// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 /// # {
 /// use sql_query_builder as sql;
 ///
@@ -354,7 +354,7 @@ pub enum DeleteClause {
 /// ```sql
 /// DROP INDEX users_name_idx
 /// ```
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 #[derive(Default, Clone)]
 pub struct DropIndex {
   pub(crate) _drop_index: Vec<String>,
@@ -365,7 +365,7 @@ pub struct DropIndex {
 }
 
 /// All available params to be used in [DropIndex::raw_before] and [DropIndex::raw_after] methods on [DropIndex] builder
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 #[derive(PartialEq, Clone)]
 pub enum DropIndexParams {
   DropIndex,
