@@ -23,10 +23,8 @@ pub use crate::structure::{
 
 #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod create_index;
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod drop_index;
 
 #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
-pub use crate::structure::{CreateIndex, CreateIndexParams};
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-pub use crate::structure::{DropIndex, DropIndexParams};
+pub use crate::structure::{CreateIndex, CreateIndexParams, DropIndex, DropIndexParams};
