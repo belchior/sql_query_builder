@@ -695,7 +695,7 @@ pub enum SelectClause {
 /// # }
 /// ```
 ///
-/// Output (indented for readability)
+/// Output
 ///
 /// ```sql
 /// START TRANSACTION isolation level serializable;
@@ -711,7 +711,7 @@ pub struct Transaction {
   pub(crate) _set_transaction: Option<TransactionCommand>,
   pub(crate) _start_transaction: Option<TransactionCommand>,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub(crate) _begin: Option<TransactionCommand>,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
@@ -726,9 +726,10 @@ pub(crate) enum TrCmd {
   Rollback,
   Savepoint,
 
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   Begin,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
@@ -738,10 +739,12 @@ pub(crate) enum TrCmd {
 
   #[cfg(not(feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   SetTransaction,
 
   #[cfg(not(feature = "sqlite"))]
   #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   StartTransaction,
 }
 
