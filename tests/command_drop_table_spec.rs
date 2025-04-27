@@ -1,3 +1,60 @@
+mod full_api {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  // SQL Standard
+  #[test]
+  fn sql_standard_with_all_methods() {
+    let query = sql::DropTable::new().drop_table("users_name_idx").as_string();
+
+    let expected_query = "DROP TABLE users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn postgres_with_all_methods() {
+    let query = sql::DropTable::new()
+      // at least one of methods
+      .drop_table("users_name_idx")
+      .drop_table_if_exists("users_login_idx")
+      .as_string();
+
+    let expected_query = "DROP TABLE IF EXISTS users_name_idx, users_login_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  #[test]
+  fn sqlite_with_all_methods() {
+    let query = sql::DropTable::new()
+      // at least one of methods
+      .drop_table("users_name_idx")
+      .drop_table_if_exists("users_login_idx")
+      .as_string();
+
+    let expected_query = "DROP TABLE IF EXISTS users_login_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn mysql_with_all_methods() {
+    let query = sql::DropTable::new()
+      // at least one of methods
+      .drop_table("users_name_idx")
+      .drop_table_if_exists("users_login_idx")
+      .as_string();
+
+    let expected_query = "DROP TABLE IF EXISTS users_name_idx, users_login_idx";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
 mod builder_features {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -26,7 +83,7 @@ mod builder_features {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(feature = "postgresql"))]
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   #[test]
   fn drop_table_builder_should_be_able_to_conditionally_add_clauses() {
     let mut drop_table = sql::DropTable::new().drop_table("orders");
@@ -41,7 +98,7 @@ mod builder_features {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn drop_table_builder_should_be_able_to_conditionally_add_clauses() {
     let mut drop_table = sql::DropTable::new().drop_table("orders");
@@ -56,7 +113,7 @@ mod builder_features {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(feature = "postgresql"))]
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   #[test]
   fn drop_table_builder_should_be_cloneable() {
     let drop_users = sql::DropTable::new().drop_table("users");
@@ -69,7 +126,7 @@ mod builder_features {
     assert_eq!(expected_drop_users_and_orders, drop_users_and_orders.as_string());
   }
 
-  #[cfg(feature = "postgresql")]
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn drop_table_builder_should_be_cloneable() {
     let drop_users = sql::DropTable::new().drop_table("users");
@@ -130,18 +187,18 @@ mod builder_methods {
 
   #[test]
   fn method_debug_should_print_at_console_in_a_human_readable_format() {
-    let query = sql::DropTable::new().drop_table_if_exists("users").debug().as_string();
+    let query = sql::DropTable::new().drop_table("users").debug().as_string();
 
-    let expected_query = "DROP TABLE IF EXISTS users";
+    let expected_query = "DROP TABLE users";
 
     assert_eq!(expected_query, query);
   }
 
   #[test]
   fn method_print_should_print_in_one_line_the_current_state_of_builder() {
-    let query = sql::DropTable::new().drop_table_if_exists("users").print().as_string();
+    let query = sql::DropTable::new().drop_table("users").print().as_string();
 
-    let expected_query = "DROP TABLE IF EXISTS users";
+    let expected_query = "DROP TABLE users";
 
     assert_eq!(expected_query, query);
   }
@@ -237,34 +294,9 @@ mod method_drop_table {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(feature = "postgresql"))]
-  #[test]
-  fn method_drop_table_should_overrides_previous_value_on_consecutive_calls() {
-    let query = sql::DropTable::new()
-      .drop_table("films")
-      .drop_table("series")
-      .as_string();
-
-    let expected_query = "DROP TABLE series";
-
-    assert_eq!(expected_query, query);
-  }
-
   #[test]
   fn method_drop_table_should_trim_space_of_the_argument() {
     let query = sql::DropTable::new().drop_table("   films   ").as_string();
-    let expected_query = "DROP TABLE films";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[cfg(not(feature = "postgresql"))]
-  #[test]
-  fn method_drop_table_should_not_accumulate_arguments_with_the_same_content() {
-    let query = sql::DropTable::new()
-      .drop_table("films")
-      .drop_table("films")
-      .as_string();
     let expected_query = "DROP TABLE films";
 
     assert_eq!(expected_query, query);
@@ -291,6 +323,58 @@ mod method_drop_table {
 
     assert_eq!(expected_query, query);
   }
+
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
+  #[test]
+  fn method_drop_table_should_overrides_previous_value_on_consecutive_calls() {
+    let query = sql::DropTable::new()
+      .drop_table("films")
+      .drop_table("series")
+      .as_string();
+
+    let expected_query = "DROP TABLE series";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
+  #[test]
+  fn method_drop_table_should_not_accumulate_arguments_with_the_same_content() {
+    let query = sql::DropTable::new()
+      .drop_table("films")
+      .drop_table("films")
+      .as_string();
+    let expected_query = "DROP TABLE films";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
+  #[test]
+  fn method_drop_table_should_accumulate_values_on_consecutive_calls() {
+    let query = sql::DropTable::new()
+      .drop_table("films")
+      .drop_table("series")
+      .as_string();
+
+    let expected_query = "DROP TABLE films, series";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
+  #[test]
+  fn method_drop_table_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::DropTable::new()
+      .drop_table("")
+      .drop_table("series")
+      .drop_table("")
+      .as_string();
+
+    let expected_query = "DROP TABLE series";
+
+    assert_eq!(expected_query, query);
+  }
 }
 
 mod method_drop_table_if_exists {
@@ -305,34 +389,9 @@ mod method_drop_table_if_exists {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(feature = "postgresql"))]
-  #[test]
-  fn method_drop_table_if_exists_should_overrides_previous_value_on_consecutive_calls() {
-    let query = sql::DropTable::new()
-      .drop_table_if_exists("films")
-      .drop_table_if_exists("series")
-      .as_string();
-
-    let expected_query = "DROP TABLE IF EXISTS series";
-
-    assert_eq!(expected_query, query);
-  }
-
   #[test]
   fn method_drop_table_if_exists_should_trim_space_of_the_argument() {
     let query = sql::DropTable::new().drop_table_if_exists("   films   ").as_string();
-    let expected_query = "DROP TABLE IF EXISTS films";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[cfg(not(feature = "postgresql"))]
-  #[test]
-  fn method_drop_table_if_exists_should_not_accumulate_arguments_with_the_same_content() {
-    let query = sql::DropTable::new()
-      .drop_table_if_exists("films")
-      .drop_table_if_exists("films")
-      .as_string();
     let expected_query = "DROP TABLE IF EXISTS films";
 
     assert_eq!(expected_query, query);
@@ -359,38 +418,33 @@ mod method_drop_table_if_exists {
 
     assert_eq!(expected_query, query);
   }
-}
 
-#[cfg(feature = "postgresql")]
-mod postgres_feature_flag {
-  use pretty_assertions::assert_eq;
-  use sql_query_builder as sql;
-
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   #[test]
-  fn method_drop_table_should_accumulate_values_on_consecutive_calls() {
+  fn method_drop_table_if_exists_should_overrides_previous_value_on_consecutive_calls() {
     let query = sql::DropTable::new()
-      .drop_table("films")
-      .drop_table("series")
+      .drop_table_if_exists("films")
+      .drop_table_if_exists("series")
       .as_string();
 
-    let expected_query = "DROP TABLE films, series";
+    let expected_query = "DROP TABLE IF EXISTS series";
 
     assert_eq!(expected_query, query);
   }
 
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   #[test]
-  fn method_drop_table_should_not_accumulate_values_when_expression_is_empty() {
+  fn method_drop_table_if_exists_should_not_accumulate_arguments_with_the_same_content() {
     let query = sql::DropTable::new()
-      .drop_table("")
-      .drop_table("series")
-      .drop_table("")
+      .drop_table_if_exists("films")
+      .drop_table_if_exists("films")
       .as_string();
-
-    let expected_query = "DROP TABLE series";
+    let expected_query = "DROP TABLE IF EXISTS films";
 
     assert_eq!(expected_query, query);
   }
 
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn method_drop_table_if_exists_should_accumulate_values_on_consecutive_calls() {
     let query = sql::DropTable::new()
@@ -403,6 +457,7 @@ mod postgres_feature_flag {
     assert_eq!(expected_query, query);
   }
 
+  #[cfg(any(feature = "postgresql", feature = "mysql"))]
   #[test]
   fn method_drop_table_if_exists_should_not_accumulate_values_when_expression_is_empty() {
     let query = sql::DropTable::new()

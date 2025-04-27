@@ -1,5 +1,6 @@
 use crate::fmt;
 
+pub(crate) mod mysql;
 pub(crate) mod non_standard;
 pub(crate) mod sql_standard;
 pub(crate) mod sqlite;

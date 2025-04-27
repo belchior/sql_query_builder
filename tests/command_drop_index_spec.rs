@@ -1,4 +1,48 @@
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+mod full_api {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn postgres_with_all_methods() {
+    let query = sql::DropIndex::new()
+      // at least one of methods
+      .drop_index("users_name_idx")
+      .drop_index_if_exists("users_login_idx")
+      .as_string();
+
+    let expected_query = "DROP INDEX IF EXISTS users_name_idx, users_login_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  #[test]
+  fn sqlite_with_all_methods() {
+    let query = sql::DropIndex::new()
+      // at least one of methods
+      .drop_index("users_name_idx")
+      .drop_index_if_exists("users_login_idx")
+      .as_string();
+
+    let expected_query = "DROP INDEX IF EXISTS users_login_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn mysql_with_all_methods() {
+    let query = sql::DropIndex::new().drop_index("users_name_idx").as_string();
+
+    let expected_query = "DROP INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod builder_features {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -27,64 +71,6 @@ mod builder_features {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(feature = "postgresql"))]
-  #[test]
-  fn drop_index_builder_should_be_able_to_conditionally_add_clauses() {
-    let mut drop_index = sql::DropIndex::new().drop_index("users_name_idx");
-
-    if true {
-      drop_index = drop_index.drop_index("users_name_idx");
-    }
-
-    let query = drop_index.as_string();
-    let expected_query = "DROP INDEX users_name_idx";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[cfg(feature = "postgresql")]
-  #[test]
-  fn drop_index_builder_should_be_able_to_conditionally_add_clauses() {
-    let mut drop_index = sql::DropIndex::new().drop_index("users_name_idx");
-
-    if true {
-      drop_index = drop_index.drop_index("users_age_idx");
-    }
-
-    let expected_query = "DROP INDEX users_name_idx, users_age_idx";
-
-    assert_eq!(expected_query, drop_index.as_string());
-  }
-
-  #[cfg(not(feature = "postgresql"))]
-  #[test]
-  fn drop_index_builder_should_be_cloneable() {
-    let drop_users = sql::DropIndex::new().drop_index("users_name_idx");
-    let drop_users_and_users_name_idx = drop_users.clone().drop_index("users_name_idx");
-
-    let expected_drop_users = "DROP INDEX users_name_idx";
-    let expected_drop_users_and_users_name_idx = "DROP INDEX users_name_idx";
-
-    assert_eq!(expected_drop_users, drop_users.as_string());
-    assert_eq!(
-      expected_drop_users_and_users_name_idx,
-      drop_users_and_users_name_idx.as_string()
-    );
-  }
-
-  #[cfg(feature = "postgresql")]
-  #[test]
-  fn drop_index_builder_should_be_cloneable() {
-    let drop_index_name = sql::DropIndex::new().drop_index("users_name_idx");
-    let drop_index_name_and_age = drop_index_name.clone().drop_index("users_age_idx");
-
-    let expected_drop_index_name = "DROP INDEX users_name_idx";
-    assert_eq!(expected_drop_index_name, drop_index_name.as_string());
-
-    let expected_drop_index_name_and_age = "DROP INDEX users_name_idx, users_age_idx";
-    assert_eq!(expected_drop_index_name_and_age, drop_index_name_and_age.as_string());
-  }
-
   #[test]
   fn drop_index_builder_should_be_composable() {
     fn add_comment(select: sql::DropIndex) -> sql::DropIndex {
@@ -109,9 +95,67 @@ mod builder_features {
 
     assert_eq!(expected_query, query);
   }
+
+  #[cfg(any(feature = "sqlite", feature = "mysql"))]
+  #[test]
+  fn drop_index_builder_should_be_able_to_conditionally_add_clauses() {
+    let mut drop_index = sql::DropIndex::new().drop_index("users_name_idx");
+
+    if true {
+      drop_index = drop_index.drop_index("users_name_idx");
+    }
+
+    let query = drop_index.as_string();
+    let expected_query = "DROP INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(any(feature = "sqlite", feature = "mysql"))]
+  #[test]
+  fn drop_index_builder_should_be_cloneable() {
+    let drop_users = sql::DropIndex::new().drop_index("users_name_idx");
+    let drop_users_and_users_name_idx = drop_users.clone().drop_index("users_name_idx");
+
+    let expected_drop_users = "DROP INDEX users_name_idx";
+    let expected_drop_users_and_users_name_idx = "DROP INDEX users_name_idx";
+
+    assert_eq!(expected_drop_users, drop_users.as_string());
+    assert_eq!(
+      expected_drop_users_and_users_name_idx,
+      drop_users_and_users_name_idx.as_string()
+    );
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn drop_index_builder_should_be_able_to_conditionally_add_clauses_in_postgresql() {
+    let mut drop_index = sql::DropIndex::new().drop_index("users_name_idx");
+
+    if true {
+      drop_index = drop_index.drop_index("users_age_idx");
+    }
+
+    let expected_query = "DROP INDEX users_name_idx, users_age_idx";
+
+    assert_eq!(expected_query, drop_index.as_string());
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn drop_index_builder_should_be_cloneable_in_postgresql() {
+    let drop_index_name = sql::DropIndex::new().drop_index("users_name_idx");
+    let drop_index_name_and_age = drop_index_name.clone().drop_index("users_age_idx");
+
+    let expected_drop_index_name = "DROP INDEX users_name_idx";
+    assert_eq!(expected_drop_index_name, drop_index_name.as_string());
+
+    let expected_drop_index_name_and_age = "DROP INDEX users_name_idx, users_age_idx";
+    assert_eq!(expected_drop_index_name_and_age, drop_index_name_and_age.as_string());
+  }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod builder_methods {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -134,24 +178,18 @@ mod builder_methods {
 
   #[test]
   fn method_debug_should_print_at_console_in_a_human_readable_format() {
-    let query = sql::DropIndex::new()
-      .drop_index_if_exists("users_name_idx")
-      .debug()
-      .as_string();
+    let query = sql::DropIndex::new().drop_index("users_name_idx").debug().as_string();
 
-    let expected_query = "DROP INDEX IF EXISTS users_name_idx";
+    let expected_query = "DROP INDEX users_name_idx";
 
     assert_eq!(expected_query, query);
   }
 
   #[test]
   fn method_print_should_print_in_one_line_the_current_state_of_builder() {
-    let query = sql::DropIndex::new()
-      .drop_index_if_exists("users_name_idx")
-      .print()
-      .as_string();
+    let query = sql::DropIndex::new().drop_index("users_name_idx").print().as_string();
 
-    let expected_query = "DROP INDEX IF EXISTS users_name_idx";
+    let expected_query = "DROP INDEX users_name_idx";
 
     assert_eq!(expected_query, query);
   }
@@ -238,7 +276,7 @@ mod builder_methods {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod method_drop_index {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -251,34 +289,9 @@ mod method_drop_index {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(feature = "postgresql"))]
-  #[test]
-  fn method_drop_index_should_overrides_previous_value_on_consecutive_calls() {
-    let query = sql::DropIndex::new()
-      .drop_index("films_title_idx")
-      .drop_index("films_published_at_idx")
-      .as_string();
-
-    let expected_query = "DROP INDEX films_published_at_idx";
-
-    assert_eq!(expected_query, query);
-  }
-
   #[test]
   fn method_drop_index_should_trim_space_of_the_argument() {
     let query = sql::DropIndex::new().drop_index("   films_title_idx   ").as_string();
-    let expected_query = "DROP INDEX films_title_idx";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[cfg(not(feature = "postgresql"))]
-  #[test]
-  fn method_drop_index_should_not_accumulate_arguments_with_the_same_content() {
-    let query = sql::DropIndex::new()
-      .drop_index("films_title_idx")
-      .drop_index("films_title_idx")
-      .as_string();
     let expected_query = "DROP INDEX films_title_idx";
 
     assert_eq!(expected_query, query);
@@ -305,6 +318,58 @@ mod method_drop_index {
 
     assert_eq!(expected_query, query);
   }
+
+  #[cfg(any(feature = "sqlite", feature = "mysql"))]
+  #[test]
+  fn method_drop_index_should_overrides_previous_value_on_consecutive_calls() {
+    let query = sql::DropIndex::new()
+      .drop_index("films_title_idx")
+      .drop_index("films_published_at_idx")
+      .as_string();
+
+    let expected_query = "DROP INDEX films_published_at_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(any(feature = "sqlite", feature = "mysql"))]
+  #[test]
+  fn method_drop_index_should_not_accumulate_arguments_with_the_same_content() {
+    let query = sql::DropIndex::new()
+      .drop_index("films_title_idx")
+      .drop_index("films_title_idx")
+      .as_string();
+    let expected_query = "DROP INDEX films_title_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn method_drop_index_should_accumulate_values_on_consecutive_calls() {
+    let query = sql::DropIndex::new()
+      .drop_index("films_title_idx")
+      .drop_index("series")
+      .as_string();
+
+    let expected_query = "DROP INDEX films_title_idx, series";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn method_drop_index_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::DropIndex::new()
+      .drop_index("")
+      .drop_index("series")
+      .drop_index("")
+      .as_string();
+
+    let expected_query = "DROP INDEX series";
+
+    assert_eq!(expected_query, query);
+  }
 }
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
@@ -322,35 +387,10 @@ mod method_drop_index_if_exists {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(not(feature = "postgresql"))]
-  #[test]
-  fn method_drop_index_if_exists_should_overrides_previous_value_on_consecutive_calls() {
-    let query = sql::DropIndex::new()
-      .drop_index_if_exists("films_title_idx")
-      .drop_index_if_exists("films_published_at_idx")
-      .as_string();
-
-    let expected_query = "DROP INDEX IF EXISTS films_published_at_idx";
-
-    assert_eq!(expected_query, query);
-  }
-
   #[test]
   fn method_drop_index_if_exists_should_trim_space_of_the_argument() {
     let query = sql::DropIndex::new()
       .drop_index_if_exists("   films_title_idx   ")
-      .as_string();
-    let expected_query = "DROP INDEX IF EXISTS films_title_idx";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[cfg(not(feature = "postgresql"))]
-  #[test]
-  fn method_drop_index_if_exists_should_not_accumulate_arguments_with_the_same_content() {
-    let query = sql::DropIndex::new()
-      .drop_index_if_exists("films_title_idx")
-      .drop_index_if_exists("films_title_idx")
       .as_string();
     let expected_query = "DROP INDEX IF EXISTS films_title_idx";
 
@@ -378,38 +418,8 @@ mod method_drop_index_if_exists {
 
     assert_eq!(expected_query, query);
   }
-}
 
-#[cfg(feature = "postgresql")]
-mod postgres_feature_flag {
-  use pretty_assertions::assert_eq;
-  use sql_query_builder as sql;
-
-  #[test]
-  fn method_drop_index_should_accumulate_values_on_consecutive_calls() {
-    let query = sql::DropIndex::new()
-      .drop_index("films_title_idx")
-      .drop_index("series")
-      .as_string();
-
-    let expected_query = "DROP INDEX films_title_idx, series";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_drop_index_should_not_accumulate_values_when_expression_is_empty() {
-    let query = sql::DropIndex::new()
-      .drop_index("")
-      .drop_index("series")
-      .drop_index("")
-      .as_string();
-
-    let expected_query = "DROP INDEX series";
-
-    assert_eq!(expected_query, query);
-  }
-
+  #[cfg(feature = "postgresql")]
   #[test]
   fn method_drop_index_if_exists_should_accumulate_values_on_consecutive_calls() {
     let query = sql::DropIndex::new()
@@ -422,6 +432,7 @@ mod postgres_feature_flag {
     assert_eq!(expected_query, query);
   }
 
+  #[cfg(feature = "postgresql")]
   #[test]
   fn method_drop_index_if_exists_should_not_accumulate_values_when_expression_is_empty() {
     let query = sql::DropIndex::new()
@@ -431,6 +442,31 @@ mod postgres_feature_flag {
       .as_string();
 
     let expected_query = "DROP INDEX IF EXISTS series";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  #[test]
+  fn method_drop_index_if_exists_should_overrides_previous_value_on_consecutive_calls() {
+    let query = sql::DropIndex::new()
+      .drop_index_if_exists("films_title_idx")
+      .drop_index_if_exists("films_published_at_idx")
+      .as_string();
+
+    let expected_query = "DROP INDEX IF EXISTS films_published_at_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  #[test]
+  fn method_drop_index_if_exists_should_not_accumulate_arguments_with_the_same_content() {
+    let query = sql::DropIndex::new()
+      .drop_index_if_exists("films_title_idx")
+      .drop_index_if_exists("films_title_idx")
+      .as_string();
+    let expected_query = "DROP INDEX IF EXISTS films_title_idx";
 
     assert_eq!(expected_query, query);
   }

@@ -7,7 +7,7 @@ use crate::{
   utils::push_unique,
 };
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use crate::structure::{CreateIndex, DropIndex};
 
 impl Transaction {
@@ -46,8 +46,6 @@ impl Transaction {
   /// # Example
   ///
   /// ```
-  /// # #[cfg(not(feature = "sqlite"))]
-  /// # {
   /// # use sql_query_builder as sql;
   /// let transaction_query = sql::Transaction::new()
   ///   .commit("WORK")
@@ -56,7 +54,6 @@ impl Transaction {
   ///
   /// # let expected = "COMMIT TRANSACTION;";
   /// # assert_eq!(transaction_query, expected);
-  /// # }
   /// ```
   ///
   /// Output
@@ -596,9 +593,10 @@ impl Transaction {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
 #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
 impl Transaction {
   /// The `begin` command, this method will be always added at the beginning of the transation and
   /// all consecutive call will override the previous value.
@@ -710,7 +708,12 @@ impl Transaction {
     self._ordered_commands.push(cmd);
     self
   }
+}
 
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+impl Transaction {
   /// The `end` command, this method will be always added at the end of the transation and
   /// all consecutive call will override the previous value.
   ///

@@ -38,7 +38,7 @@ impl DropTable {
   /// ### Example 1
   ///
   ///```
-  /// # #[cfg(not(feature = "postgresql"))]
+  /// # #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::DropTable::new()
@@ -57,12 +57,12 @@ impl DropTable {
   /// DROP TABLE orders
   /// ```
   ///
-  /// ### Example 2 `crate features postgresql only`
+  /// ### Example 2 `crate features postgresql and mysql only`
   ///
   /// Multiples call will concatenates all values
   ///
   ///```
-  /// # #[cfg(feature = "postgresql")]
+  /// # #[cfg(any(feature = "postgresql", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::DropTable::new()
@@ -90,7 +90,7 @@ impl DropTable {
   /// ### Example 1
   ///
   /// ```
-  /// # #[cfg(not(feature = "postgresql"))]
+  /// # #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::DropTable::new()
@@ -109,12 +109,12 @@ impl DropTable {
   /// DROP TABLE IF EXISTS orders
   /// ```
   ///
-  /// ### Example 2 `crate features postgresql only`
+  /// ### Example 2 `crate features postgresql and mysql only`
   ///
   /// Multiples call will concatenates all values
   ///
   /// ```
-  /// # #[cfg(feature = "postgresql")]
+  /// # #[cfg(any(feature = "postgresql", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::DropTable::new()

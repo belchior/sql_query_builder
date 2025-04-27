@@ -26,7 +26,7 @@ impl DropTable {
         "".to_string()
       };
 
-      let table_names = if cfg!(any(feature = "postgresql")) {
+      let table_names = if cfg!(any(feature = "postgresql", feature = "mysql")) {
         self
           ._drop_table
           .iter()

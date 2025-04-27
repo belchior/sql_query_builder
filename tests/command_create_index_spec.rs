@@ -1,4 +1,4 @@
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod full_api {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -71,9 +71,34 @@ mod full_api {
 
     assert_eq!(expected_query, query);
   }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn mysql_with_all_methods() {
+    let query = sql::CreateIndex::new()
+      // required methods
+      .create_index("users_name_idx")
+      .on("users")
+      .column("name")
+      // optional methods
+      .unique()
+      .using("btree")
+      .lock("exclusive")
+      .as_string();
+
+    let expected_query = "\
+      CREATE UNIQUE INDEX users_name_idx \
+      USING btree \
+      ON users \
+      (name) \
+      LOCK exclusive\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod builder_features {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -106,12 +131,10 @@ mod builder_features {
   fn create_index_builder_should_be_cloneable() {
     let login_index = sql::CreateIndex::new().create_index("users_login_idx");
 
-    let product_name_index = login_index
-      .clone()
-      .create_index_if_not_exists("orders_product_name_idx");
+    let product_name_index = login_index.clone().unique();
 
     let expected_login_index = "CREATE INDEX users_login_idx";
-    let expected_product_name_index = "CREATE INDEX IF NOT EXISTS orders_product_name_idx";
+    let expected_product_name_index = "CREATE UNIQUE INDEX users_login_idx";
 
     assert_eq!(expected_login_index, login_index.as_string());
     assert_eq!(expected_product_name_index, product_name_index.as_string());
@@ -122,11 +145,11 @@ mod builder_features {
     let mut create_index = sql::CreateIndex::new().create_index("orders_product_name_idx");
 
     if true {
-      create_index = create_index.create_index_if_not_exists("users_login_idx");
+      create_index = create_index.unique();
     }
 
     let query = create_index.as_string();
-    let expected_query = "CREATE INDEX IF NOT EXISTS users_login_idx";
+    let expected_query = "CREATE UNIQUE INDEX orders_product_name_idx";
 
     assert_eq!(expected_query, query);
   }
@@ -137,8 +160,8 @@ mod builder_features {
       select.create_index("orders_product_name_idx")
     }
 
-    fn create_index_if_not_exists(select: sql::CreateIndex) -> sql::CreateIndex {
-      select.create_index_if_not_exists("users_login_idx")
+    fn create_index_unique(select: sql::CreateIndex) -> sql::CreateIndex {
+      select.create_index("users_login_idx").unique()
     }
 
     fn as_string(select: sql::CreateIndex) -> String {
@@ -147,17 +170,17 @@ mod builder_features {
 
     let query = Some(sql::CreateIndex::new())
       .map(create_index)
-      .map(create_index_if_not_exists)
+      .map(create_index_unique)
       .map(as_string)
       .unwrap();
 
-    let expected_query = "CREATE INDEX IF NOT EXISTS users_login_idx";
+    let expected_query = "CREATE UNIQUE INDEX users_login_idx";
 
     assert_eq!(expected_query, query);
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod builder_methods {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -181,13 +204,13 @@ mod builder_methods {
   #[test]
   fn method_debug_should_print_at_console_in_a_human_readable_format() {
     let query = sql::CreateIndex::new()
-      .create_index_if_not_exists("users_login_idx")
+      .create_index("users_login_idx")
       .on("users")
       .column("login")
       .debug()
       .as_string();
 
-    let expected_query = "CREATE INDEX IF NOT EXISTS users_login_idx ON users (login)";
+    let expected_query = "CREATE INDEX users_login_idx ON users (login)";
 
     assert_eq!(expected_query, query);
   }
@@ -195,13 +218,13 @@ mod builder_methods {
   #[test]
   fn method_print_should_print_in_one_line_the_current_state_of_builder() {
     let query = sql::CreateIndex::new()
-      .create_index_if_not_exists("users_login_idx")
+      .create_index("users_login_idx")
       .on("users")
       .column("login")
       .print()
       .as_string();
 
-    let expected_query = "CREATE INDEX IF NOT EXISTS users_login_idx ON users (login)";
+    let expected_query = "CREATE INDEX users_login_idx ON users (login)";
 
     assert_eq!(expected_query, query);
   }
@@ -287,7 +310,7 @@ mod builder_methods {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod method_column {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -383,7 +406,7 @@ mod method_column {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod method_create_index {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -460,10 +483,182 @@ mod method_create_index {
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(feature = "sqlite")]
+  #[cfg(any(feature = "sqlite", feature = "mysql"))]
   #[test]
   fn method_create_index_should_define_the_parameter_only_with_name_of_the_index() {
     let query = sql::CreateIndex::new().create_index("").as_string();
+    let expected_query = "";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+mod method_on {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_on_should_define_a_on_parameter() {
+    let query = sql::CreateIndex::new().on("users").as_string();
+    let expected_query = "ON users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_on_should_overrides_the_current_value_on_consecutive_calls() {
+    let query = sql::CreateIndex::new().on("users").on("orders").as_string();
+
+    let expected_query = "ON orders";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_on_should_not_accumulate_parameters_with_the_same_content() {
+    let query = sql::CreateIndex::new().on("users").on("users").as_string();
+    let expected_query = "ON users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_on_should_trim_space_of_the_argument() {
+    let query = sql::CreateIndex::new().on("  users  ").as_string();
+    let expected_query = "ON users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_on_parameter() {
+    let query = sql::CreateIndex::new()
+      .on("users")
+      .raw_after(sql::CreateIndexParams::On, "(login)")
+      .as_string();
+
+    let expected_query = "ON users (login)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_on_parameter() {
+    let query = sql::CreateIndex::new()
+      .raw_before(sql::CreateIndexParams::On, "create index users_name_idx")
+      .on("users")
+      .as_string();
+
+    let expected_query = "create index users_name_idx ON users";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+mod method_unique {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_unique_should_define_a_create_index_parameter_with_the_modifier_unique() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_login_idx")
+      .unique()
+      .as_string();
+    let expected_query = "CREATE UNIQUE INDEX users_login_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_unique_should_define_a_create_index_if_not_exists_parameter_with_the_modifier_unique() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_login_idx")
+      .unique()
+      .as_string();
+    let expected_query = "CREATE UNIQUE INDEX users_login_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_unique_should_not_have_effect_in_the_current_state_on_consecutive_calls() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_login_idx")
+      .unique()
+      .unique()
+      .as_string();
+
+    let expected_query = "CREATE UNIQUE INDEX users_login_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_unique_parameter() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_name_idx")
+      .unique()
+      .raw_after(sql::CreateIndexParams::Unique, "/* uncommon parameter */")
+      .as_string();
+
+    let expected_query = "CREATE UNIQUE /* uncommon parameter */ INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_after_should_not_add_raw_sql_when_the_method_unique_was_not_called() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_name_idx")
+      .raw_after(sql::CreateIndexParams::Unique, "/* uncommon parameter */")
+      .as_string();
+
+    let expected_query = "CREATE INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_unique_parameter() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_name_idx")
+      .raw_before(sql::CreateIndexParams::Unique, "/* uncommon parameter */")
+      .unique()
+      .as_string();
+
+    let expected_query = "CREATE /* uncommon parameter */ UNIQUE INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_not_add_raw_sql_when_the_method_unique_was_not_called() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_name_idx")
+      .raw_before(sql::CreateIndexParams::Unique, "/* uncommon parameter */")
+      .as_string();
+
+    let expected_query = "CREATE INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn method_unique_should_define_a_create_index_parameter_even_when_the_method_create_index_was_not_called() {
+    let query = sql::CreateIndex::new().unique().as_string();
+    let expected_query = "CREATE UNIQUE INDEX";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(any(feature = "sqlite", feature = "mysql"))]
+  #[test]
+  fn method_unique_should_not_define_a_create_index_parameter_when_the_method_create_index_was_not_called() {
+    let query = sql::CreateIndex::new().unique().as_string();
     let expected_query = "";
 
     assert_eq!(expected_query, query);
@@ -562,173 +757,103 @@ mod method_create_index_if_not_exists {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-mod method_on {
+#[cfg(any(feature = "postgresql", feature = "mysql"))]
+mod method_using {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
 
   #[test]
-  fn method_on_should_define_a_on_parameter() {
-    let query = sql::CreateIndex::new().on("users").as_string();
-    let expected_query = "ON users";
+  fn method_using_should_define_a_using_parameter() {
+    let query = sql::CreateIndex::new().using("btree").as_string();
+    let expected_query = "USING btree";
 
     assert_eq!(expected_query, query);
   }
 
   #[test]
-  fn method_on_should_overrides_the_current_value_on_consecutive_calls() {
-    let query = sql::CreateIndex::new().on("users").on("orders").as_string();
-
-    let expected_query = "ON orders";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_on_should_not_accumulate_parameters_with_the_same_content() {
-    let query = sql::CreateIndex::new().on("users").on("users").as_string();
-    let expected_query = "ON users";
+  fn method_using_should_overrides_the_current_value_on_consecutive_calls() {
+    let query = sql::CreateIndex::new().using("btree").using("gist").as_string();
+    let expected_query = "USING gist";
 
     assert_eq!(expected_query, query);
   }
 
   #[test]
-  fn method_on_should_trim_space_of_the_argument() {
-    let query = sql::CreateIndex::new().on("  users  ").as_string();
-    let expected_query = "ON users";
+  fn method_using_should_trim_space_of_the_argument() {
+    let query = sql::CreateIndex::new().using("  btree  ").as_string();
+    let expected_query = "USING btree";
 
     assert_eq!(expected_query, query);
   }
 
   #[test]
-  fn method_raw_after_should_add_raw_sql_after_on_parameter() {
+  fn method_raw_after_should_add_raw_sql_after_using_parameter() {
     let query = sql::CreateIndex::new()
-      .on("users")
-      .raw_after(sql::CreateIndexParams::On, "(login)")
+      .using("btree")
+      .raw_after(sql::CreateIndexParams::Using, "/* uncommon parameter */")
       .as_string();
 
-    let expected_query = "ON users (login)";
+    let expected_query = "USING btree /* uncommon parameter */";
 
     assert_eq!(expected_query, query);
   }
 
   #[test]
-  fn method_raw_before_should_add_raw_sql_before_on_parameter() {
+  fn method_raw_before_should_add_raw_sql_before_using_parameter() {
     let query = sql::CreateIndex::new()
-      .raw_before(sql::CreateIndexParams::On, "create index users_name_idx")
-      .on("users")
+      .raw_before(sql::CreateIndexParams::Using, "/* uncommon parameter */")
+      .using("gist")
       .as_string();
 
-    let expected_query = "create index users_name_idx ON users";
-
-    assert_eq!(expected_query, query);
-  }
-}
-
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-mod method_unique {
-  use pretty_assertions::assert_eq;
-  use sql_query_builder as sql;
-
-  #[test]
-  fn method_unique_should_define_a_create_index_parameter_with_the_modifier_unique() {
-    let query = sql::CreateIndex::new()
-      .create_index("users_login_idx")
-      .unique()
-      .as_string();
-    let expected_query = "CREATE UNIQUE INDEX users_login_idx";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_unique_should_define_a_create_index_if_not_exists_parameter_with_the_modifier_unique() {
-    let query = sql::CreateIndex::new()
-      .create_index_if_not_exists("users_login_idx")
-      .unique()
-      .as_string();
-    let expected_query = "CREATE UNIQUE INDEX IF NOT EXISTS users_login_idx";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_unique_should_have_any_effect_in_the_current_state_on_consecutive_calls() {
-    let query = sql::CreateIndex::new()
-      .create_index("users_login_idx")
-      .unique()
-      .unique()
-      .as_string();
-
-    let expected_query = "CREATE UNIQUE INDEX users_login_idx";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_raw_after_should_add_raw_sql_after_unique_parameter() {
-    let query = sql::CreateIndex::new()
-      .create_index("users_name_idx")
-      .unique()
-      .raw_after(sql::CreateIndexParams::Unique, "/* uncommon parameter */")
-      .as_string();
-
-    let expected_query = "CREATE UNIQUE /* uncommon parameter */ INDEX users_name_idx";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_raw_after_should_not_add_raw_sql_when_the_method_unique_was_not_called() {
-    let query = sql::CreateIndex::new()
-      .create_index("users_name_idx")
-      .raw_after(sql::CreateIndexParams::Unique, "/* uncommon parameter */")
-      .as_string();
-
-    let expected_query = "CREATE INDEX users_name_idx";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_raw_before_should_add_raw_sql_before_unique_parameter() {
-    let query = sql::CreateIndex::new()
-      .create_index("users_name_idx")
-      .raw_before(sql::CreateIndexParams::Unique, "/* uncommon parameter */")
-      .unique()
-      .as_string();
-
-    let expected_query = "CREATE /* uncommon parameter */ UNIQUE INDEX users_name_idx";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_raw_before_should_not_add_raw_sql_when_the_method_unique_was_not_called() {
-    let query = sql::CreateIndex::new()
-      .create_index("users_name_idx")
-      .raw_before(sql::CreateIndexParams::Unique, "/* uncommon parameter */")
-      .as_string();
-
-    let expected_query = "CREATE INDEX users_name_idx";
+    let expected_query = "/* uncommon parameter */ USING gist";
 
     assert_eq!(expected_query, query);
   }
 
   #[cfg(feature = "postgresql")]
   #[test]
-  fn method_unique_should_define_a_create_index_parameter_even_when_the_method_create_index_was_not_called() {
-    let query = sql::CreateIndex::new().unique().as_string();
-    let expected_query = "CREATE UNIQUE INDEX";
+  fn method_using_should_be_before_column() {
+    let query = sql::CreateIndex::new().using("btree").column("name, login").as_string();
+    let expected_query = "USING btree (name, login)";
 
     assert_eq!(expected_query, query);
   }
 
-  #[cfg(feature = "sqlite")]
+  #[cfg(feature = "postgresql")]
   #[test]
-  fn method_unique_should_not_define_a_create_index_parameter_when_the_method_create_index_was_not_called() {
-    let query = sql::CreateIndex::new().unique().as_string();
-    let expected_query = "";
+  fn method_using_should_be_after_on_clause() {
+    let query = sql::CreateIndex::new().on("users").using("btree").as_string();
+    let expected_query = "ON users USING btree";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn method_using_should_be_before_on_clause() {
+    let query = sql::CreateIndex::new().using("btree").on("users").as_string();
+    let expected_query = "USING btree ON users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn method_using_should_be_before_columns() {
+    let query = sql::CreateIndex::new().using("btree").column("name").as_string();
+    let expected_query = "USING btree (name)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn method_using_should_be_after_create_index_clause() {
+    let query = sql::CreateIndex::new()
+      .create_index("idx_name")
+      .using("btree")
+      .as_string();
+    let expected_query = "CREATE INDEX idx_name USING btree";
 
     assert_eq!(expected_query, query);
   }
@@ -1011,63 +1136,262 @@ mod method_only {
   }
 }
 
-#[cfg(feature = "postgresql")]
-mod method_using {
+#[cfg(feature = "mysql")]
+mod method_fulltext {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
 
   #[test]
-  fn method_using_should_define_a_using_parameter() {
-    let query = sql::CreateIndex::new().using("btree").as_string();
-    let expected_query = "USING btree";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_using_should_overrides_the_current_value_on_consecutive_calls() {
-    let query = sql::CreateIndex::new().using("btree").using("gist").as_string();
-    let expected_query = "USING gist";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_using_should_not_accumulate_parameters_with_the_same_content() {
-    let query = sql::CreateIndex::new().using("gist").using("gist").as_string();
-    let expected_query = "USING gist";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_using_should_trim_space_of_the_argument() {
-    let query = sql::CreateIndex::new().using("  btree  ").as_string();
-    let expected_query = "USING btree";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_raw_after_should_add_raw_sql_after_using_parameter() {
+  fn method_fulltext_should_define_a_create_index_parameter_with_the_modifier_fulltext() {
     let query = sql::CreateIndex::new()
-      .using("btree")
-      .raw_after(sql::CreateIndexParams::Using, "/* uncommon parameter */")
+      .create_index("users_login_idx")
+      .fulltext()
+      .as_string();
+    let expected_query = "CREATE FULLTEXT INDEX users_login_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_fulltext_should_not_have_effect_in_the_current_state_on_consecutive_calls() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_login_idx")
+      .fulltext()
+      .fulltext()
       .as_string();
 
-    let expected_query = "USING btree /* uncommon parameter */";
+    let expected_query = "CREATE FULLTEXT INDEX users_login_idx";
 
     assert_eq!(expected_query, query);
   }
 
   #[test]
-  fn method_raw_before_should_add_raw_sql_before_using_parameter() {
+  fn method_raw_after_should_add_raw_sql_after_fulltext_parameter() {
     let query = sql::CreateIndex::new()
-      .raw_before(sql::CreateIndexParams::Using, "/* uncommon parameter */")
-      .using("gist")
+      .create_index("users_name_idx")
+      .fulltext()
+      .raw_after(sql::CreateIndexParams::Fulltext, "/* uncommon parameter */")
       .as_string();
 
-    let expected_query = "/* uncommon parameter */ USING gist";
+    let expected_query = "CREATE FULLTEXT /* uncommon parameter */ INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_after_should_not_add_raw_sql_when_the_method_fulltext_was_not_called() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_name_idx")
+      .raw_after(sql::CreateIndexParams::Fulltext, "/* uncommon parameter */")
+      .as_string();
+
+    let expected_query = "CREATE INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_fulltext_parameter() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_name_idx")
+      .raw_before(sql::CreateIndexParams::Fulltext, "/* uncommon parameter */")
+      .fulltext()
+      .as_string();
+
+    let expected_query = "CREATE /* uncommon parameter */ FULLTEXT INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_not_add_raw_sql_when_the_method_fulltext_was_not_called() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_name_idx")
+      .raw_before(sql::CreateIndexParams::Fulltext, "/* uncommon parameter */")
+      .as_string();
+
+    let expected_query = "CREATE INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_fulltext_should_not_define_a_create_index_parameter_when_the_method_create_index_was_not_called() {
+    let query = sql::CreateIndex::new().fulltext().as_string();
+    let expected_query = "";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(feature = "mysql")]
+mod method_lock {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_lock_should_define_a_lock_option() {
+    let query = sql::CreateIndex::new().lock("exclusive").as_string();
+    let expected_query = "LOCK exclusive";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_lock_should_overrides_the_current_value_on_consecutive_calls() {
+    let query = sql::CreateIndex::new().lock("exclusive").lock("default").as_string();
+    let expected_query = "LOCK default";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_lock_should_trim_space_of_the_argument() {
+    let query = sql::CreateIndex::new().lock("  exclusive  ").as_string();
+    let expected_query = "LOCK exclusive";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_lock_option() {
+    let query = sql::CreateIndex::new()
+      .lock("exclusive")
+      .raw_after(sql::CreateIndexParams::Lock, "/* uncommon parameter */")
+      .as_string();
+
+    let expected_query = "LOCK exclusive /* uncommon parameter */";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_lock_option() {
+    let query = sql::CreateIndex::new()
+      .raw_before(sql::CreateIndexParams::Lock, "/* uncommon parameter */")
+      .lock("default")
+      .as_string();
+
+    let expected_query = "/* uncommon parameter */ LOCK default";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_lock_should_be_after_create_index_clause() {
+    let query = sql::CreateIndex::new()
+      .create_index("idx_name")
+      .lock("exclusive")
+      .as_string();
+    let expected_query = "CREATE INDEX idx_name LOCK exclusive";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_lock_should_be_after_on_clause() {
+    let query = sql::CreateIndex::new().lock("exclusive").on("users").as_string();
+    let expected_query = "ON users LOCK exclusive";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_lock_should_be_after_column_clause() {
+    let query = sql::CreateIndex::new()
+      .lock("exclusive")
+      .on("users")
+      .column("name")
+      .as_string();
+    let expected_query = "ON users (name) LOCK exclusive";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(feature = "mysql")]
+mod method_spatial {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_spatial_should_define_a_create_index_parameter_with_the_modifier_spatial() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_login_idx")
+      .spatial()
+      .as_string();
+    let expected_query = "CREATE SPATIAL INDEX users_login_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_spatial_should_not_have_effect_in_the_current_state_on_consecutive_calls() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_login_idx")
+      .spatial()
+      .spatial()
+      .as_string();
+
+    let expected_query = "CREATE SPATIAL INDEX users_login_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_spatial_parameter() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_name_idx")
+      .spatial()
+      .raw_after(sql::CreateIndexParams::Spatial, "/* uncommon parameter */")
+      .as_string();
+
+    let expected_query = "CREATE SPATIAL /* uncommon parameter */ INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_after_should_not_add_raw_sql_when_the_method_spatial_was_not_called() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_name_idx")
+      .raw_after(sql::CreateIndexParams::Spatial, "/* uncommon parameter */")
+      .as_string();
+
+    let expected_query = "CREATE INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_spatial_parameter() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_name_idx")
+      .raw_before(sql::CreateIndexParams::Spatial, "/* uncommon parameter */")
+      .spatial()
+      .as_string();
+
+    let expected_query = "CREATE /* uncommon parameter */ SPATIAL INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_not_add_raw_sql_when_the_method_spatial_was_not_called() {
+    let query = sql::CreateIndex::new()
+      .create_index("users_name_idx")
+      .raw_before(sql::CreateIndexParams::Spatial, "/* uncommon parameter */")
+      .as_string();
+
+    let expected_query = "CREATE INDEX users_name_idx";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_spatial_should_not_define_a_create_index_parameter_when_the_method_create_index_was_not_called() {
+    let query = sql::CreateIndex::new().spatial().as_string();
+    let expected_query = "";
 
     assert_eq!(expected_query, query);
   }

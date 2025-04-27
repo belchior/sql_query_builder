@@ -1,3 +1,79 @@
+#[cfg(feature = "mysql")]
+mod delete_command {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_from_should_add_the_from_clause() {
+    let query = sql::Delete::new().from("users").as_string();
+    let expected_query = "FROM users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_from_should_accumulate_values_on_consecutive_calls() {
+    let query = sql::Delete::new().from("users").from("addresses").as_string();
+    let expected_query = "FROM users, addresses";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_from_should_not_accumulate_values_when_table_name_is_empty() {
+    let query = sql::Delete::new().from("").from("users").from("").as_string();
+    let expected_query = "FROM users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_from_should_trim_space_of_the_argument() {
+    let query = sql::Delete::new().from("  users  ").as_string();
+    let expected_query = "FROM users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_from_should_not_accumulate_arguments_with_the_same_content() {
+    let query = sql::Delete::new().from("addresses").from("addresses").as_string();
+    let expected_query = "FROM addresses";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn clause_from_should_be_after_select_clause() {
+    let query = sql::Delete::new().delete("QUICK").from("users").as_string();
+    let expected_query = "DELETE QUICK FROM users";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_from_clause() {
+    let query = sql::Delete::new()
+      .raw_before(sql::DeleteClause::From, "DELETE QUICK")
+      .from("orders")
+      .as_string();
+    let expected_query = "DELETE QUICK FROM orders";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_from_clause() {
+    let query = sql::Delete::new()
+      .from("users")
+      .raw_after(sql::DeleteClause::From, "WHERE id = '123'")
+      .as_string();
+    let expected_query = "FROM users WHERE id = '123'";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
 mod select_command {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -7,7 +83,7 @@ mod select_command {
     let query = sql::Select::new().from("users").as_string();
     let expected_query = "FROM users";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -15,7 +91,7 @@ mod select_command {
     let query = sql::Select::new().from("users").from("addresses").as_string();
     let expected_query = "FROM users, addresses";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -23,7 +99,7 @@ mod select_command {
     let query = sql::Select::new().from("").from("users").from("").as_string();
     let expected_query = "FROM users";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -31,7 +107,7 @@ mod select_command {
     let query = sql::Select::new().from("  users  ").as_string();
     let expected_query = "FROM users";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -39,7 +115,7 @@ mod select_command {
     let query = sql::Select::new().from("addresses").from("addresses").as_string();
     let expected_query = "FROM addresses";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -47,7 +123,7 @@ mod select_command {
     let query = sql::Select::new().select("*").from("users").as_string();
     let expected_query = "SELECT * FROM users";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -58,7 +134,7 @@ mod select_command {
       .as_string();
     let expected_query = "select amount FROM orders";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -72,7 +148,7 @@ mod select_command {
       .as_string();
     let expected_query = "FROM users inner join addresses on users.login = addresses.login";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 }
 
@@ -86,7 +162,7 @@ mod update_command {
     let query = sql::Update::new().from("users").as_string();
     let expected_query = "FROM users";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -94,7 +170,7 @@ mod update_command {
     let query = sql::Update::new().from("users").from("addresses").as_string();
     let expected_query = "FROM users, addresses";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -102,7 +178,7 @@ mod update_command {
     let query = sql::Update::new().from("").from("users").from("").as_string();
     let expected_query = "FROM users";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -110,7 +186,7 @@ mod update_command {
     let query = sql::Update::new().from("  users  ").as_string();
     let expected_query = "FROM users";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -118,7 +194,7 @@ mod update_command {
     let query = sql::Update::new().from("addresses").from("addresses").as_string();
     let expected_query = "FROM addresses";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -126,7 +202,7 @@ mod update_command {
     let query = sql::Update::new().set("country = 'Bar'").from("addresses").as_string();
     let expected_query = "SET country = 'Bar' FROM addresses";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -137,7 +213,7 @@ mod update_command {
       .as_string();
     let expected_query = "set country = 'Bar' FROM addresses";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -148,6 +224,6 @@ mod update_command {
       .as_string();
     let expected_query = "FROM users where login = $1";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 }

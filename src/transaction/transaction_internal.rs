@@ -16,7 +16,7 @@ impl Concat for Transaction {
 
     query = self.concat_raw(query, &fmts, &self._raw);
 
-    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+    #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
     {
       query = self.concat_begin(query, &fmts);
     }
@@ -52,7 +52,7 @@ impl Concat for TransactionCommand {
       Rollback => format!("ROLLBACK{arg}"),
       Savepoint => format!("SAVEPOINT{arg}"),
 
-      #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+      #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
       Begin => format!("BEGIN{arg}"),
       #[cfg(any(feature = "postgresql", feature = "sqlite"))]
       End => format!("END{arg}"),
@@ -117,7 +117,7 @@ impl TransactionCommand {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 impl Transaction {
   fn concat_begin(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
@@ -128,7 +128,10 @@ impl Transaction {
 
     format!("{query}{sql}")
   }
+}
 
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+impl Transaction {
   fn concat_end(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
     let sql = match &self._end {

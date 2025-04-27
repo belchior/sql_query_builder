@@ -38,7 +38,7 @@ impl DropIndex {
   /// ### Example 1
   ///
   ///```
-  /// # #[cfg(not(feature = "postgresql"))]
+  /// # #[cfg(any(feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::DropIndex::new()
@@ -82,59 +82,6 @@ impl DropIndex {
   /// ```
   pub fn drop_index(mut self, index_name: &str) -> Self {
     push_unique(&mut self._drop_index, index_name.trim().to_string());
-    self
-  }
-
-  /// Defines a drop index parameter with the `if exists` modifier, this method overrides the previous value
-  ///
-  /// ### Example 1
-  ///
-  /// ```
-  /// # #[cfg(not(feature = "postgresql"))]
-  /// # {
-  /// # use sql_query_builder as sql;
-  /// let query = sql::DropIndex::new()
-  ///   .drop_index("users_name_idx")
-  ///   .drop_index_if_exists("orders_product_name_idx")
-  ///   .to_string();
-  ///
-  /// # let expected = "DROP INDEX IF EXISTS orders_product_name_idx";
-  /// # assert_eq!(expected, query);
-  /// # }
-  /// ```
-  ///
-  /// Outputs
-  ///
-  /// ```sql
-  /// DROP INDEX IF EXISTS orders_product_name_idx
-  /// ```
-  ///
-  /// ### Example 2 `crate features postgresql only`
-  ///
-  /// Multiples call will concatenates all values
-  ///
-  /// ```
-  /// # #[cfg(feature = "postgresql")]
-  /// # {
-  /// # use sql_query_builder as sql;
-  /// let query = sql::DropIndex::new()
-  ///   .drop_index("users_name_idx")
-  ///   .drop_index_if_exists("orders_product_name_idx")
-  ///   .to_string();
-  ///
-  /// # let expected = "DROP INDEX IF EXISTS users_name_idx, orders_product_name_idx";
-  /// # assert_eq!(expected, query);
-  /// # }
-  /// ```
-  ///
-  /// Outputs
-  ///
-  /// ```sql
-  /// DROP INDEX IF EXISTS users_name_idx, orders_product_name_idx
-  /// ```
-  pub fn drop_index_if_exists(mut self, index_name: &str) -> Self {
-    push_unique(&mut self._drop_index, index_name.trim().to_string());
-    self._if_exists = true;
     self
   }
 
@@ -255,6 +202,64 @@ impl DropIndex {
   /// ```
   pub fn raw_before(mut self, param: DropIndexParams, raw_sql: &str) -> Self {
     self._raw_before.push((param, raw_sql.trim().to_string()));
+    self
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+impl DropIndex {
+  /// Defines a drop index parameter with the `if exists` modifier, this method overrides the previous value
+  ///
+  /// ### Example 1
+  ///
+  /// ```
+  /// # #[cfg(feature = "sqlite")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::DropIndex::new()
+  ///   .drop_index("users_name_idx")
+  ///   .drop_index_if_exists("orders_product_name_idx")
+  ///   .to_string();
+  ///
+  /// # let expected = "DROP INDEX IF EXISTS orders_product_name_idx";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// DROP INDEX IF EXISTS orders_product_name_idx
+  /// ```
+  ///
+  /// ### Example 2 `crate features postgresql only`
+  ///
+  /// Multiples call will concatenates all values
+  ///
+  /// ```
+  /// # #[cfg(feature = "postgresql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::DropIndex::new()
+  ///   .drop_index("users_name_idx")
+  ///   .drop_index_if_exists("orders_product_name_idx")
+  ///   .to_string();
+  ///
+  /// # let expected = "DROP INDEX IF EXISTS users_name_idx, orders_product_name_idx";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// DROP INDEX IF EXISTS users_name_idx, orders_product_name_idx
+  /// ```
+  pub fn drop_index_if_exists(mut self, index_name: &str) -> Self {
+    push_unique(&mut self._drop_index, index_name.trim().to_string());
+    self._if_exists = true;
     self
   }
 }
