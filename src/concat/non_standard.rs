@@ -60,7 +60,7 @@ pub(crate) trait ConcatWith<Clause: PartialEq> {
     query: String,
     fmts: &fmt::Formatter,
     clause: Clause,
-    items: &Vec<(String, std::sync::Arc<dyn WithQuery>)>,
+    items: &Vec<(String, std::sync::Arc<dyn WithQuery + Send + Sync>)>,
   ) -> String {
     let fmt::Formatter {
       comma,
