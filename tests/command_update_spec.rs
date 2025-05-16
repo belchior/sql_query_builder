@@ -133,6 +133,15 @@ mod builder_features {
 
     assert_eq!(query, expected_query);
   }
+
+  /** This test can fail only at compile time
+   * [More context](https://github.com/belchior/sql_query_builder/pull/53)
+   */
+  #[test]
+  fn select_builder_should_impl_send_and_sync() {
+    fn assert_impl_sync_send(_builder: impl Sync + Send) {}
+    assert_impl_sync_send(sql::Update::new());
+  }
 }
 
 mod builder_methods {
