@@ -344,7 +344,7 @@ impl Delete {
   /// WHERE id in (select * from deactivated_users)
   /// ```
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  pub fn with(mut self, name: &str, query: impl WithQuery + 'static) -> Self {
+  pub fn with(mut self, name: &str, query: impl WithQuery + 'static + Send + Sync) -> Self {
     self._with.push((name.trim().to_string(), std::sync::Arc::new(query)));
     self
   }

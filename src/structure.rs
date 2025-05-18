@@ -324,7 +324,7 @@ pub struct Delete {
   pub(crate) _returning: Vec<String>,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
+  pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery + Send + Sync>)>,
 }
 
 /// All available clauses to be used in [Delete::raw_before] and [Delete::raw_after] methods on [Delete] builder
@@ -381,7 +381,7 @@ pub struct Insert {
   pub(crate) _returning: Vec<String>,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
+  pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery + Send + Sync>)>,
 
   #[cfg(not(feature = "sqlite"))]
   pub(crate) _insert_into: String,
@@ -508,7 +508,7 @@ pub struct Select {
   pub(crate) _union: Vec<Self>,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  pub(crate) _with: Vec<(String, Arc<dyn WithQuery>)>,
+  pub(crate) _with: Vec<(String, Arc<dyn WithQuery + Send + Sync>)>,
 }
 
 /// All available clauses to be used in [Select::raw_before] and [Select::raw_after] methods on [Select] builder
@@ -671,7 +671,7 @@ pub struct Update {
   pub(crate) _returning: Vec<String>,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-  pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery>)>,
+  pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery + Send + Sync>)>,
 
   #[cfg(not(feature = "sqlite"))]
   pub(crate) _update: String,
