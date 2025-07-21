@@ -20,14 +20,28 @@ impl Values {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._values.is_empty() == false {
       let sep = format!("{comma}{lb}");
-      let values = self
+      let rows = self
         ._values
         .iter()
         .filter(|item| item.is_empty() == false)
-        .map(|item| item.as_str())
+        .map(|item| {
+          #[cfg(not(feature = "mysql"))]
+          {
+            item.clone()
+          }
+          #[cfg(feature = "mysql")]
+          {
+            format!("ROW{item}")
+          }
+        })
         .collect::<Vec<_>>()
         .join(&sep);
-      format!("VALUES{space}{lb}{values}{space}{lb}")
+
+      if rows.is_empty() == true {
+        return "".to_string();
+      };
+
+      format!("VALUES{space}{lb}{rows}{space}{lb}")
     } else {
       "".to_string()
     };

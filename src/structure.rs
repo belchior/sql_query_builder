@@ -437,6 +437,7 @@ pub struct Insert {
   pub(crate) _raw: Vec<String>,
   pub(crate) _select: Option<Select>,
   pub(crate) _values: Vec<String>,
+  pub(crate) _use_row: bool,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _on_conflict: String,
@@ -858,6 +859,8 @@ pub enum UpdateClause {
 /// Basic API
 ///
 /// ```
+/// # #[cfg(not(feature = "mysql"))]
+/// # {
 /// use sql_query_builder as sql;
 ///
 /// let query = sql::Values::new()
@@ -867,6 +870,7 @@ pub enum UpdateClause {
 ///
 /// # let expected = "VALUES ('foo', 'Foo'), ('bar', 'Bar')";
 /// # assert_eq!(expected, query);
+/// # }
 /// ```
 ///
 /// Output

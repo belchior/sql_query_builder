@@ -10,7 +10,7 @@
 
 all_features='postgresql sqlite mysql'
 features=''
-test_names=$(git status -s | grep 'A tests/\|M tests/' | sed -e 's/.* //' -e 's/tests\//--test /' -e 's/\.rs//' | tr '\n' ' ')
+test_names=$(git status -s | grep 'A[[:space:]]*tests/\|M[[:space:]]*tests/' | sed -e 's/.* //' -e 's/tests\//--test /' -e 's/\.rs//' | tr '\n' ' ')
 
 case "$@" in
   "")    features="";;
