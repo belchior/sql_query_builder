@@ -7,7 +7,7 @@ mod insert_command {
     let query = sql::Insert::new().values("('foo', 'Foo')").as_string();
     let expected_query = "VALUES ('foo', 'Foo')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -18,7 +18,7 @@ mod insert_command {
       .as_string();
     let expected_query = "VALUES ('foo', 'Foo'), ('bar', 'Bar')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -30,7 +30,15 @@ mod insert_command {
       .as_string();
     let expected_query = "VALUES ('bar', 'Bar')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_values_should_not_produce_the_values_clause_when_has_only_calls_with_empty_argument() {
+    let query = sql::Insert::new().values("").values("").as_string();
+    let expected_query = "";
+
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -38,7 +46,7 @@ mod insert_command {
     let query = sql::Insert::new().values("   ('Bar')  ").as_string();
     let expected_query = "VALUES ('Bar')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -49,7 +57,7 @@ mod insert_command {
       .as_string();
     let expected_query = "VALUES ('bar', 'Bar')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -60,7 +68,7 @@ mod insert_command {
       .as_string();
     let expected_query = "insert into users (login, name) VALUES ('foo', 'Foo')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -71,7 +79,7 @@ mod insert_command {
       .as_string();
     let expected_query = "VALUES ('baz', 'Baz') , ('foo', 'Foo')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -82,10 +90,11 @@ mod insert_command {
       .as_string();
     let expected_query = "INSERT INTO users (login, name) VALUES ('bar', 'Bar')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 }
 
+#[cfg(not(feature = "mysql"))]
 mod values_command {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -95,7 +104,7 @@ mod values_command {
     let query = sql::Values::new().values("('foo', 'Foo')").as_string();
     let expected_query = "VALUES ('foo', 'Foo')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -106,11 +115,11 @@ mod values_command {
       .as_string();
     let expected_query = "VALUES ('foo', 'Foo'), ('bar', 'Bar')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
-  fn method_values_should_not_accumulate_values_when_table_name_is_empty() {
+  fn method_values_should_not_accumulate_values_when_expression_is_empty() {
     let query = sql::Values::new()
       .values("")
       .values("('foo', 'Foo')")
@@ -118,7 +127,15 @@ mod values_command {
       .as_string();
     let expected_query = "VALUES ('foo', 'Foo')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_values_should_not_produce_the_statement_when_has_only_calls_with_empty_argument() {
+    let query = sql::Values::new().values("").values("").as_string();
+    let expected_query = "";
+
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -126,7 +143,7 @@ mod values_command {
     let query = sql::Values::new().values("   ('Bar')  ").as_string();
     let expected_query = "VALUES ('Bar')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -137,7 +154,7 @@ mod values_command {
       .as_string();
     let expected_query = "VALUES ('bar', 'Bar')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -148,7 +165,7 @@ mod values_command {
       .as_string();
     let expected_query = "insert into users (login, name) VALUES ('foo', 'Foo')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 
   #[test]
@@ -159,6 +176,6 @@ mod values_command {
       .as_string();
     let expected_query = "VALUES ('baz', 'Baz') , ('foo', 'Foo')";
 
-    assert_eq!(query, expected_query);
+    assert_eq!(expected_query, query);
   }
 }

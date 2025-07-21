@@ -1,3 +1,126 @@
+mod full_api {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[cfg(not(any(feature = "sqlite", feature = "mysql")))]
+  #[test]
+  fn sql_standard_with_all_methods() {
+    let query = sql::Insert::new()
+      // required
+      .insert_into("users (login, name)")
+      // one of is required
+      .default_values()
+      .values("(1, 'one')")
+      .select(sql::Select::new().select("login, name"))
+      // optional
+      .overriding("user value")
+      .as_string();
+
+    let expected_query = "\
+      INSERT INTO users (login, name) \
+      OVERRIDING user value \
+      VALUES (1, 'one') \
+      SELECT login, name\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn postgres_with_all_methods() {
+    let query = sql::Insert::new()
+      // required
+      .insert_into("users (login, name)")
+      // one of is required
+      .default_values()
+      .values("(1, 'one')")
+      .select(sql::Select::new().select("login, name"))
+      // optional
+      .on_conflict("do nothing")
+      .overriding("user value")
+      .returning("login, name")
+      .with("foo", sql::Select::new().select("login, name"))
+      .as_string();
+
+    let expected_query = "\
+      WITH foo AS (SELECT login, name) \
+      INSERT INTO users (login, name) \
+      OVERRIDING user value \
+      VALUES (1, 'one') \
+      SELECT login, name \
+      ON CONFLICT do nothing \
+      RETURNING login, name\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  #[test]
+  fn sqlite_with_all_methods() {
+    let query = sql::Insert::new()
+      // one of is required
+      .insert_into("users (login, name)")
+      .insert_or("abort into users (login, name)")
+      .replace_into("users (login, name)")
+      // one of is required
+      .default_values()
+      .values("(1, 'one')")
+      .select(sql::Select::new().select("login, name"))
+      // optional
+      .on_conflict("do nothing")
+      .returning("login, name")
+      .with("foo", sql::Select::new().select("login, name"))
+      .as_string();
+
+    let expected_query = "\
+      WITH foo AS (SELECT login, name) \
+      REPLACE INTO users (login, name) \
+      VALUES (1, 'one') \
+      SELECT login, name \
+      ON CONFLICT do nothing \
+      RETURNING login, name\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn mysql_with_all_methods() {
+    let query = sql::Insert::new()
+      // one of is required
+      .insert_into("users (login, name)")
+      // methods below as a group
+      .insert("LOW_PRIORITY")
+      .into("users")
+      .column("login, name")
+      // one of is required
+      .values("(1, 'one')")
+      .row("('foo', 'Foo')")
+      .select(sql::Select::new().select("login, name"))
+      .set("name = 'Bar'")
+      // optional
+      .partition("p1")
+      .on_duplicate_key_update("c = c+1")
+      .as_string();
+
+    let expected_query = "\
+      INSERT LOW_PRIORITY \
+      INTO users \
+      PARTITION (p1) \
+      (login, name) \
+      SET name = 'Bar' \
+      VALUES ROW(1, 'one'), ROW('foo', 'Foo') \
+      SELECT login, name \
+      ON DUPLICATE KEY UPDATE c = c+1\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
 mod builder_features {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -57,8 +180,8 @@ mod builder_features {
       /* test raw_after */\
     ";
 
-    assert_eq!(query_foo, expected_query_foo);
-    assert_eq!(query_foo_bar, expected_query_foo_bar);
+    assert_eq!(expected_query_foo, query_foo);
+    assert_eq!(expected_query_foo_bar, query_foo_bar);
   }
 
   #[test]
@@ -1014,6 +1137,24 @@ mod mysql_insert_variances {
       .insert_into("users (name)")
       .as_string();
     let expected_query = "INSERT INTO users (name)";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(feature = "mysql")]
+mod values_and_row_methods_mixed {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn when_has_at_least_one_call_to_row_method_all_lines_should_receive_the_constructor_clause_row() {
+    let query = sql::Insert::new()
+      .values("('baz', 'Baz')")
+      .values("('foo', 'Foo')")
+      .row("('max', 'Max')")
+      .as_string();
+    let expected_query = "VALUES ROW('baz', 'Baz'), ROW('foo', 'Foo'), ROW('max', 'Max')";
 
     assert_eq!(expected_query, query);
   }

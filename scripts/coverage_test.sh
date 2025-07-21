@@ -1,7 +1,8 @@
 #!/bin/sh
 
 # Prerequisites
-# cargo install rustfilt cargo-binutils
+# rustup override set 1.82.0
+# cargo install rustfilt@0.2.1 cargo-binutils@0.3.6
 # rustup component add llvm-tools-preview
 clear
 

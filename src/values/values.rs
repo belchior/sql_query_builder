@@ -17,13 +17,16 @@ impl Values {
   /// # Example
   ///
   /// ```
+  /// # #[cfg(not(feature = "mysql"))]
+  /// # {
   /// # use sql_query_builder as sql;
   /// let values_query = sql::Values::new()
   ///   .values("('foo', 'Foo')")
   ///   .as_string();
   ///
   /// # let expected = "VALUES ('foo', 'Foo')";
-  /// # assert_eq!(values_query, expected);
+  /// # assert_eq!(expected, values_query);
+  /// # }
   /// ```
   ///
   /// Output
@@ -42,6 +45,8 @@ impl Values {
   /// # Example
   ///
   /// ```
+  /// # #[cfg(not(feature = "mysql"))]
+  /// # {
   /// # use sql_query_builder as sql;
   /// let values = sql::Values::new()
   ///   .values("(1, 'one'), (2, 'two')")
@@ -49,7 +54,8 @@ impl Values {
   ///   .debug();
   ///
   /// # let expected = "VALUES (1, 'one'), (2, 'two'), (3, 'three')";
-  /// # assert_eq!(values.as_string(), expected);
+  /// # assert_eq!(expected, values.as_string());
+  /// # }
   /// ```
   ///
   /// Prints to the standard output
@@ -83,6 +89,8 @@ impl Values {
   /// # Example
   ///
   /// ```
+  /// # #[cfg(not(feature = "mysql"))]
+  /// # {
   /// # use sql_query_builder as sql;
   /// let raw_query = "insert into my_table(num, txt)";
   ///
@@ -92,7 +100,8 @@ impl Values {
   ///   .as_string();
   ///
   /// # let expected = "insert into my_table(num, txt) VALUES (1, 'one'), (2, 'two')";
-  /// # assert_eq!(values_query, expected);
+  /// # assert_eq!(expected, values_query);
+  /// # }
   /// ```
   ///
   /// Output
@@ -111,6 +120,8 @@ impl Values {
   /// # Example
   ///
   /// ```
+  /// # #[cfg(not(feature = "mysql"))]
+  /// # {
   /// # use sql_query_builder as sql;
   /// let raw_query = ", (3, 'three')";
   ///
@@ -120,7 +131,8 @@ impl Values {
   ///   .as_string();
   ///
   /// # let expected = "VALUES (1, 'one'), (2, 'two') , (3, 'three')";
-  /// # assert_eq!(values_query, expected);
+  /// # assert_eq!(expected, values_query);
+  /// # }
   /// ```
   ///
   /// Output
@@ -138,6 +150,8 @@ impl Values {
   /// # Example
   ///
   /// ```
+  /// # #[cfg(not(feature = "mysql"))]
+  /// # {
   /// # use sql_query_builder as sql;
   /// let raw_query = "/* the values command */";
   ///
@@ -147,7 +161,8 @@ impl Values {
   ///   .as_string();
   ///
   /// # let expected = "/* the values command */ VALUES (1, 'one'), (2, 'two')";
-  /// # assert_eq!(values_query, expected);
+  /// # assert_eq!(expected, values_query);
+  /// # }
   /// ```
   ///
   /// Output
@@ -166,6 +181,8 @@ impl Values {
   /// # Example
   ///
   /// ```
+  /// # #[cfg(not(feature = "mysql"))]
+  /// # {
   /// # use sql_query_builder as sql;
   /// let values_query = sql::Values::new()
   ///   .values("(1, 'one'), (2, 'two')")
@@ -173,7 +190,8 @@ impl Values {
   ///   .as_string();
   ///
   /// # let expected = "VALUES (1, 'one'), (2, 'two'), (3, 'three')";
-  /// # assert_eq!(values_query, expected);
+  /// # assert_eq!(expected, values_query);
+  /// # }
   /// ```
   ///
   /// Output
@@ -181,7 +199,37 @@ impl Values {
   /// ```sql
   /// VALUES (1, 'one'), (2, 'two'), (3, 'three')
   /// ```
+  #[cfg(not(feature = "mysql"))]
   pub fn values(mut self, expression: &str) -> Self {
+    push_unique(&mut self._values, expression.trim().to_string());
+    self
+  }
+}
+
+#[cfg(feature = "mysql")]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+impl Values {
+  /// The `values` clause with the `row` constructor clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # use sql_query_builder as sql;
+  /// let values_query = sql::Values::new()
+  ///   .row("(1, 'one'), row(2, 'two')")
+  ///   .row("(3, 'three')")
+  ///   .as_string();
+  ///
+  /// # let expected = "VALUES ROW(1, 'one'), row(2, 'two'), ROW(3, 'three')";
+  /// # assert_eq!(expected, values_query);
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// VALUES ROW(1, 'one'), row(2, 'two'), ROW(3, 'three')
+  /// ```
+  pub fn row(mut self, expression: &str) -> Self {
     push_unique(&mut self._values, expression.trim().to_string());
     self
   }

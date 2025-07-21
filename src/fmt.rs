@@ -72,6 +72,7 @@ pub fn colorize(query: String) -> String {
     (blue, "RETURNING", "returning"),
     (blue, "RIGHT", "right"),
     (blue, "ROLLBACK", "rollback"),
+    (blue, "ROW", "row"),
     (blue, "SAVEPOINT", "savepoint"),
     (blue, "SELECT ", "select "),
     (blue, "SERIALIZABLE", "serializable"),

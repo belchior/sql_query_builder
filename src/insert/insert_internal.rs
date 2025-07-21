@@ -2,7 +2,6 @@ use crate::{
   concat::{concat_raw_before_after, Concat},
   fmt,
   structure::{Insert, InsertClause},
-  utils,
 };
 
 impl Concat for Insert {
@@ -180,8 +179,25 @@ impl Insert {
     let fmt::Formatter { comma, lb, space, .. } = fmts;
     let sql = if self._values.is_empty() == false {
       let sep = format!("{comma}{lb}");
-      let values = utils::join(&self._values, &sep);
-      format!("VALUES{space}{lb}{values}{space}{lb}")
+      let rows = self
+        ._values
+        .iter()
+        .filter(|item| item.is_empty() == false)
+        .map(|item| {
+          if self._use_row {
+            format!("ROW{item}")
+          } else {
+            item.clone()
+          }
+        })
+        .collect::<Vec<_>>()
+        .join(&sep);
+
+      if rows.is_empty() == true {
+        return "".to_string();
+      }
+
+      format!("VALUES{space}{lb}{rows}{space}{lb}")
     } else {
       "".to_string()
     };
@@ -269,7 +285,10 @@ impl Insert {
 }
 
 #[cfg(feature = "mysql")]
-use crate::concat::{mysql::ConcatPartition, non_standard::ConcatColumn, sql_standard::ConcatSet};
+use crate::{
+  concat::{mysql::ConcatPartition, non_standard::ConcatColumn, sql_standard::ConcatSet},
+  utils,
+};
 
 #[cfg(feature = "mysql")]
 impl ConcatColumn<InsertClause> for Insert {}

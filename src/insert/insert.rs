@@ -311,8 +311,8 @@ impl Insert {
   /// ```sql
   /// INSERT INTO users (login, name) VALUES ('foo', 'Foo'), ('bar', 'Bar')
   /// ```
-  pub fn values(mut self, value: &str) -> Self {
-    push_unique(&mut self._values, value.trim().to_string());
+  pub fn values(mut self, expression: &str) -> Self {
+    push_unique(&mut self._values, expression.trim().to_string());
     #[cfg(not(feature = "mysql"))]
     {
       self._default_values = false
@@ -660,6 +660,36 @@ impl Insert {
   /// ```
   pub fn on_duplicate_key_update(mut self, assignment: &str) -> Self {
     push_unique(&mut self._on_duplicate_key_update, assignment.trim().to_string());
+    self
+  }
+
+  /// The `values` clause with the `row` constructor clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::Insert::new()
+  ///   .insert_into("users (login, name)")
+  ///   .row("('foo', 'Foo')")
+  ///   .row("('bar', 'Bar')")
+  ///   .as_string();
+  ///
+  /// # let expected = "INSERT INTO users (login, name) VALUES ROW('foo', 'Foo'), ROW('bar', 'Bar')";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// INSERT INTO users (login, name) VALUES ROW('foo', 'Foo'), ROW('bar', 'Bar')
+  /// ```
+  pub fn row(mut self, expression: &str) -> Self {
+    push_unique(&mut self._values, expression.trim().to_string());
+    self._use_row = true;
     self
   }
 
