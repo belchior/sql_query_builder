@@ -4,14 +4,26 @@ use crate::{
   structure::{Insert, InsertClause},
 };
 
+#[cfg(feature = "mysql")]
+use crate::structure::MySqlVariance;
+
 impl Concat for Insert {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_string();
 
-    query = self.concat_raw(query, &fmts, &self._raw);
-
-    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+    #[cfg(not(any(feature = "postgresql", feature = "sqlite", feature = "mysql")))]
     {
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_insert_into(query, &fmts);
+      query = self.concat_overriding(query, &fmts);
+      query = self.concat_default_values(query, &fmts);
+      query = self.concat_values(query, &fmts);
+      query = self.concat_select(query, &fmts);
+    }
+
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_raw(query, &fmts, &self._raw);
       query = self.concat_with(
         &self._raw_before,
         &self._raw_after,
@@ -20,18 +32,54 @@ impl Concat for Insert {
         InsertClause::With,
         &self._with,
       );
+      query = self.concat_insert_into(query, &fmts);
+      query = self.concat_overriding(query, &fmts);
+      query = self.concat_default_values(query, &fmts);
+      query = self.concat_values(query, &fmts);
+      query = self.concat_select(query, &fmts);
+      query = self.concat_on_conflict(query, &fmts);
+      query = self.concat_returning(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        InsertClause::Returning,
+        &self._returning,
+      );
     }
-
-    query = self.concat_insert_into(query, &fmts);
 
     #[cfg(feature = "sqlite")]
     {
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_with(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        InsertClause::With,
+        &self._with,
+      );
+      query = self.concat_insert_into(query, &fmts);
       query = self.concat_insert_or(query, &fmts);
       query = self.concat_replace_into(query, &fmts);
+      query = self.concat_default_values(query, &fmts);
+      query = self.concat_values(query, &fmts);
+      query = self.concat_select(query, &fmts);
+      query = self.concat_on_conflict(query, &fmts);
+      query = self.concat_returning(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        InsertClause::Returning,
+        &self._returning,
+      );
     }
 
     #[cfg(feature = "mysql")]
     {
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_insert_into(query, &fmts);
       query = self.concat_insert(query, &fmts);
       query = self.concat_into(query, &fmts);
       query = self.concat_partition(
@@ -42,55 +90,43 @@ impl Concat for Insert {
         InsertClause::Partition,
         &self._partition,
       );
-      query = self.concat_column(
-        &self._raw_before,
-        &self._raw_after,
-        query,
-        &fmts,
-        InsertClause::Column,
-        &self._column,
-      );
-      query = self.concat_set(
-        &self._raw_before,
-        &self._raw_after,
-        query,
-        &fmts,
-        InsertClause::Set,
-        &self._set,
-      );
-    }
 
-    #[cfg(not(any(feature = "sqlite", feature = "mysql")))]
-    {
-      query = self.concat_overriding(query, &fmts);
-    }
+      match self._mysql_variance {
+        MySqlVariance::InsertSelect => {
+          query = self.concat_column(
+            &self._raw_before,
+            &self._raw_after,
+            query,
+            &fmts,
+            InsertClause::Column,
+            &self._column,
+          );
+          query = self.concat_select(query, &fmts);
+        }
+        MySqlVariance::InsertSet => {
+          query = self.concat_set(
+            &self._raw_before,
+            &self._raw_after,
+            query,
+            &fmts,
+            InsertClause::Set,
+            &self._set,
+          );
+        }
+        MySqlVariance::InsertValues | MySqlVariance::InsertValuesRow => {
+          query = self.concat_column(
+            &self._raw_before,
+            &self._raw_after,
+            query,
+            &fmts,
+            InsertClause::Column,
+            &self._column,
+          );
+          query = self.concat_values(query, &fmts);
+        }
+      }
 
-    #[cfg(not(any(feature = "mysql")))]
-    {
-      query = self.concat_default_values(query, &fmts);
-    }
-
-    query = self.concat_values(query, &fmts);
-
-    query = self.concat_select(query, &fmts);
-
-    #[cfg(feature = "mysql")]
-    {
       query = self.concat_on_duplicate_key_update(query, &fmts);
-    }
-
-    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-    {
-      query = self.concat_on_conflict(query, &fmts);
-
-      query = self.concat_returning(
-        &self._raw_before,
-        &self._raw_after,
-        query,
-        &fmts,
-        InsertClause::Returning,
-        &self._returning,
-      );
     }
 
     query.trim_end().to_string()
@@ -184,10 +220,18 @@ impl Insert {
         .iter()
         .filter(|item| item.is_empty() == false)
         .map(|item| {
-          if self._use_row {
-            format!("ROW{item}")
-          } else {
+          #[cfg(not(feature = "mysql"))]
+          {
             item.clone()
+          }
+
+          #[cfg(feature = "mysql")]
+          {
+            if self._mysql_variance == MySqlVariance::InsertValuesRow {
+              format!("ROW{item}")
+            } else {
+              item.clone()
+            }
           }
         })
         .collect::<Vec<_>>()

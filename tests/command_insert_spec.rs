@@ -97,10 +97,10 @@ mod full_api {
       .into("users")
       .column("login, name")
       // one of is required
+      .set("name = 'Bar'")
+      .select(sql::Select::new().select("login, name"))
       .values("(1, 'one')")
       .row("('foo', 'Foo')")
-      .select(sql::Select::new().select("login, name"))
-      .set("name = 'Bar'")
       // optional
       .partition("p1")
       .on_duplicate_key_update("c = c+1")
@@ -111,9 +111,7 @@ mod full_api {
       INTO users \
       PARTITION (p1) \
       (login, name) \
-      SET name = 'Bar' \
       VALUES ROW(1, 'one'), ROW('foo', 'Foo') \
-      SELECT login, name \
       ON DUPLICATE KEY UPDATE c = c+1\
     ";
 
@@ -1053,108 +1051,236 @@ mod mysql_insert_variances {
   use sql_query_builder as sql;
 
   #[test]
-  fn methods_insert_into_column_partition() {
+  fn insert_basic_values() {
     let query = sql::Insert::new()
-      .insert("low_priority")
-      .into("users")
-      .partition("p1")
-      .column("name")
-      .as_string();
-    let expected_query = "INSERT low_priority INTO users PARTITION (p1) (name)";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_insert_into_and_method_insert_the_last_call_should_override_the_previous_one() {
-    let query = sql::Insert::new()
-      .insert_into("users (name)")
-      .insert("low_priority")
-      .as_string();
-    let expected_query = "INSERT low_priority";
-
-    assert_eq!(expected_query, query);
-
-    let query = sql::Insert::new()
-      .insert("low_priority")
-      .insert_into("users (name)")
-      .as_string();
-    let expected_query = "INSERT INTO users (name)";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_insert_into_and_method_into_the_last_call_should_override_the_previous_one() {
-    let query = sql::Insert::new()
-      .insert_into("users (name)")
-      .into("employees")
-      .as_string();
-    let expected_query = "INTO employees";
-
-    assert_eq!(expected_query, query);
-
-    let query = sql::Insert::new()
-      .into("employees")
-      .insert_into("users (name)")
-      .as_string();
-    let expected_query = "INSERT INTO users (name)";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_insert_into_and_method_partition_the_last_call_should_override_the_previous_one() {
-    let query = sql::Insert::new()
-      .insert_into("users (name)")
-      .partition("p1")
-      .as_string();
-    let expected_query = "PARTITION (p1)";
-
-    assert_eq!(expected_query, query);
-
-    let query = sql::Insert::new()
-      .partition("p1")
-      .insert_into("users (name)")
-      .as_string();
-    let expected_query = "INSERT INTO users (name)";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_insert_into_and_method_column_the_last_call_should_override_the_previous_one() {
-    let query = sql::Insert::new()
-      .insert_into("users (name)")
-      .column("login")
-      .as_string();
-    let expected_query = "(login)";
-
-    assert_eq!(expected_query, query);
-
-    let query = sql::Insert::new()
-      .column("login")
-      .insert_into("users (name)")
-      .as_string();
-    let expected_query = "INSERT INTO users (name)";
-
-    assert_eq!(expected_query, query);
-  }
-}
-
-#[cfg(feature = "mysql")]
-mod values_and_row_methods_mixed {
-  use pretty_assertions::assert_eq;
-  use sql_query_builder as sql;
-
-  #[test]
-  fn when_has_at_least_one_call_to_row_method_all_lines_should_receive_the_constructor_clause_row() {
-    let query = sql::Insert::new()
-      .values("('baz', 'Baz')")
+      .insert_into("users (login, name)")
       .values("('foo', 'Foo')")
+      .as_string();
+    let expected_query = "INSERT INTO users (login, name) VALUES ('foo', 'Foo')";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_basic_values_row() {
+    let query = sql::Insert::new()
+      .insert_into("users (login, name)")
+      .row("('foo', 'Foo')")
+      .as_string();
+    let expected_query = "INSERT INTO users (login, name) VALUES ROW('foo', 'Foo')";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_basic_set() {
+    let query = sql::Insert::new()
+      .insert_into("users")
+      .set("login = 'foo'")
+      .set("name = 'Foo'")
+      .as_string();
+    let expected_query = "INSERT INTO users SET login = 'foo', name = 'Foo'";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_basic_select() {
+    let query = sql::Insert::new()
+      .insert_into("users (login, name)")
+      .select(
+        sql::Select::new()
+          .select("login, name")
+          .from("users_old")
+          .where_clause("login = 'foo'"),
+      )
+      .as_string();
+    let expected_query = "INSERT INTO users (login, name) SELECT login, name FROM users_old WHERE login = 'foo'";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_splited_values() {
+    let query = sql::Insert::new()
+      .insert("high_priority")
+      .into("users")
+      .column("login, name")
+      .values("('foo', 'Foo')")
+      .as_string();
+    let expected_query = "INSERT high_priority INTO users (login, name) VALUES ('foo', 'Foo')";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_splited_values_row() {
+    let query = sql::Insert::new()
+      .insert("high_priority")
+      .into("users")
+      .column("login, name")
+      .row("('foo', 'Foo')")
+      .as_string();
+    let expected_query = "INSERT high_priority INTO users (login, name) VALUES ROW('foo', 'Foo')";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_splited_set() {
+    let query = sql::Insert::new()
+      .insert("high_priority")
+      .into("users")
+      .set("login = 'foo'")
+      .set("name = 'Foo'")
+      .as_string();
+    let expected_query = "INSERT high_priority INTO users SET login = 'foo', name = 'Foo'";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_splited_select() {
+    let query = sql::Insert::new()
+      .insert("high_priority")
+      .into("users")
+      .column("login, name")
+      .select(
+        sql::Select::new()
+          .select("login, name")
+          .from("users_old")
+          .where_clause("login = 'foo'"),
+      )
+      .as_string();
+    let expected_query = "\
+      INSERT high_priority INTO users (login, name) \
+      SELECT login, name FROM users_old WHERE login = 'foo'\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  /*
+   * Whe the variances are mixed the last one should overrides the previous ones
+   */
+
+  #[test]
+  fn insert_basic_and_splited_the_last_call_should_override_the_previous_one() {
+    let query = sql::Insert::new()
+      // basic
+      .insert_into("users (login, name)")
+      // splited
+      .insert("high_priority")
+      .into("users")
+      .column("login, name")
+      .as_string();
+    let expected_query = "INSERT high_priority INTO users (login, name)";
+
+    assert_eq!(expected_query, query);
+
+    let query = sql::Insert::new()
+      // splited
+      .insert("high_priority")
+      .into("users")
+      .column("login, name")
+      // basic
+      .insert_into("users (login, name)")
+      .as_string();
+    let expected_query = "INSERT INTO users (login, name)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_values_and_values_row_are_composable_and_the_constructor_clause_row_should_be_added_to_each_line() {
+    let query = sql::Insert::new()
+      .values("('foo', 'Foo')")
+      .values("('bar', 'Bar')")
       .row("('max', 'Max')")
       .as_string();
-    let expected_query = "VALUES ROW('baz', 'Baz'), ROW('foo', 'Foo'), ROW('max', 'Max')";
+    let expected_query = "VALUES ROW('foo', 'Foo'), ROW('bar', 'Bar'), ROW('max', 'Max')";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_set_is_the_last_call_and_should_override_the_previous_ones() {
+    let query = sql::Insert::new()
+      // insert_values/insert_values_row
+      .values("('foo', 'Foo')")
+      .row("('bar', 'Bar')")
+      // insert_select
+      .select(
+        sql::Select::new()
+          .select("login, name")
+          .from("users_old")
+          .where_clause("login = 'foo'"),
+      )
+      // insert_set
+      .set("login = 'foo'")
+      .set("name = 'Foo'")
+      .as_string();
+    let expected_query = "SET login = 'foo', name = 'Foo'";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_values_insert_values_row_are_the_last_call_and_should_override_the_previous_ones() {
+    let query = sql::Insert::new()
+      // insert_set
+      .set("login = 'foo'")
+      .set("name = 'Foo'")
+      // insert_select
+      .select(
+        sql::Select::new()
+          .select("login, name")
+          .from("users_old")
+          .where_clause("login = 'foo'"),
+      )
+      // insert_values/insert_values_row
+      .values("('foo', 'Foo')")
+      .row("('bar', 'Bar')")
+      .as_string();
+    let expected_query = "VALUES ROW('foo', 'Foo'), ROW('bar', 'Bar')";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_select_is_the_last_call_and_should_override_the_previous_ones() {
+    let query = sql::Insert::new()
+      // insert_set
+      .set("login = 'foo'")
+      .set("name = 'Foo'")
+      // insert_values/insert_values_row
+      .values("('foo', 'Foo')")
+      .row("('bar', 'Bar')")
+      // insert_select
+      .select(
+        sql::Select::new()
+          .select("login, name")
+          .from("users_old")
+          .where_clause("login = 'foo'"),
+      )
+      .as_string();
+    let expected_query = "SELECT login, name FROM users_old WHERE login = 'foo'";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn insert_set_should_overrides_the_column_and_values_clauses() {
+    let query = sql::Insert::new()
+      .column("login, name")
+      // insert_values/insert_values_row
+      .values("('foo', 'Foo')")
+      .row("('bar', 'Bar')")
+      // insert_set
+      .set("login = 'foo'")
+      .set("name = 'Foo'")
+      .as_string();
+    let expected_query = "SET login = 'foo', name = 'Foo'";
 
     assert_eq!(expected_query, query);
   }

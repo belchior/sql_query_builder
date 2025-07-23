@@ -437,7 +437,6 @@ pub struct Insert {
   pub(crate) _raw: Vec<String>,
   pub(crate) _select: Option<Select>,
   pub(crate) _values: Vec<String>,
-  pub(crate) _use_row: bool,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _on_conflict: String,
@@ -468,6 +467,9 @@ pub struct Insert {
 
   #[cfg(feature = "mysql")]
   pub(crate) _into: String,
+
+  #[cfg(feature = "mysql")]
+  pub(crate) _mysql_variance: MySqlVariance,
 
   #[cfg(feature = "mysql")]
   pub(crate) _on_duplicate_key_update: Vec<String>,
@@ -530,6 +532,16 @@ pub enum InsertClause {
   #[cfg(feature = "mysql")]
   #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   Set,
+}
+
+#[cfg(feature = "mysql")]
+#[derive(Default, PartialEq, Clone)]
+pub enum MySqlVariance {
+  #[default]
+  InsertValues,
+  InsertSelect,
+  InsertSet,
+  InsertValuesRow,
 }
 
 #[derive(Clone, PartialEq)]

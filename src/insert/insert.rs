@@ -6,6 +6,9 @@ use crate::{
   utils::push_unique,
 };
 
+#[cfg(feature = "mysql")]
+use crate::structure::MySqlVariance;
+
 impl TransactionQuery for Insert {}
 
 impl Insert {
@@ -206,6 +209,12 @@ impl Insert {
   /// ```
   pub fn select(mut self, select: Select) -> Self {
     self._select = Some(select);
+
+    #[cfg(feature = "mysql")]
+    {
+      self._mysql_variance = MySqlVariance::InsertSelect;
+    }
+
     self
   }
 
@@ -311,11 +320,66 @@ impl Insert {
   /// ```sql
   /// INSERT INTO users (login, name) VALUES ('foo', 'Foo'), ('bar', 'Bar')
   /// ```
+  ///
+  /// # Composable methods
+  /// The methods [Insert::values], [Insert::row] are composable, when both was used each line will receive the contructor clause row.
+  ///
+  /// # Example
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::Insert::new()
+  ///   .values("('foo', 'Foo')")
+  ///   .row("('bar', 'Bar')")
+  ///   .as_string();
+  /// # let expected = "VALUES ROW('foo', 'Foo'), ROW('bar', 'Bar')";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// VALUES ROW('foo', 'Foo'), ROW('bar', 'Bar')
+  /// ```
+  ///
+  /// # Mutually exclusive methods
+  /// The methods [Insert::values]/[Insert::row], [Insert::select] and [Insert::set] are mutually exclusive, the last called will overrides the previous ones.
+  /// [Insert::row] and [Insert::set] are available on crate feature `mysql` only.
+  ///
+  /// # Example
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::Insert::new()
+  ///   .values("('foo', 'Foo')")
+  ///   .row("('bar', 'Bar')")
+  ///   .set("login = 'foo'")
+  ///   .set("name = 'Foo'")
+  ///   .as_string();
+  /// # let expected = "SET login = 'foo', name = 'Foo'";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// SET login = 'foo', name = 'Foo'
+  /// ```
   pub fn values(mut self, expression: &str) -> Self {
     push_unique(&mut self._values, expression.trim().to_string());
+
     #[cfg(not(feature = "mysql"))]
     {
       self._default_values = false
+    }
+
+    #[cfg(feature = "mysql")]
+    {
+      self._mysql_variance = MySqlVariance::InsertValues;
     }
     self
   }
@@ -689,7 +753,7 @@ impl Insert {
   /// ```
   pub fn row(mut self, expression: &str) -> Self {
     push_unique(&mut self._values, expression.trim().to_string());
-    self._use_row = true;
+    self._mysql_variance = MySqlVariance::InsertValuesRow;
     self
   }
 
@@ -717,6 +781,7 @@ impl Insert {
   /// ```
   pub fn set(mut self, assignment: &str) -> Self {
     push_unique(&mut self._set, assignment.trim().to_string());
+    self._mysql_variance = MySqlVariance::InsertSet;
     self
   }
 }
