@@ -395,9 +395,7 @@ impl Delete {
   /// DELETE low_priority FROM t1 WHERE t1.id = '123'
   /// ```
   ///
-  /// If the delete clause has no argument you can use the [delete_from](Delete::delete_from) method
-  ///
-  /// # Single-table delete
+  /// If the delete clause has no argument you can use the [delete_from](Delete::delete_from) method.
   ///
   /// ```
   /// # #[cfg(feature = "mysql")]
@@ -470,11 +468,12 @@ impl Delete {
   /// # #[cfg(feature = "mysql")]
   /// # {
   /// # use sql_query_builder as sql;
-  /// let select = sql::Delete::new()
-  ///   .from("users");
+  /// let query = sql::Delete::new()
+  ///   .from("users")
+  ///   .as_string();
   ///
   /// # let expected = "FROM users";
-  /// # assert_eq!(expected, select.as_string());
+  /// # assert_eq!(expected, query);
   /// # }
   /// ```
   ///

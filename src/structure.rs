@@ -6,7 +6,7 @@ use crate::behavior::WithQuery;
 #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use std::sync::Arc;
 
-/// Builder to contruct a [AlterTable] command.
+/// Builder of [AlterTable] command.
 ///
 /// Basic API
 ///
@@ -87,7 +87,7 @@ pub(crate) enum Combinator {
   Union,
 }
 
-/// Builder to contruct a [CreateIndex] command. Available only for the crate features `postgresql` and `sqlite`.
+/// Builder of [CreateIndex] command. Available only for the crate features `postgresql` and `sqlite`.
 ///
 /// Basic API
 ///
@@ -177,7 +177,7 @@ pub enum CreateIndexParams {
   Spatial,
 }
 
-/// Builder to contruct a [CreateTable] command.
+/// Builder of [CreateTable] command.
 ///
 /// Basic API
 ///
@@ -234,7 +234,7 @@ pub enum CreateTableParams {
   PrimaryKey,
 }
 
-/// Builder to contruct a [Delete] command.
+/// Builder of [Delete] command.
 ///
 /// Basic API
 ///
@@ -330,7 +330,7 @@ pub enum DeleteClause {
   Partition,
 }
 
-/// Builder to contruct a [DropIndex] command. Available only for the crate features `postgresql` and `sqlite` and `mysql`.
+/// Builder of [DropIndex] command. Available only for the crate features `postgresql` and `sqlite` and `mysql`.
 ///
 /// Basic API
 ///
@@ -371,7 +371,7 @@ pub enum DropIndexParams {
   DropIndex,
 }
 
-/// Builder to contruct a [DropTable] command.
+/// Builder of [DropTable] command.
 ///
 /// Basic API
 ///
@@ -407,7 +407,7 @@ pub enum DropTableParams {
   DropTable,
 }
 
-/// Builder to contruct a [Insert] command.
+/// Builder of [Insert] command.
 ///
 /// Basic API
 ///
@@ -560,7 +560,7 @@ impl std::fmt::Display for LogicalOperator {
   }
 }
 
-/// Builder to contruct a [Select] command.
+/// Builder of [Select] command.
 ///
 /// Basic API
 ///
@@ -673,7 +673,7 @@ pub enum SelectClause {
   Partition,
 }
 
-/// Builder to contruct a [Transaction] block.
+/// Builder of [Transaction] block.
 ///
 /// Basic API
 ///
@@ -764,7 +764,7 @@ pub(crate) enum TrCmd {
 #[derive(PartialEq)]
 pub(crate) struct TransactionCommand(pub(crate) TrCmd, pub(crate) String);
 
-/// Builder to contruct a [Update] command.
+/// Builder of [Update] command.
 ///
 /// Basic API
 ///
@@ -866,7 +866,7 @@ pub enum UpdateClause {
   OrderBy,
 }
 
-/// Builder to contruct a [Values] command.
+/// Builder of [Values] command.
 ///
 /// Basic API
 ///
