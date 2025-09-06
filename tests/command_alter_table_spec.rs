@@ -1,3 +1,100 @@
+mod full_api {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[cfg(not(any(feature = "postgresql", feature = "mysql")))]
+  #[test]
+  fn sql_standard_with_all_methods() {
+    let query = sql::AlterTable::new()
+      // required
+      .alter_table("users")
+      // at least one
+      .add("COLUMN age int not null")
+      .drop("column login")
+      .as_string();
+
+    let expected_query = "\
+      ALTER TABLE users \
+      DROP column login\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn postgres_with_all_methods() {
+    let query = sql::AlterTable::new()
+      // required
+      .alter_table("users")
+      // at least one
+      .add("COLUMN age int not null")
+      .alter("COLUMN created_at SET DEFAULT now()")
+      .drop("column login")
+      .rename("COLUMN address TO city")
+      .rename_to("users_old")
+      .as_string();
+
+    let expected_query = "\
+      ALTER TABLE users \
+      RENAME COLUMN address TO city \
+      RENAME TO users_old \
+      ADD COLUMN age int not null, \
+      ALTER COLUMN created_at SET DEFAULT now(), \
+      DROP column login\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  #[test]
+  fn sqlite_with_all_methods() {
+    let query = sql::AlterTable::new()
+      // required
+      .alter_table("users")
+      // at least one
+      .add("COLUMN age int not null")
+      .drop("column login")
+      .rename("COLUMN address TO city")
+      .rename_to("users_old")
+      .as_string();
+
+    let expected_query = "\
+      ALTER TABLE users \
+      RENAME COLUMN address TO city \
+      RENAME TO users_old \
+      DROP column login\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn mysql_with_all_methods() {
+    let query = sql::AlterTable::new()
+      // required
+      .alter_table("users")
+      // at least one
+      .add("COLUMN age int not null")
+      .alter("COLUMN created_at SET DEFAULT now()")
+      .drop("column login")
+      .rename("COLUMN address TO city")
+      .as_string();
+
+    let expected_query = "\
+      ALTER TABLE users \
+      ADD COLUMN age int not null, \
+      ALTER COLUMN created_at SET DEFAULT now(), \
+      DROP column login, \
+      RENAME COLUMN address TO city\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
 mod builder_features {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;

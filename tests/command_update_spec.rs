@@ -1,3 +1,129 @@
+mod full_api {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn sql_standard_with_all_methods() {
+    let query = sql::Update::new()
+      // required
+      .update("orders")
+      .set("name = 'Foo'")
+      // optional
+      .where_clause("login = $1")
+      .where_and("product_id = $2")
+      .where_or("ref_id = $3")
+      .as_string();
+
+    let expected_query = "\
+      UPDATE orders \
+      SET name = 'Foo' \
+      WHERE login = $1 \
+      AND product_id = $2 \
+      OR ref_id = $3\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn postgres_with_all_methods() {
+    let query = sql::Update::new()
+      // required
+      .update("orders")
+      .set("name = 'Foo'")
+      // optional
+      .with("foo", sql::Select::new().select("login"))
+      .from("products p")
+      .where_clause("login = $1")
+      .where_and("product_id = $2")
+      .where_or("p.ref_id = $3")
+      .returning("*")
+      .as_string();
+
+    let expected_query = "\
+      WITH foo AS (SELECT login) \
+      UPDATE orders \
+      SET name = 'Foo' \
+      FROM products p \
+      WHERE login = $1 \
+      AND product_id = $2 \
+      OR p.ref_id = $3 \
+      RETURNING *\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  #[test]
+  fn sqlite_with_all_methods() {
+    let query = sql::Update::new()
+      // one of is required
+      .update("orders")
+      .update_or("users")
+      // required
+      .set("name = 'Foo'")
+      // optional
+      .with("foo", sql::Select::new().select("login"))
+      .from("products p")
+      .cross_join("addresses")
+      .inner_join("addresses on addresses.user_login = users.login")
+      .left_join("addresses on addresses.user_login = users.login")
+      .right_join("addresses on addresses.user_login = users.login")
+      .where_clause("login = $1")
+      .where_and("product_id = $2")
+      .where_or("p.ref_id = $3")
+      .returning("*")
+      .as_string();
+
+    let expected_query = "\
+      WITH foo AS (SELECT login) \
+      UPDATE OR users \
+      SET name = 'Foo' \
+      FROM products p \
+      CROSS JOIN addresses \
+      INNER JOIN addresses on addresses.user_login = users.login \
+      LEFT JOIN addresses on addresses.user_login = users.login \
+      RIGHT JOIN addresses on addresses.user_login = users.login \
+      WHERE login = $1 \
+      AND product_id = $2 \
+      OR p.ref_id = $3 \
+      RETURNING *\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn mysql_with_all_methods() {
+    let query = sql::Update::new()
+      // required
+      .update("orders")
+      .set("name = 'Foo'")
+      // optional
+      .where_clause("login = $1")
+      .where_and("product_id = $2")
+      .where_or("ref_id = $3")
+      .order_by("id desc")
+      .limit("1")
+      .as_string();
+
+    let expected_query = "\
+      UPDATE orders \
+      SET name = 'Foo' \
+      WHERE login = $1 \
+      AND product_id = $2 \
+      OR ref_id = $3 \
+      ORDER BY id desc \
+      LIMIT 1\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
 mod builder_features {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;

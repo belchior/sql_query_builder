@@ -18,10 +18,52 @@ impl Concat for Select {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_string();
 
-    query = self.concat_raw(query, &fmts, &self._raw);
-
-    #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+    #[cfg(not(any(feature = "postgresql", feature = "sqlite", feature = "mysql")))]
     {
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_select(query, &fmts);
+      query = self.concat_from(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::From,
+        &self._from,
+      );
+      query = self.concat_join(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Join,
+        &self._join,
+      );
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Where,
+        &self._where,
+      );
+      query = self.concat_group_by(query, &fmts);
+      query = self.concat_having(query, &fmts);
+      query = self.concat_window(query, &fmts);
+      query = self.concat_order_by(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::OrderBy,
+        &self._order_by,
+      );
+    }
+
+    #[cfg(feature = "postgresql")]
+    {
+      use crate::structure::Combinator;
+
+      query = self.concat_raw(query, &fmts, &self._raw);
       query = self.concat_with(
         &self._raw_before,
         &self._raw_after,
@@ -30,60 +72,42 @@ impl Concat for Select {
         SelectClause::With,
         &self._with,
       );
-    }
-
-    query = self.concat_select(query, &fmts);
-    query = self.concat_from(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      &fmts,
-      SelectClause::From,
-      &self._from,
-    );
-    query = self.concat_join(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      &fmts,
-      SelectClause::Join,
-      &self._join,
-    );
-
-    #[cfg(feature = "mysql")]
-    {
-      query = self.concat_partition(
+      query = self.concat_select(query, &fmts);
+      query = self.concat_from(
         &self._raw_before,
         &self._raw_after,
         query,
         &fmts,
-        SelectClause::Partition,
-        &self._partition,
+        SelectClause::From,
+        &self._from,
       );
-    }
-
-    query = self.concat_where(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      &fmts,
-      SelectClause::Where,
-      &self._where,
-    );
-    query = self.concat_group_by(query, &fmts);
-    query = self.concat_having(query, &fmts);
-    query = self.concat_window(query, &fmts);
-    query = self.concat_order_by(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      &fmts,
-      SelectClause::OrderBy,
-      &self._order_by,
-    );
-
-    #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
-    {
+      query = self.concat_join(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Join,
+        &self._join,
+      );
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Where,
+        &self._where,
+      );
+      query = self.concat_group_by(query, &fmts);
+      query = self.concat_having(query, &fmts);
+      query = self.concat_window(query, &fmts);
+      query = self.concat_order_by(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::OrderBy,
+        &self._order_by,
+      );
       query = self.concat_limit(
         &self._raw_before,
         &self._raw_after,
@@ -93,11 +117,140 @@ impl Concat for Select {
         &self._limit,
       );
       query = self.concat_offset(query, &fmts);
+      query = self.concat_combinator(query, &fmts, Combinator::Except);
+      query = self.concat_combinator(query, &fmts, Combinator::Intersect);
+      query = self.concat_combinator(query, &fmts, Combinator::Union);
     }
 
-    #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+    #[cfg(feature = "sqlite")]
     {
       use crate::structure::Combinator;
+
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_with(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::With,
+        &self._with,
+      );
+      query = self.concat_select(query, &fmts);
+      query = self.concat_from(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::From,
+        &self._from,
+      );
+      query = self.concat_join(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Join,
+        &self._join,
+      );
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Where,
+        &self._where,
+      );
+      query = self.concat_group_by(query, &fmts);
+      query = self.concat_having(query, &fmts);
+      query = self.concat_window(query, &fmts);
+      query = self.concat_order_by(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::OrderBy,
+        &self._order_by,
+      );
+      query = self.concat_limit(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Limit,
+        &self._limit,
+      );
+      query = self.concat_offset(query, &fmts);
+      query = self.concat_combinator(query, &fmts, Combinator::Except);
+      query = self.concat_combinator(query, &fmts, Combinator::Intersect);
+      query = self.concat_combinator(query, &fmts, Combinator::Union);
+    }
+
+    #[cfg(feature = "mysql")]
+    {
+      use crate::structure::Combinator;
+
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_with(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::With,
+        &self._with,
+      );
+      query = self.concat_select(query, &fmts);
+      query = self.concat_from(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::From,
+        &self._from,
+      );
+      query = self.concat_join(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Join,
+        &self._join,
+      );
+      query = self.concat_partition(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Partition,
+        &self._partition,
+      );
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Where,
+        &self._where,
+      );
+      query = self.concat_group_by(query, &fmts);
+      query = self.concat_having(query, &fmts);
+      query = self.concat_window(query, &fmts);
+      query = self.concat_order_by(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::OrderBy,
+        &self._order_by,
+      );
+      query = self.concat_limit(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Limit,
+        &self._limit,
+      );
+      query = self.concat_offset(query, &fmts);
       query = self.concat_combinator(query, &fmts, Combinator::Except);
       query = self.concat_combinator(query, &fmts, Combinator::Intersect);
       query = self.concat_combinator(query, &fmts, Combinator::Union);
