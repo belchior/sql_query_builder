@@ -1,16 +1,41 @@
-#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 mod full_api {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
+
+  #[test]
+  fn sql_standard_with_all_methods() {
+    let query = sql::CreateTable::new()
+      // at least one
+      .create_table("users")
+      .create_table_if_not_exists("users")
+      // required
+      .column("id serial, login varchar(100) not null")
+      // optional
+      .primary_key("(id)")
+      .foreign_key("(address_id) references addresses(id)")
+      .constraint("login users_login_key unique(login)")
+      .as_string();
+
+    let expected_query = "\
+      CREATE TABLE IF NOT EXISTS users (\
+        id serial, login varchar(100) not null, \
+        PRIMARY KEY(id), \
+        CONSTRAINT login users_login_key unique(login), \
+        FOREIGN KEY(address_id) references addresses(id)\
+      )\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
 
   #[cfg(feature = "postgresql")]
   #[test]
   fn postgres_with_all_methods() {
     let query = sql::CreateTable::new()
-      // at least one of methods
+      // at least one
       .create_table("users")
       .create_table_if_not_exists("users")
-      // optional methods
+      // optional
       .column("id serial, login varchar(100) not null")
       .primary_key("(id)")
       .foreign_key("(address_id) references addresses(id)")
@@ -33,12 +58,12 @@ mod full_api {
   #[test]
   fn sqlite_with_all_methods() {
     let query = sql::CreateTable::new()
-      // at least one of methods
+      // at least one
       .create_table("users")
       .create_table_if_not_exists("users")
-      // required methods
+      // required
       .column("id integer, login varchar(100) not null")
-      // optional methods
+      // optional
       .primary_key("(id)")
       .foreign_key("(address_id) references addresses(id)")
       .constraint("login users_login_key unique(login)")
@@ -63,8 +88,9 @@ mod full_api {
       // at least one of methods
       .create_table("users")
       .create_table_if_not_exists("users")
-      // optional methods
+      // required
       .column("id int not null auto_increment, login varchar(100) not null")
+      // optional methods
       .primary_key("(id)")
       .foreign_key("(address_id) references addresses(id)")
       .constraint("login users_login_key unique(login)")

@@ -16,10 +16,31 @@ impl Concat for Update {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_string();
 
-    query = self.concat_raw(query, &fmts, &self._raw);
-
-    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+    #[cfg(not(any(feature = "postgresql", feature = "sqlite", feature = "mysql")))]
     {
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_update(query, &fmts);
+      query = self.concat_set(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Set,
+        &self._set,
+      );
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Where,
+        &self._where,
+      );
+    }
+
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_raw(query, &fmts, &self._raw);
       query = self.concat_with(
         &self._raw_before,
         &self._raw_after,
@@ -28,29 +49,15 @@ impl Concat for Update {
         UpdateClause::With,
         &self._with,
       );
-    }
-
-    #[cfg(not(feature = "sqlite"))]
-    {
       query = self.concat_update(query, &fmts);
-    }
-
-    #[cfg(feature = "sqlite")]
-    {
-      query = self.concat_update(&self._raw_before, &self._raw_after, query, &fmts, &self._update);
-    }
-
-    query = self.concat_set(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      &fmts,
-      UpdateClause::Set,
-      &self._set,
-    );
-
-    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-    {
+      query = self.concat_set(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Set,
+        &self._set,
+      );
       query = self.concat_from(
         &self._raw_before,
         &self._raw_after,
@@ -59,10 +66,52 @@ impl Concat for Update {
         UpdateClause::From,
         &self._from,
       );
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Where,
+        &self._where,
+      );
+      query = self.concat_returning(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Returning,
+        &self._returning,
+      );
     }
 
     #[cfg(feature = "sqlite")]
     {
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_with(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::With,
+        &self._with,
+      );
+      query = self.concat_update(&self._raw_before, &self._raw_after, query, &fmts, &self._update);
+      query = self.concat_set(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Set,
+        &self._set,
+      );
+      query = self.concat_from(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::From,
+        &self._from,
+      );
       query = self.concat_join(
         &self._raw_before,
         &self._raw_after,
@@ -71,19 +120,44 @@ impl Concat for Update {
         UpdateClause::Join,
         &self._join,
       );
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Where,
+        &self._where,
+      );
+      query = self.concat_returning(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Returning,
+        &self._returning,
+      );
     }
-
-    query = self.concat_where(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      &fmts,
-      UpdateClause::Where,
-      &self._where,
-    );
 
     #[cfg(feature = "mysql")]
     {
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_update(query, &fmts);
+      query = self.concat_set(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Set,
+        &self._set,
+      );
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Where,
+        &self._where,
+      );
       query = self.concat_order_by(
         &self._raw_before,
         &self._raw_after,
@@ -99,18 +173,6 @@ impl Concat for Update {
         &fmts,
         UpdateClause::Limit,
         &self._limit,
-      );
-    }
-
-    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-    {
-      query = self.concat_returning(
-        &self._raw_before,
-        &self._raw_after,
-        query,
-        &fmts,
-        UpdateClause::Returning,
-        &self._returning,
       );
     }
 

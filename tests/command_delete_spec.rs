@@ -1,3 +1,140 @@
+mod full_api {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn sql_standard_with_all_methods() {
+    let query = sql::Delete::new()
+      // required
+      .delete_from("orders")
+      // at least one
+      .where_clause("login = $1")
+      .where_and("product_id = $2")
+      .where_or("login = 'bar'")
+      .as_string();
+
+    let expected_query = "\
+      DELETE FROM orders \
+      WHERE login = $1 \
+      AND product_id = $2 \
+      OR login = 'bar'\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn postgres_with_all_methods() {
+    let deactivated_users = sql::Select::new()
+      .select("id")
+      .from("users")
+      .where_clause("ative = false");
+
+    let query = sql::Delete::new()
+      // required
+      .delete_from("orders")
+      // at least one is required
+      .where_clause("login = $1")
+      .where_and("product_id = $2")
+      .where_or("login = 'bar'")
+      // optional
+      .returning("id")
+      .with("deactivated_users", deactivated_users)
+      .as_string();
+
+    let expected_query = "\
+      WITH deactivated_users AS (SELECT id FROM users WHERE ative = false) \
+      DELETE FROM orders \
+      WHERE login = $1 \
+      AND product_id = $2 \
+      OR login = 'bar' \
+      RETURNING id\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  #[test]
+  fn sqlite_with_all_methods() {
+    let deactivated_users = sql::Select::new()
+      .select("id")
+      .from("users")
+      .where_clause("ative = false");
+
+    let query = sql::Delete::new()
+      // required
+      .delete_from("orders")
+      // at least one is required
+      .where_clause("login = $1")
+      .where_and("product_id = $2")
+      .where_or("login = 'bar'")
+      // optional
+      .returning("id")
+      .with("deactivated_users", deactivated_users)
+      .as_string();
+
+    let expected_query = "\
+      WITH deactivated_users AS (SELECT id FROM users WHERE ative = false) \
+      DELETE FROM orders \
+      WHERE login = $1 \
+      AND product_id = $2 \
+      OR login = 'bar' \
+      RETURNING id\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn mysql_with_all_methods() {
+    let deactivated_users = sql::Select::new()
+      .select("id")
+      .from("users")
+      .where_clause("ative = false");
+
+    let query = sql::Delete::new()
+      // one of is required
+      .delete_from("orders")
+      // methods below as a group
+      .delete("low_priority")
+      .from("address")
+      // at least one is required
+      .where_clause("login = $1")
+      .where_and("product_id = $2")
+      .where_or("login = 'bar'")
+      // optional
+      .cross_join("addresses")
+      .inner_join("addresses on addresses.user_login = users.login")
+      .left_join("addresses on addresses.user_login = users.login")
+      .limit("123")
+      .order_by("created_at asc")
+      .partition("p1")
+      .right_join("addresses on addresses.user_login = users.login")
+      .with("deactivated_users", deactivated_users)
+      .as_string();
+
+    let expected_query = "\
+      WITH deactivated_users AS (SELECT id FROM users WHERE ative = false) \
+      DELETE low_priority FROM orders, address \
+      CROSS JOIN addresses \
+      INNER JOIN addresses on addresses.user_login = users.login \
+      LEFT JOIN addresses on addresses.user_login = users.login \
+      RIGHT JOIN addresses on addresses.user_login = users.login \
+      PARTITION (p1) \
+      WHERE login = $1 \
+      AND product_id = $2 \
+      OR login = 'bar' \
+      ORDER BY created_at asc \
+      LIMIT 123\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
 mod builder_features {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;

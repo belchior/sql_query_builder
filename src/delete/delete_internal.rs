@@ -10,10 +10,23 @@ impl Concat for Delete {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
     let mut query = "".to_string();
 
-    query = self.concat_raw(query, &fmts, &self._raw);
-
-    #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+    #[cfg(not(any(feature = "postgresql", feature = "sqlite", feature = "mysql")))]
     {
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_delete_from(query, &fmts);
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        DeleteClause::Where,
+        &self._where,
+      );
+    }
+
+    #[cfg(feature = "postgresql")]
+    {
+      query = self.concat_raw(query, &fmts, &self._raw);
       query = self.concat_with(
         &self._raw_before,
         &self._raw_after,
@@ -22,15 +35,66 @@ impl Concat for Delete {
         DeleteClause::With,
         &self._with,
       );
+      query = self.concat_delete_from(query, &fmts);
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        DeleteClause::Where,
+        &self._where,
+      );
+      query = self.concat_returning(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        DeleteClause::Returning,
+        &self._returning,
+      );
     }
 
-    #[cfg(not(feature = "mysql"))]
+    #[cfg(feature = "sqlite")]
     {
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_with(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        DeleteClause::With,
+        &self._with,
+      );
       query = self.concat_delete_from(query, &fmts);
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        DeleteClause::Where,
+        &self._where,
+      );
+      query = self.concat_returning(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        DeleteClause::Returning,
+        &self._returning,
+      );
     }
 
     #[cfg(feature = "mysql")]
     {
+      query = self.concat_raw(query, &fmts, &self._raw);
+      query = self.concat_with(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        DeleteClause::With,
+        &self._with,
+      );
       query = self.concat_delete_from_mysql(query, &fmts);
       query = self.concat_join(
         &self._raw_before,
@@ -48,19 +112,14 @@ impl Concat for Delete {
         DeleteClause::Partition,
         &self._partition,
       );
-    }
-
-    query = self.concat_where(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      &fmts,
-      DeleteClause::Where,
-      &self._where,
-    );
-
-    #[cfg(feature = "mysql")]
-    {
+      query = self.concat_where(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        DeleteClause::Where,
+        &self._where,
+      );
       query = self.concat_order_by(
         &self._raw_before,
         &self._raw_after,
@@ -76,18 +135,6 @@ impl Concat for Delete {
         &fmts,
         DeleteClause::Limit,
         &self._limit,
-      );
-    }
-
-    #[cfg(any(feature = "postgresql", feature = "sqlite"))]
-    {
-      query = self.concat_returning(
-        &self._raw_before,
-        &self._raw_after,
-        query,
-        &fmts,
-        DeleteClause::Returning,
-        &self._returning,
       );
     }
 
