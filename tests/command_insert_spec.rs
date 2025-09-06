@@ -19,7 +19,6 @@ mod full_api {
     let expected_query = "\
       INSERT INTO users (login, name) \
       OVERRIDING user value \
-      VALUES (1, 'one') \
       SELECT login, name\
     ";
 
@@ -47,7 +46,6 @@ mod full_api {
       WITH foo AS (SELECT login, name) \
       INSERT INTO users (login, name) \
       OVERRIDING user value \
-      VALUES (1, 'one') \
       SELECT login, name \
       ON CONFLICT do nothing \
       RETURNING login, name\
@@ -77,7 +75,6 @@ mod full_api {
     let expected_query = "\
       WITH foo AS (SELECT login, name) \
       REPLACE INTO users (login, name) \
-      VALUES (1, 'one') \
       SELECT login, name \
       ON CONFLICT do nothing \
       RETURNING login, name\

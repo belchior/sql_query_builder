@@ -2,12 +2,9 @@ use crate::{
   behavior::TransactionQuery,
   concat::Concat,
   fmt,
-  structure::{Insert, InsertClause, Select},
+  structure::{Insert, InsertClause, InsertVariance, Select, ValuesVariance},
   utils::push_unique,
 };
-
-#[cfg(feature = "mysql")]
-use crate::structure::MySqlVariance;
 
 impl TransactionQuery for Insert {}
 
@@ -91,8 +88,7 @@ impl Insert {
   /// ```
   #[cfg(not(feature = "mysql"))]
   pub fn default_values(mut self) -> Self {
-    self._default_values = true;
-    self._values = vec![];
+    self._values_variance = ValuesVariance::InsertDefaultValues;
     self
   }
 
@@ -115,23 +111,57 @@ impl Insert {
   /// # let expected = "INSERT INTO users (login, name)";
   /// # assert_eq!(expected, insert.to_string());
   /// ```
+  ///
+  /// # Mutually exclusive methods
+  ///
+  /// Avaliable on `sqlite` only
+  ///
+  /// Methods [Insert::insert_into], [Insert::insert_or] and [Insert::replace_into] are mutually exclusive, the last called will overrides the previous ones.
+  ///
+  /// ```
+  /// # #[cfg(feature = "sqlite")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let insert = sql::Insert::new()
+  ///   .insert_into("users (login, name)")
+  ///   .replace_into("users (login, name)");
+  /// #
+  /// # let expected = "REPLACE INTO users (login, name)";
+  /// # assert_eq!(expected, insert.to_string());
+  /// # }
+  /// ```
+  /// Output
+  ///
+  /// ```sql
+  /// REPLACE INTO users (login, name)
+  /// ```
+  ///
+  /// Avaliable on `mysql` only
+  ///
+  /// Methods [Insert::insert_into] and the splitted version ([Insert::insert], [Insert::into], [Insert::column]) are mutually exclusive, the last called will overrides the previous ones.
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let insert = sql::Insert::new()
+  ///   .insert_into("users (login, name)")
+  ///   .insert("low_priority")
+  ///   .into("users")
+  ///   .column("login");
+  /// #
+  /// # let expected = "INSERT low_priority INTO users (login)";
+  /// # assert_eq!(expected, insert.to_string());
+  /// # }
+  /// ```
+  /// Output
+  ///
+  /// ```sql
+  /// INSERT low_priority INTO users (login)
+  /// ```
   pub fn insert_into(mut self, table_name: &str) -> Self {
     self._insert_into = table_name.trim().to_string();
-
-    #[cfg(feature = "sqlite")]
-    {
-      self._insert_or = "".to_string();
-      self._replace_into = "".to_string();
-    }
-
-    #[cfg(feature = "mysql")]
-    {
-      self._insert = "".to_string();
-      self._into = "".to_string();
-      self._partition = vec![];
-      self._column = vec![];
-    }
-
+    self._insert_variance = InsertVariance::InsertInto;
     self
   }
 
@@ -209,12 +239,7 @@ impl Insert {
   /// ```
   pub fn select(mut self, select: Select) -> Self {
     self._select = Some(select);
-
-    #[cfg(feature = "mysql")]
-    {
-      self._mysql_variance = MySqlVariance::InsertSelect;
-    }
-
+    self._values_variance = ValuesVariance::InsertSelect;
     self
   }
 
@@ -371,16 +396,8 @@ impl Insert {
   /// ```
   pub fn values(mut self, expression: &str) -> Self {
     push_unique(&mut self._values, expression.trim().to_string());
+    self._values_variance = ValuesVariance::InsertValues;
 
-    #[cfg(not(feature = "mysql"))]
-    {
-      self._default_values = false
-    }
-
-    #[cfg(feature = "mysql")]
-    {
-      self._mysql_variance = MySqlVariance::InsertValues;
-    }
     self
   }
 }
@@ -537,8 +554,7 @@ impl Insert {
   /// ```
   pub fn insert_or(mut self, expression: &str) -> Self {
     self._insert_or = expression.trim().to_string();
-    self._insert_into = "".to_string();
-    self._replace_into = "".to_string();
+    self._insert_variance = InsertVariance::InsertOr;
     self
   }
 
@@ -565,8 +581,7 @@ impl Insert {
   /// ```
   pub fn replace_into(mut self, table_name: &str) -> Self {
     self._replace_into = table_name.trim().to_string();
-    self._insert_into = "".to_string();
-    self._insert_or = "".to_string();
+    self._insert_variance = InsertVariance::ReplaceInto;
     self
   }
 }
@@ -600,7 +615,7 @@ impl Insert {
   /// ```
   pub fn column(mut self, column_name: &str) -> Self {
     push_unique(&mut self._column, column_name.trim().to_string());
-    self._insert_into = "".to_string();
+    self._insert_variance = InsertVariance::InsertSplitted;
     self
   }
 
@@ -630,7 +645,7 @@ impl Insert {
   /// ```
   pub fn insert(mut self, modifier: &str) -> Self {
     self._insert = modifier.trim().to_string();
-    self._insert_into = "".to_string();
+    self._insert_variance = InsertVariance::InsertSplitted;
     self
   }
 
@@ -659,7 +674,7 @@ impl Insert {
   /// ```
   pub fn into(mut self, table: &str) -> Self {
     self._into = table.trim().to_string();
-    self._insert_into = "".to_string();
+    self._insert_variance = InsertVariance::InsertSplitted;
     self
   }
 
@@ -753,7 +768,7 @@ impl Insert {
   /// ```
   pub fn row(mut self, expression: &str) -> Self {
     push_unique(&mut self._values, expression.trim().to_string());
-    self._mysql_variance = MySqlVariance::InsertValuesRow;
+    self._values_variance = ValuesVariance::InsertValuesRow;
     self
   }
 
@@ -781,7 +796,7 @@ impl Insert {
   /// ```
   pub fn set(mut self, assignment: &str) -> Self {
     push_unique(&mut self._set, assignment.trim().to_string());
-    self._mysql_variance = MySqlVariance::InsertSet;
+    self._values_variance = ValuesVariance::InsertSet;
     self
   }
 }

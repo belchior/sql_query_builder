@@ -8,6 +8,7 @@
 # ./scripts/watch_test.sh all        # will enable all feature
 # ./scripts/watch_test.sh postgresql # will enable only the postgresql feature
 
+clear
 all_features='postgresql sqlite mysql'
 features=''
 test_names=$(git status -s | grep 'A[[:space:]]*tests/\|M[[:space:]]*tests/' | sed -e 's/.* //' -e 's/tests\//--test /' -e 's/\.rs//' | tr '\n' ' ')

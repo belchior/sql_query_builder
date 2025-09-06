@@ -1,11 +1,11 @@
 use crate::{
   concat::{concat_raw_before_after, Concat},
   fmt,
-  structure::{Insert, InsertClause},
+  structure::{Insert, InsertClause, ValuesVariance},
 };
 
-#[cfg(feature = "mysql")]
-use crate::structure::MySqlVariance;
+#[cfg(any(feature = "sqlite", feature = "mysql"))]
+use crate::structure::InsertVariance;
 
 impl Concat for Insert {
   fn concat(&self, fmts: &fmt::Formatter) -> String {
@@ -16,9 +16,17 @@ impl Concat for Insert {
       query = self.concat_raw(query, &fmts, &self._raw);
       query = self.concat_insert_into(query, &fmts);
       query = self.concat_overriding(query, &fmts);
-      query = self.concat_default_values(query, &fmts);
-      query = self.concat_values(query, &fmts);
-      query = self.concat_select(query, &fmts);
+      match self._values_variance {
+        ValuesVariance::InsertDefaultValues => {
+          query = self.concat_default_values(query, &fmts);
+        }
+        ValuesVariance::InsertSelect => {
+          query = self.concat_select(query, &fmts);
+        }
+        ValuesVariance::InsertValues => {
+          query = self.concat_values(query, &fmts);
+        }
+      }
     }
 
     #[cfg(feature = "postgresql")]
@@ -34,9 +42,17 @@ impl Concat for Insert {
       );
       query = self.concat_insert_into(query, &fmts);
       query = self.concat_overriding(query, &fmts);
-      query = self.concat_default_values(query, &fmts);
-      query = self.concat_values(query, &fmts);
-      query = self.concat_select(query, &fmts);
+      match self._values_variance {
+        ValuesVariance::InsertDefaultValues => {
+          query = self.concat_default_values(query, &fmts);
+        }
+        ValuesVariance::InsertSelect => {
+          query = self.concat_select(query, &fmts);
+        }
+        ValuesVariance::InsertValues => {
+          query = self.concat_values(query, &fmts);
+        }
+      }
       query = self.concat_on_conflict(query, &fmts);
       query = self.concat_returning(
         &self._raw_before,
@@ -59,12 +75,28 @@ impl Concat for Insert {
         InsertClause::With,
         &self._with,
       );
-      query = self.concat_insert_into(query, &fmts);
-      query = self.concat_insert_or(query, &fmts);
-      query = self.concat_replace_into(query, &fmts);
-      query = self.concat_default_values(query, &fmts);
-      query = self.concat_values(query, &fmts);
-      query = self.concat_select(query, &fmts);
+      match self._insert_variance {
+        InsertVariance::InsertInto => {
+          query = self.concat_insert_into(query, &fmts);
+        }
+        InsertVariance::InsertOr => {
+          query = self.concat_insert_or(query, &fmts);
+        }
+        InsertVariance::ReplaceInto => {
+          query = self.concat_replace_into(query, &fmts);
+        }
+      }
+      match self._values_variance {
+        ValuesVariance::InsertDefaultValues => {
+          query = self.concat_default_values(query, &fmts);
+        }
+        ValuesVariance::InsertSelect => {
+          query = self.concat_select(query, &fmts);
+        }
+        ValuesVariance::InsertValues => {
+          query = self.concat_values(query, &fmts);
+        }
+      }
       query = self.concat_on_conflict(query, &fmts);
       query = self.concat_returning(
         &self._raw_before,
@@ -79,9 +111,16 @@ impl Concat for Insert {
     #[cfg(feature = "mysql")]
     {
       query = self.concat_raw(query, &fmts, &self._raw);
-      query = self.concat_insert_into(query, &fmts);
-      query = self.concat_insert(query, &fmts);
-      query = self.concat_into(query, &fmts);
+      match self._insert_variance {
+        InsertVariance::InsertInto => {
+          query = self.concat_insert_into(query, &fmts);
+        }
+        InsertVariance::InsertSplitted => {
+          query = self.concat_insert(query, &fmts);
+          query = self.concat_into(query, &fmts);
+        }
+      }
+
       query = self.concat_partition(
         &self._raw_before,
         &self._raw_after,
@@ -91,19 +130,21 @@ impl Concat for Insert {
         &self._partition,
       );
 
-      match self._mysql_variance {
-        MySqlVariance::InsertSelect => {
-          query = self.concat_column(
-            &self._raw_before,
-            &self._raw_after,
-            query,
-            &fmts,
-            InsertClause::Column,
-            &self._column,
-          );
+      match self._values_variance {
+        ValuesVariance::InsertSelect => {
+          if self._insert_variance == InsertVariance::InsertSplitted {
+            query = self.concat_column(
+              &self._raw_before,
+              &self._raw_after,
+              query,
+              &fmts,
+              InsertClause::Column,
+              &self._column,
+            );
+          }
           query = self.concat_select(query, &fmts);
         }
-        MySqlVariance::InsertSet => {
+        ValuesVariance::InsertSet => {
           query = self.concat_set(
             &self._raw_before,
             &self._raw_after,
@@ -113,15 +154,17 @@ impl Concat for Insert {
             &self._set,
           );
         }
-        MySqlVariance::InsertValues | MySqlVariance::InsertValuesRow => {
-          query = self.concat_column(
-            &self._raw_before,
-            &self._raw_after,
-            query,
-            &fmts,
-            InsertClause::Column,
-            &self._column,
-          );
+        ValuesVariance::InsertValues | ValuesVariance::InsertValuesRow => {
+          if self._insert_variance == InsertVariance::InsertSplitted {
+            query = self.concat_column(
+              &self._raw_before,
+              &self._raw_after,
+              query,
+              &fmts,
+              InsertClause::Column,
+              &self._column,
+            );
+          }
           query = self.concat_values(query, &fmts);
         }
       }
@@ -175,12 +218,10 @@ impl Insert {
 
   fn concat_select(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if let Some(select) = &self._select {
+    let sql = self._select.as_ref().map_or("".to_string(), |select| {
       let select_string = select.concat(fmts);
       format!("{select_string}{space}{lb}")
-    } else {
-      "".to_string()
-    };
+    });
 
     concat_raw_before_after(
       &self._raw_before,
@@ -195,11 +236,7 @@ impl Insert {
   #[cfg(not(feature = "mysql"))]
   fn concat_default_values(&self, query: String, fmts: &fmt::Formatter) -> String {
     let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._default_values {
-      format!("DEFAULT VALUES{space}{lb}")
-    } else {
-      "".to_string()
-    };
+    let sql = format!("DEFAULT VALUES{space}{lb}");
 
     concat_raw_before_after(
       &self._raw_before,
@@ -227,7 +264,7 @@ impl Insert {
 
           #[cfg(feature = "mysql")]
           {
-            if self._mysql_variance == MySqlVariance::InsertValuesRow {
+            if self._values_variance == ValuesVariance::InsertValuesRow {
               format!("ROW{item}")
             } else {
               item.clone()

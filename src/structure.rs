@@ -432,11 +432,13 @@ pub enum DropTableParams {
 #[derive(Default, Clone)]
 pub struct Insert {
   pub(crate) _insert_into: String,
+  pub(crate) _insert_variance: InsertVariance,
+  pub(crate) _raw: Vec<String>,
   pub(crate) _raw_after: Vec<(InsertClause, String)>,
   pub(crate) _raw_before: Vec<(InsertClause, String)>,
-  pub(crate) _raw: Vec<String>,
   pub(crate) _select: Option<Select>,
   pub(crate) _values: Vec<String>,
+  pub(crate) _values_variance: ValuesVariance,
 
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _on_conflict: String,
@@ -456,9 +458,6 @@ pub struct Insert {
   #[cfg(feature = "sqlite")]
   pub(crate) _replace_into: String,
 
-  #[cfg(not(feature = "mysql"))]
-  pub(crate) _default_values: bool,
-
   #[cfg(feature = "mysql")]
   pub(crate) _column: Vec<String>,
 
@@ -467,9 +466,6 @@ pub struct Insert {
 
   #[cfg(feature = "mysql")]
   pub(crate) _into: String,
-
-  #[cfg(feature = "mysql")]
-  pub(crate) _mysql_variance: MySqlVariance,
 
   #[cfg(feature = "mysql")]
   pub(crate) _on_duplicate_key_update: Vec<String>,
@@ -534,13 +530,34 @@ pub enum InsertClause {
   Set,
 }
 
-#[cfg(feature = "mysql")]
 #[derive(Default, PartialEq, Clone)]
-pub enum MySqlVariance {
+pub enum InsertVariance {
+  #[default]
+  InsertInto,
+
+  #[cfg(feature = "sqlite")]
+  InsertOr,
+
+  #[cfg(feature = "sqlite")]
+  ReplaceInto,
+
+  #[cfg(feature = "mysql")]
+  InsertSplitted,
+}
+
+#[derive(Default, PartialEq, Clone)]
+pub enum ValuesVariance {
   #[default]
   InsertValues,
   InsertSelect,
+
+  #[cfg(not(feature = "mysql"))]
+  InsertDefaultValues,
+
+  #[cfg(feature = "mysql")]
   InsertSet,
+
+  #[cfg(feature = "mysql")]
   InsertValuesRow,
 }
 
