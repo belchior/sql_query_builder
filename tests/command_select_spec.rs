@@ -1,3 +1,225 @@
+mod full_api {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn sql_standard_with_all_methods() {
+    let query = sql::Select::new()
+      // required
+      .select("login, name, status")
+      // optional
+      .from("users")
+      .group_by("login")
+      .having("status != 'disabled'")
+      .cross_join("addresses")
+      .inner_join("addresses on addresses.user_login = users.login")
+      .left_join("addresses on addresses.user_login = users.login")
+      .right_join("addresses on addresses.user_login = users.login")
+      .order_by("login asc")
+      .where_clause("login = $1")
+      .where_and("login in ($2)")
+      .where_or("login in ($3)")
+      .window("win as (partition by department)")
+      .as_string();
+
+    let expected_query = "\
+      SELECT login, name, status \
+      FROM users \
+      CROSS JOIN addresses \
+      INNER JOIN addresses on addresses.user_login = users.login \
+      LEFT JOIN addresses on addresses.user_login = users.login \
+      RIGHT JOIN addresses on addresses.user_login = users.login \
+      WHERE login = $1 \
+      AND login in ($2) \
+      OR login in ($3) \
+      GROUP BY login \
+      HAVING status != 'disabled' \
+      WINDOW win as (partition by department) \
+      ORDER BY login asc\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn postgres_with_all_methods() {
+    let query = sql::Select::new()
+      // required
+      .select("login, name, status")
+      // optional
+      .from("users")
+      .group_by("login")
+      .having("status != 'disabled'")
+      .cross_join("addresses")
+      .inner_join("addresses on addresses.user_login = users.login")
+      .left_join("addresses on addresses.user_login = users.login")
+      .right_join("addresses on addresses.user_login = users.login")
+      .order_by("login asc")
+      .where_clause("login = $1")
+      .where_and("login in ($2)")
+      .where_or("login in ($3)")
+      .window("win as (partition by department)")
+      .limit("1")
+      .offset("10")
+      .except(sql::Select::new().select("login, name, status"))
+      .intersect(sql::Select::new().select("login, name, status"))
+      .union(sql::Select::new().select("login, name, status"))
+      .with("foo", sql::Select::new().select("login, name, status"))
+      .as_string();
+
+    let expected_query = "\
+      (((\
+      WITH foo AS (SELECT login, name, status) \
+      SELECT login, name, status \
+      FROM users \
+      CROSS JOIN addresses \
+      INNER JOIN addresses on addresses.user_login = users.login \
+      LEFT JOIN addresses on addresses.user_login = users.login \
+      RIGHT JOIN addresses on addresses.user_login = users.login \
+      WHERE login = $1 \
+      AND login in ($2) \
+      OR login in ($3) \
+      GROUP BY login \
+      HAVING status != 'disabled' \
+      WINDOW win as (partition by department) \
+      ORDER BY login asc \
+      LIMIT 1 \
+      OFFSET 10\
+      ) \
+      EXCEPT \
+      (SELECT login, name, status)\
+      ) \
+      INTERSECT \
+      (SELECT login, name, status)\
+      ) \
+      UNION \
+      (SELECT login, name, status)\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  #[test]
+  fn sqlite_with_all_methods() {
+    let query = sql::Select::new()
+      // required
+      .select("login, name, status")
+      // optional
+      .from("users")
+      .group_by("login")
+      .having("status != 'disabled'")
+      .cross_join("addresses")
+      .inner_join("addresses on addresses.user_login = users.login")
+      .left_join("addresses on addresses.user_login = users.login")
+      .right_join("addresses on addresses.user_login = users.login")
+      .order_by("login asc")
+      .where_clause("login = $1")
+      .where_and("login in ($2)")
+      .where_or("login in ($3)")
+      .window("win as (partition by department)")
+      .limit("1")
+      .offset("10")
+      .except(sql::Select::new().select("login, name, status"))
+      .intersect(sql::Select::new().select("login, name, status"))
+      .union(sql::Select::new().select("login, name, status"))
+      .with("foo", sql::Select::new().select("login, name, status"))
+      .as_string();
+
+    let expected_query = "\
+      (((\
+      WITH foo AS (SELECT login, name, status) \
+      SELECT login, name, status \
+      FROM users \
+      CROSS JOIN addresses \
+      INNER JOIN addresses on addresses.user_login = users.login \
+      LEFT JOIN addresses on addresses.user_login = users.login \
+      RIGHT JOIN addresses on addresses.user_login = users.login \
+      WHERE login = $1 \
+      AND login in ($2) \
+      OR login in ($3) \
+      GROUP BY login \
+      HAVING status != 'disabled' \
+      WINDOW win as (partition by department) \
+      ORDER BY login asc \
+      LIMIT 1 \
+      OFFSET 10\
+      ) \
+      EXCEPT \
+      (SELECT login, name, status)\
+      ) \
+      INTERSECT \
+      (SELECT login, name, status)\
+      ) \
+      UNION \
+      (SELECT login, name, status)\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn mysql_with_all_methods() {
+    let query = sql::Select::new()
+      // required
+      .select("login, name, status")
+      // optional
+      .from("users")
+      .group_by("login")
+      .having("status != 'disabled'")
+      .cross_join("addresses")
+      .inner_join("addresses on addresses.user_login = users.login")
+      .left_join("addresses on addresses.user_login = users.login")
+      .right_join("addresses on addresses.user_login = users.login")
+      .partition("p1")
+      .order_by("login asc")
+      .where_clause("login = $1")
+      .where_and("login in ($2)")
+      .where_or("login in ($3)")
+      .window("win as (partition by department)")
+      .limit("1")
+      .offset("10")
+      .except(sql::Select::new().select("login, name, status"))
+      .intersect(sql::Select::new().select("login, name, status"))
+      .union(sql::Select::new().select("login, name, status"))
+      .with("foo", sql::Select::new().select("login, name, status"))
+      .as_string();
+
+    let expected_query = "\
+      (((\
+      WITH foo AS (SELECT login, name, status) \
+      SELECT login, name, status \
+      FROM users \
+      CROSS JOIN addresses \
+      INNER JOIN addresses on addresses.user_login = users.login \
+      LEFT JOIN addresses on addresses.user_login = users.login \
+      RIGHT JOIN addresses on addresses.user_login = users.login \
+      PARTITION (p1) \
+      WHERE login = $1 \
+      AND login in ($2) \
+      OR login in ($3) \
+      GROUP BY login \
+      HAVING status != 'disabled' \
+      WINDOW win as (partition by department) \
+      ORDER BY login asc \
+      LIMIT 1 \
+      OFFSET 10\
+      ) \
+      EXCEPT \
+      (SELECT login, name, status)\
+      ) \
+      INTERSECT \
+      (SELECT login, name, status)\
+      ) \
+      UNION \
+      (SELECT login, name, status)\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+}
 mod builder_features {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -287,5 +509,114 @@ mod builder_methods {
     let expected_query = "from addresses";
 
     assert_eq!(query, expected_query);
+  }
+}
+
+#[cfg(feature = "mysql")]
+mod partition_method {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_partition_should_define_the_partition_clause() {
+    let query = sql::Select::new().partition("p0").as_string();
+    let expected_query = "PARTITION (p0)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_partition_should_not_defined_the_clause_without_partition_names() {
+    let query = sql::Select::new().partition("").as_string();
+    let expected_query = "";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_partition_should_accumulate_names_on_consecutive_calls() {
+    let query = sql::Select::new().partition("p0").partition("p1").as_string();
+
+    let expected_query = "PARTITION (p0, p1)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_partition_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Select::new()
+      .partition("")
+      .partition("p0")
+      .partition("")
+      .as_string();
+
+    let expected_query = "PARTITION (p0)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_partition_should_not_accumulate_names_with_the_same_content() {
+    let query = sql::Select::new().partition("p0").partition("p0").as_string();
+    let expected_query = "PARTITION (p0)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_partition_should_trim_space_of_the_argument() {
+    let query = sql::Select::new().partition("  p0  ").as_string();
+    let expected_query = "PARTITION (p0)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_partition_should_be_defined_after_from_clause() {
+    let query = sql::Select::new().from("employees").partition("p0").as_string();
+    let expected_query = "FROM employees PARTITION (p0)";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_partition_should_be_defined_after_join_clauses() {
+    let query = sql::Select::new()
+      .from("employees")
+      .inner_join("addresses ON employees.login = addresses.login")
+      .partition("p0")
+      .as_string();
+
+    let expected_query = "\
+      FROM employees \
+      INNER JOIN addresses ON employees.login = addresses.login \
+      PARTITION (p0)\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_after_should_add_raw_sql_after_partition_parameter() {
+    let query = sql::Select::new()
+      .partition("name")
+      .raw_after(sql::SelectClause::Partition, "/* uncommon parameter */")
+      .as_string();
+
+    let expected_query = "PARTITION (name) /* uncommon parameter */";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_raw_before_should_add_raw_sql_before_partition_parameter() {
+    let query = sql::Select::new()
+      .raw_before(sql::SelectClause::Partition, "/* uncommon parameter */")
+      .partition("name")
+      .as_string();
+
+    let expected_query = "/* uncommon parameter */ PARTITION (name)";
+
+    assert_eq!(expected_query, query);
   }
 }

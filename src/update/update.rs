@@ -600,6 +600,53 @@ impl Update {
   }
 }
 
+#[cfg(any(doc, feature = "mysql"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+impl Update {
+  /// The `limit` clause, this method overrides the previous value
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let update = sql::Update::new()
+  ///   .limit("123");
+  ///
+  /// let update = sql::Update::new()
+  ///   .limit("1000")
+  ///   .limit("123");
+  ///
+  /// # let expected = "LIMIT 123";
+  /// # assert_eq!(expected, update.as_string());
+  /// # }
+  /// ```
+  pub fn limit(mut self, num: &str) -> Self {
+    self._limit = num.trim().to_string();
+    self
+  }
+
+  /// The `order by` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let update = sql::Update::new()
+  ///   .order_by("login asc");
+  ///
+  /// # let expected = "ORDER BY login asc";
+  /// # assert_eq!(expected, update.as_string());
+  /// # }
+  /// ```
+  pub fn order_by(mut self, column: &str) -> Self {
+    push_unique(&mut self._order_by, column.trim().to_string());
+    self
+  }
+}
 impl std::fmt::Display for Update {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(f, "{}", self.as_string())

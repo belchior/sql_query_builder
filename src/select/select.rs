@@ -99,10 +99,10 @@ impl Select {
   ///   .from("users");
   ///
   /// # let expected = "FROM users";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// ```
-  pub fn from(mut self, tables: &str) -> Self {
-    push_unique(&mut self._from, tables.trim().to_string());
+  pub fn from(mut self, table: &str) -> Self {
+    push_unique(&mut self._from, table.trim().to_string());
     self
   }
 
@@ -116,7 +116,7 @@ impl Select {
   ///   .group_by("id");
   ///
   /// # let expected = "GROUP BY id";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// ```
   pub fn group_by(mut self, column: &str) -> Self {
     push_unique(&mut self._group_by, column.trim().to_string());
@@ -280,7 +280,7 @@ impl Select {
   ///   .order_by("login asc");
   ///
   /// # let expected = "SELECT name, login ORDER BY login asc";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// ```
   pub fn order_by(mut self, column: &str) -> Self {
     push_unique(&mut self._order_by, column.trim().to_string());
@@ -397,7 +397,7 @@ impl Select {
   ///   .select("count(id)");
   ///
   /// # let expected = "SELECT count(id)";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// ```
   pub fn select(mut self, column: &str) -> Self {
     push_unique(&mut self._select, column.trim().to_string());
@@ -565,22 +565,23 @@ impl Select {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use crate::behavior::WithQuery;
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 impl WithQuery for Select {}
 
-#[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(doc, feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
 #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
 impl Select {
   /// The `except` clause
   ///
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let select_users = sql::Select::new()
@@ -620,7 +621,7 @@ impl Select {
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let select_users = sql::Select::new()
@@ -660,7 +661,7 @@ impl Select {
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let select = sql::Select::new()
@@ -671,7 +672,7 @@ impl Select {
   ///   .limit("123");
   ///
   /// # let expected = "LIMIT 123";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// # }
   /// ```
   pub fn limit(mut self, num: &str) -> Self {
@@ -684,7 +685,7 @@ impl Select {
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let select = sql::Select::new()
@@ -695,7 +696,7 @@ impl Select {
   ///   .offset("1500");
   ///
   /// # let expected = "OFFSET 1500";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// # }
   /// ```
   pub fn offset(mut self, num: &str) -> Self {
@@ -708,7 +709,7 @@ impl Select {
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let select_users = sql::Select::new()
@@ -748,7 +749,7 @@ impl Select {
   /// # Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let logins = sql::Select::new()
@@ -773,7 +774,7 @@ impl Select {
   /// #   FROM orders \
   /// #   WHERE owner_login in (select * from logins)\
   /// # ";
-  /// # assert_eq!(select.as_string(), expected);
+  /// # assert_eq!(expected, select.as_string());
   /// # }
   /// ```
   ///
@@ -792,9 +793,42 @@ impl Select {
   /// WHERE owner_login in (select * from logins)
   /// -- ------------------------------------------------------------------------------
   /// ```
-  #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   pub fn with(mut self, name: &str, query: impl WithQuery + Send + Sync + 'static) -> Self {
     self._with.push((name.trim().to_string(), std::sync::Arc::new(query)));
+    self
+  }
+}
+
+#[cfg(any(doc, feature = "mysql"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+impl Select {
+  /// The `partition` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::Select::new()
+  ///   .select("*")
+  ///   .from("employees")
+  ///   .partition("p1")
+  ///   .to_string();
+  ///
+  /// # let expected_query = "SELECT * FROM employees PARTITION (p1)";
+  /// # assert_eq!(expected_query, query);
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// SELECT * FROM employees PARTITION (p1)
+  /// ```
+  pub fn partition(mut self, name: &str) -> Self {
+    push_unique(&mut self._partition, name.trim().to_string());
     self
   }
 }

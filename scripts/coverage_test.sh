@@ -1,8 +1,10 @@
 #!/bin/sh
 
 # Prerequisites
-# cargo install rustfilt cargo-binutils
+# rustup override set 1.82.0
+# cargo install rustfilt@0.2.1 cargo-binutils@0.3.6
 # rustup component add llvm-tools-preview
+clear
 
 PKG_NAME="$(grep 'name\s*=\s*"' Cargo.toml | sed -E 's/.*"(.*)"/\1/')"
 COVERAGE_OUTPUT="coverage"
@@ -11,11 +13,26 @@ COVERAGE_TARGET="target/coverage"
 rm -fr "$COVERAGE_TARGET"
 mkdir -p "$COVERAGE_OUTPUT"
 mkdir -p "$COVERAGE_TARGET"
-clear
 
+echo "\n-- ------------------------------------------------------------------------------"
+echo "-- Testing SQL Standard"
+echo "-- ------------------------------------------------------------------------------\n"
 RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME-%m.profraw" cargo test --target-dir $COVERAGE_TARGET;
+
+echo "\n-- ------------------------------------------------------------------------------"
+echo "-- Testing PostgreSQL syntax"
+echo "-- ------------------------------------------------------------------------------\n"
 RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME-%m.profraw" cargo test --target-dir $COVERAGE_TARGET --features postgresql;
+
+echo "\n-- ------------------------------------------------------------------------------"
+echo "-- Testing SQLite syntax"
+echo "-- ------------------------------------------------------------------------------\n"
 RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME-%m.profraw" cargo test --target-dir $COVERAGE_TARGET --features sqlite;
+
+echo "\n-- ------------------------------------------------------------------------------"
+echo "-- Testing MySQL syntax"
+echo "-- ------------------------------------------------------------------------------\n"
+RUSTFLAGS="-C instrument-coverage" LLVM_PROFILE_FILE="$COVERAGE_TARGET/$PKG_NAME-%m.profraw" cargo test --target-dir $COVERAGE_TARGET --features mysql;
 
 cargo profdata -- merge -sparse $COVERAGE_TARGET/$PKG_NAME-*.profraw -o $COVERAGE_TARGET/$PKG_NAME.profdata;
 

@@ -29,14 +29,13 @@ impl AlterTable {
   /// ADD COLUMN age int not null
   /// ```
   ///
-  ///
-  /// Available on crate feature `postgresql` only.
+  /// ### Available on crate feature `postgresql` and `mysql` only.
   /// Multiples call of this method will build the SQL respecting the order of the calls
   ///
   /// ### Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::AlterTable::new()
@@ -161,13 +160,13 @@ impl AlterTable {
   /// DROP column login
   /// ```
   ///
-  /// Available on crate feature `postgresql` only.
+  /// ### Available on crate feature `postgresql` and `mysql` only.
   /// Multiples call of this method will build the SQL respecting the order of the calls
   ///
   /// ### Example
   ///
   /// ```
-  /// # #[cfg(any(feature = "postgresql"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::AlterTable::new()
@@ -284,16 +283,17 @@ impl AlterTable {
   }
 }
 
-#[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
+#[cfg(any(doc, feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
 #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
 impl AlterTable {
   /// Changes the column name or table constraints, this method overrides the previous value
   ///
   /// ### Example
   ///
   ///```
-  /// # #[cfg(any(feature = "postgresql", feature = "sqlite"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::AlterTable::new()
@@ -311,11 +311,54 @@ impl AlterTable {
   /// ```sql
   /// ALTER TABLE users RENAME COLUMN address TO city
   /// ```
+  ///
+  /// ### Available on crate feature `mysql` only.
+  /// Changes the table name, column name or table constraints,
+  /// multiples call of this method will build the SQL respecting the order of the calls
+  ///
+  /// ### Example
+  ///
+  ///```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let query = sql::AlterTable::new()
+  ///   .alter_table("users")
+  ///   .rename("TO users_old")
+  ///   .rename("COLUMN name TO full_name")
+  ///   .to_string();
+  ///
+  /// # let expected = "ALTER TABLE users RENAME TO users_old, RENAME COLUMN name TO full_name";
+  /// # assert_eq!(expected, query);
+  /// # }
+  /// ```
+  ///
+  /// Outputs
+  ///
+  /// ```sql
+  /// ALTER TABLE users
+  ///   RENAME TO users_old,
+  ///   RENAME COLUMN name TO full_name
+  /// ```
   pub fn rename(mut self, action: &str) -> Self {
-    self._rename = action.trim().to_string();
+    #[cfg(feature = "mysql")]
+    {
+      let action = AlterTableActionItem(AlterTableOrderedAction::Rename, action.trim().to_string());
+      push_unique(&mut self._ordered_actions, action);
+    }
+    #[cfg(not(feature = "mysql"))]
+    {
+      self._rename = action.trim().to_string();
+    }
+
     self
   }
+}
 
+#[cfg(any(doc, feature = "postgresql", feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+impl AlterTable {
   /// Changes the name of the table, this method overrides the previous value
   ///
   /// ### Example
@@ -345,8 +388,9 @@ impl AlterTable {
   }
 }
 
-#[cfg(any(doc, feature = "postgresql"))]
+#[cfg(any(doc, feature = "postgresql", feature = "mysql"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "postgresql")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
 impl AlterTable {
   /// Alter columns or table constraints.
   /// Multiples call of this method will build the SQL respecting the order of the calls
@@ -354,7 +398,7 @@ impl AlterTable {
   /// ### Example
   ///
   ///```
-  /// # #[cfg(any(feature = "postgresql"))]
+  /// # #[cfg(any(feature = "postgresql", feature = "mysql"))]
   /// # {
   /// # use sql_query_builder as sql;
   /// let query = sql::AlterTable::new()

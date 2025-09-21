@@ -1,30 +1,137 @@
+mod full_api {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn sql_standard_with_all_methods() {
+    let query = sql::CreateTable::new()
+      // at least one
+      .create_table("users")
+      .create_table_if_not_exists("users")
+      // required
+      .column("id serial, login varchar(100) not null")
+      // optional
+      .primary_key("(id)")
+      .foreign_key("(address_id) references addresses(id)")
+      .constraint("login users_login_key unique(login)")
+      .as_string();
+
+    let expected_query = "\
+      CREATE TABLE IF NOT EXISTS users (\
+        id serial, login varchar(100) not null, \
+        PRIMARY KEY(id), \
+        CONSTRAINT login users_login_key unique(login), \
+        FOREIGN KEY(address_id) references addresses(id)\
+      )\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn postgres_with_all_methods() {
+    let query = sql::CreateTable::new()
+      // at least one
+      .create_table("users")
+      .create_table_if_not_exists("users")
+      // optional
+      .column("id serial, login varchar(100) not null")
+      .primary_key("(id)")
+      .foreign_key("(address_id) references addresses(id)")
+      .constraint("login users_login_key unique(login)")
+      .as_string();
+
+    let expected_query = "\
+      CREATE TABLE IF NOT EXISTS users (\
+        id serial, login varchar(100) not null, \
+        PRIMARY KEY(id), \
+        CONSTRAINT login users_login_key unique(login), \
+        FOREIGN KEY(address_id) references addresses(id)\
+      )\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  #[test]
+  fn sqlite_with_all_methods() {
+    let query = sql::CreateTable::new()
+      // at least one
+      .create_table("users")
+      .create_table_if_not_exists("users")
+      // required
+      .column("id integer, login varchar(100) not null")
+      // optional
+      .primary_key("(id)")
+      .foreign_key("(address_id) references addresses(id)")
+      .constraint("login users_login_key unique(login)")
+      .as_string();
+
+    let expected_query = "\
+      CREATE TABLE IF NOT EXISTS users (\
+        id integer, login varchar(100) not null, \
+        PRIMARY KEY(id), \
+        CONSTRAINT login users_login_key unique(login), \
+        FOREIGN KEY(address_id) references addresses(id)\
+      )\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn mysql_with_all_methods() {
+    let query = sql::CreateTable::new()
+      // at least one of methods
+      .create_table("users")
+      .create_table_if_not_exists("users")
+      // required
+      .column("id int not null auto_increment, login varchar(100) not null")
+      // optional methods
+      .primary_key("(id)")
+      .foreign_key("(address_id) references addresses(id)")
+      .constraint("login users_login_key unique(login)")
+      .as_string();
+
+    let expected_query = "\
+      CREATE TABLE IF NOT EXISTS users (\
+        id int not null auto_increment, login varchar(100) not null, \
+        PRIMARY KEY(id), \
+        CONSTRAINT login users_login_key unique(login), \
+        FOREIGN KEY(address_id) references addresses(id)\
+      )\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
 mod builder_features {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
 
   #[test]
   fn create_table_builder_should_be_displayable() {
-    let create_table = sql::CreateTable::new()
-      .create_table("orders")
-      .column("id serial not null");
+    let create_table = sql::CreateTable::new().create_table("orders").column("id int not null");
 
     println!("{}", create_table);
 
     let query = create_table.as_string();
-    let expected_query = "CREATE TABLE orders (id serial not null)";
+    let expected_query = "CREATE TABLE orders (id int not null)";
 
     assert_eq!(expected_query, query);
   }
 
   #[test]
   fn create_table_builder_should_be_debuggable() {
-    let create_table = sql::CreateTable::new()
-      .create_table("orders")
-      .column("id serial not null");
+    let create_table = sql::CreateTable::new().create_table("orders").column("id int not null");
 
     println!("{:?}", create_table);
 
-    let expected_query = "CREATE TABLE orders (id serial not null)";
+    let expected_query = "CREATE TABLE orders (id int not null)";
     let query = create_table.as_string();
 
     assert_eq!(expected_query, query);
@@ -33,7 +140,7 @@ mod builder_features {
   #[test]
   fn create_table_builder_should_be_cloneable() {
     let basic_table = sql::CreateTable::new()
-      .column("id serial")
+      .column("id int")
       .column("created_at timestamp")
       .column("updated_at timestamp");
 
@@ -45,7 +152,7 @@ mod builder_features {
 
     let expected_users_table = "\
       CREATE TABLE users (\
-        id serial, \
+        id int, \
         created_at timestamp, \
         updated_at timestamp, \
         login varchar(40)\
@@ -60,7 +167,7 @@ mod builder_features {
 
     let expected_orders_table = "\
       CREATE TABLE orders (\
-        id serial, \
+        id int, \
         created_at timestamp, \
         updated_at timestamp, \
         name varchar(200)\
@@ -76,11 +183,11 @@ mod builder_features {
     let mut create_table = sql::CreateTable::new().create_table("orders");
 
     if true {
-      create_table = create_table.column("id serial");
+      create_table = create_table.column("id int");
     }
 
     let query = create_table.as_string();
-    let expected_query = "CREATE TABLE orders (id serial)";
+    let expected_query = "CREATE TABLE orders (id int)";
 
     assert_eq!(expected_query, query);
   }
@@ -92,7 +199,7 @@ mod builder_features {
     }
 
     fn columns(select: sql::CreateTable) -> sql::CreateTable {
-      select.column("id serial").column("login varchar(40)")
+      select.column("id int").column("login varchar(40)")
     }
 
     fn constraint(select: sql::CreateTable) -> sql::CreateTable {
@@ -114,7 +221,7 @@ mod builder_features {
 
     let expected_query = "\
       CREATE TABLE users (\
-        id serial, \
+        id int, \
         login varchar(40), \
         CONSTRAINT users_id_key primary key(id), \
         CONSTRAINT users_login_key unique(login)\
@@ -149,7 +256,7 @@ mod builder_methods {
   fn method_debug_should_print_at_console_in_a_human_readable_format() {
     let query = sql::CreateTable::new()
       .create_table_if_not_exists("users")
-      .column("id serial not null")
+      .column("id int not null")
       .column("login varchar(40) not null")
       .constraint("users_id_key primary key(id)")
       .constraint("users_login_key unique(login)")
@@ -158,7 +265,7 @@ mod builder_methods {
 
     let expected_query = "\
       CREATE TABLE IF NOT EXISTS users (\
-        id serial not null, \
+        id int not null, \
         login varchar(40) not null, \
         CONSTRAINT users_id_key primary key(id), \
         CONSTRAINT users_login_key unique(login)\
@@ -172,7 +279,7 @@ mod builder_methods {
   fn method_print_should_print_in_one_line_the_current_state_of_builder() {
     let query = sql::CreateTable::new()
       .create_table_if_not_exists("users")
-      .column("id serial not null")
+      .column("id int not null")
       .column("login varchar(40) not null")
       .constraint("users_id_key primary key(id)")
       .constraint("users_login_key unique(login)")
@@ -181,7 +288,7 @@ mod builder_methods {
 
     let expected_query = "\
       CREATE TABLE IF NOT EXISTS users (\
-        id serial not null, \
+        id int not null, \
         login varchar(40) not null, \
         CONSTRAINT users_id_key primary key(id), \
         CONSTRAINT users_login_key unique(login)\
@@ -206,10 +313,10 @@ mod builder_methods {
   fn method_raw_should_accumulate_values_on_consecutive_calls() {
     let query = sql::CreateTable::new()
       .raw("create table local temp users (")
-      .raw("id serial)")
+      .raw("id int)")
       .as_string();
 
-    let expected_query = "create table local temp users ( id serial)";
+    let expected_query = "create table local temp users ( id int)";
 
     assert_eq!(expected_query, query);
   }
@@ -219,11 +326,11 @@ mod builder_methods {
     let query = sql::CreateTable::new()
       .raw("")
       .raw("create table local temp users (")
-      .raw("id serial)")
+      .raw("id int)")
       .raw("")
       .as_string();
 
-    let expected_query = "create table local temp users ( id serial)";
+    let expected_query = "create table local temp users ( id int)";
 
     assert_eq!(expected_query, query);
   }
@@ -255,9 +362,9 @@ mod builder_methods {
   #[test]
   fn method_raw_after_should_trim_space_of_the_argument() {
     let query = sql::CreateTable::new()
-      .raw_after(sql::CreateTableParams::Column, "  id serial not null  ")
+      .raw_after(sql::CreateTableParams::Column, "  id int not null  ")
       .as_string();
-    let expected_query = "(id serial not null)";
+    let expected_query = "(id int not null)";
 
     assert_eq!(expected_query, query);
   }
@@ -265,9 +372,9 @@ mod builder_methods {
   #[test]
   fn method_raw_before_should_trim_space_of_the_argument() {
     let query = sql::CreateTable::new()
-      .raw_before(sql::CreateTableParams::Column, "  id serial not null  ")
+      .raw_before(sql::CreateTableParams::Column, "  id int not null  ")
       .as_string();
-    let expected_query = "(id serial not null)";
+    let expected_query = "(id int not null)";
 
     assert_eq!(expected_query, query);
   }
@@ -331,26 +438,26 @@ mod method_column {
 
   #[test]
   fn method_raw_after_should_add_raw_sql_after_column_parameter() {
-    let raw = ", id serial not null";
+    let raw = ", id int not null";
     let query = sql::CreateTable::new()
       .column("name varchar(100)")
       .raw_after(sql::CreateTableParams::Column, raw)
       .as_string();
 
-    let expected_query = "(name varchar(100), id serial not null)";
+    let expected_query = "(name varchar(100), id int not null)";
 
     assert_eq!(expected_query, query);
   }
 
   #[test]
   fn method_raw_before_should_add_raw_sql_before_column_parameter() {
-    let raw = "id serial not null, ";
+    let raw = "id int not null, ";
     let query = sql::CreateTable::new()
       .raw_before(sql::CreateTableParams::Column, raw)
       .column("name varchar(100)")
       .as_string();
 
-    let expected_query = "(id serial not null, name varchar(100))";
+    let expected_query = "(id int not null, name varchar(100))";
 
     assert_eq!(expected_query, query);
   }
@@ -420,13 +527,13 @@ mod method_constraint {
 
   #[test]
   fn method_raw_after_should_add_raw_sql_after_table_constraint_parameter() {
-    let raw = ", id serial not null";
+    let raw = ", id int not null";
     let query = sql::CreateTable::new()
       .constraint("id users_id_key primary key(id)")
       .raw_after(sql::CreateTableParams::Constraint, raw)
       .as_string();
 
-    let expected_query = "(CONSTRAINT id users_id_key primary key(id), id serial not null)";
+    let expected_query = "(CONSTRAINT id users_id_key primary key(id), id int not null)";
 
     assert_eq!(expected_query, query);
   }
@@ -666,13 +773,13 @@ mod method_primary_key {
 
   #[test]
   fn method_raw_after_should_add_raw_sql_after_primary_key_constraint() {
-    let raw = ", id serial not null";
+    let raw = ", id int not null";
     let query = sql::CreateTable::new()
       .primary_key("id")
       .raw_after(sql::CreateTableParams::PrimaryKey, raw)
       .as_string();
 
-    let expected_query = "(PRIMARY KEY(id), id serial not null)";
+    let expected_query = "(PRIMARY KEY(id), id int not null)";
 
     assert_eq!(expected_query, dbg!(query));
   }

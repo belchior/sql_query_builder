@@ -1,3 +1,178 @@
+mod full_api {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  // SQL Standard
+  #[cfg(not(feature = "sqlite"))]
+  #[test]
+  fn sql_standard_with_all_methods() {
+    let query = sql::Transaction::new()
+      // required methods
+      .start_transaction("")
+      // optional methods
+      .set_transaction("")
+      // at least one of methods
+      .alter_table(sql::AlterTable::new().alter_table("users"))
+      .create_table(sql::CreateTable::new().create_table("users"))
+      .delete(sql::Delete::new().delete_from("users"))
+      .drop_table(sql::DropTable::new().drop_table("users"))
+      .insert(sql::Insert::new().insert_into("users"))
+      .select(sql::Select::new().select("login"))
+      .update(sql::Update::new().update("users"))
+      // one of methods
+      .rollback("")
+      .commit("")
+      .as_string();
+
+    let expected_query = "\
+      START TRANSACTION; \
+      SET TRANSACTION; \
+      ALTER TABLE users; \
+      CREATE TABLE users; \
+      DELETE FROM users; \
+      DROP TABLE users; \
+      INSERT INTO users; \
+      SELECT login; \
+      UPDATE users; \
+      ROLLBACK; \
+      COMMIT;\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "postgresql")]
+  #[test]
+  fn postgres_with_all_methods() {
+    let query = sql::Transaction::new()
+      // one of methods
+      .begin("")
+      .start_transaction("")
+      // optional methods
+      .set_transaction("")
+      // at least one of methods
+      .alter_table(sql::AlterTable::new().alter_table("users"))
+      .create_index(sql::CreateIndex::new().create_index("users_idx"))
+      .create_table(sql::CreateTable::new().create_table("users"))
+      .delete(sql::Delete::new().delete_from("users"))
+      .drop_index(sql::DropIndex::new().drop_index("users_idx"))
+      .drop_table(sql::DropTable::new().drop_table("users"))
+      .insert(sql::Insert::new().insert_into("users"))
+      .select(sql::Select::new().select("login"))
+      .update(sql::Update::new().update("users"))
+      // one of methods
+      .rollback("")
+      .commit("")
+      .end("")
+      .as_string();
+
+    let expected_query = "\
+      BEGIN; \
+      START TRANSACTION; \
+      SET TRANSACTION; \
+      ALTER TABLE users; \
+      CREATE INDEX users_idx; \
+      CREATE TABLE users; \
+      DELETE FROM users; \
+      DROP INDEX users_idx; \
+      DROP TABLE users; \
+      INSERT INTO users; \
+      SELECT login; \
+      UPDATE users; \
+      ROLLBACK; \
+      COMMIT; \
+      END;\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "sqlite")]
+  #[test]
+  fn sqlite_with_all_methods() {
+    let query = sql::Transaction::new()
+      // required method
+      .begin("")
+      // at least one of methods
+      .alter_table(sql::AlterTable::new().alter_table("users"))
+      .create_index(sql::CreateIndex::new().create_index("users_idx"))
+      .create_table(sql::CreateTable::new().create_table("users"))
+      .delete(sql::Delete::new().delete_from("users"))
+      .drop_index(sql::DropIndex::new().drop_index("users_idx"))
+      .drop_table(sql::DropTable::new().drop_table("users"))
+      .insert(sql::Insert::new().insert_into("users"))
+      .select(sql::Select::new().select("login"))
+      .update(sql::Update::new().update("users"))
+      // one of methods
+      .rollback("")
+      .commit("")
+      .end("")
+      .as_string();
+
+    let expected_query = "\
+      BEGIN; \
+      ALTER TABLE users; \
+      CREATE INDEX users_idx; \
+      CREATE TABLE users; \
+      DELETE FROM users; \
+      DROP INDEX users_idx; \
+      DROP TABLE users; \
+      INSERT INTO users; \
+      SELECT login; \
+      UPDATE users; \
+      ROLLBACK; \
+      COMMIT; \
+      END;\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[cfg(feature = "mysql")]
+  #[test]
+  fn mysql_with_all_methods() {
+    let query = sql::Transaction::new()
+      // one of methods
+      .begin("")
+      .start_transaction("")
+      // optional methods
+      .set_transaction("")
+      // at least one of methods
+      .alter_table(sql::AlterTable::new().alter_table("users"))
+      .create_index(sql::CreateIndex::new().create_index("users_idx"))
+      .create_table(sql::CreateTable::new().create_table("users"))
+      .delete(sql::Delete::new().delete_from("users"))
+      .drop_index(sql::DropIndex::new().drop_index("users_idx"))
+      .drop_table(sql::DropTable::new().drop_table("users"))
+      .insert(sql::Insert::new().insert_into("users"))
+      .select(sql::Select::new().select("login"))
+      .update(sql::Update::new().update("users"))
+      // one of methods
+      .rollback("")
+      .commit("")
+      .as_string();
+
+    let expected_query = "\
+      BEGIN; \
+      START TRANSACTION; \
+      SET TRANSACTION; \
+      ALTER TABLE users; \
+      CREATE INDEX users_idx; \
+      CREATE TABLE users; \
+      DELETE FROM users; \
+      DROP INDEX users_idx; \
+      DROP TABLE users; \
+      INSERT INTO users; \
+      SELECT login; \
+      UPDATE users; \
+      ROLLBACK; \
+      COMMIT;\
+    ";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
 mod builder_features {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -431,90 +606,6 @@ mod delete_method {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-mod create_index_method {
-  use pretty_assertions::assert_eq;
-  use sql_query_builder as sql;
-
-  #[test]
-  fn method_create_index_should_add_a_create_index_command() {
-    let query = sql::Transaction::new()
-      .create_index(sql::CreateIndex::new().create_index("users_name_idx"))
-      .as_string();
-
-    let expected_query = "CREATE INDEX users_name_idx;";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_create_index_should_accumulate_values_on_consecutive_calls() {
-    let query = sql::Transaction::new()
-      .create_index(sql::CreateIndex::new().create_index("users_name_idx"))
-      .create_index(sql::CreateIndex::new().create_index("orders_product_name_idx"))
-      .as_string();
-
-    let expected_query = "CREATE INDEX users_name_idx; CREATE INDEX orders_product_name_idx;";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_create_index_should_not_accumulate_values_when_expression_is_empty() {
-    let query = sql::Transaction::new()
-      .create_index(sql::CreateIndex::new())
-      .create_index(sql::CreateIndex::new().create_index("orders_product_name_idx"))
-      .create_index(sql::CreateIndex::new())
-      .as_string();
-
-    let expected_query = "CREATE INDEX orders_product_name_idx;";
-
-    assert_eq!(expected_query, query);
-  }
-}
-
-#[cfg(any(feature = "postgresql", feature = "sqlite"))]
-mod drop_index_method {
-  use pretty_assertions::assert_eq;
-  use sql_query_builder as sql;
-
-  #[test]
-  fn method_drop_index_should_add_a_drop_index_command() {
-    let query = sql::Transaction::new()
-      .drop_index(sql::DropIndex::new().drop_index("users_name_idx"))
-      .as_string();
-
-    let expected_query = "DROP INDEX users_name_idx;";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_drop_index_should_accumulate_values_on_consecutive_calls() {
-    let query = sql::Transaction::new()
-      .drop_index(sql::DropIndex::new().drop_index("users_name_idx"))
-      .drop_index(sql::DropIndex::new().drop_index("orders_product_name_idx"))
-      .as_string();
-
-    let expected_query = "DROP INDEX users_name_idx; DROP INDEX orders_product_name_idx;";
-
-    assert_eq!(expected_query, query);
-  }
-
-  #[test]
-  fn method_drop_index_should_not_accumulate_values_when_expression_is_empty() {
-    let query = sql::Transaction::new()
-      .drop_index(sql::DropIndex::new())
-      .drop_index(sql::DropIndex::new().drop_index("orders_product_name_idx"))
-      .drop_index(sql::DropIndex::new())
-      .as_string();
-
-    let expected_query = "DROP INDEX orders_product_name_idx;";
-
-    assert_eq!(expected_query, query);
-  }
-}
-
 mod drop_table_method {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -684,82 +775,6 @@ mod multi_commands {
   }
 }
 
-#[cfg(not(feature = "sqlite"))]
-mod order_of_commands {
-  use pretty_assertions::assert_eq;
-  use sql_query_builder as sql;
-
-  #[test]
-  fn command_set_transaction_should_be_add_after_start_transaction() {
-    let query = sql::Transaction::new()
-      .set_transaction("READ ONLY")
-      .start_transaction("")
-      .as_string();
-    let expected_query = "\
-      START TRANSACTION; \
-      SET TRANSACTION READ ONLY;\
-    ";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn command_commit_should_be_add_after_start_transaction_when_specified() {
-    let query = sql::Transaction::new()
-      .commit("")
-      .start_transaction("REPEATABLE READ")
-      .as_string();
-    let expected_query = "\
-      START TRANSACTION REPEATABLE READ; \
-      COMMIT;\
-    ";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn command_commit_should_be_add_after_set_transaction_when_specified() {
-    let query = sql::Transaction::new()
-      .commit("")
-      .set_transaction("READ ONLY")
-      .as_string();
-    let expected_query = "\
-      SET TRANSACTION READ ONLY; \
-      COMMIT;\
-    ";
-
-    assert_eq!(query, expected_query);
-  }
-}
-
-#[cfg(feature = "sqlite")]
-mod order_of_commands {
-  use pretty_assertions::assert_eq;
-  use sql_query_builder as sql;
-
-  #[test]
-  fn command_commit_should_be_add_after_begin_when_specified() {
-    let query = sql::Transaction::new().commit("").begin("DEFERRED").as_string();
-    let expected_query = "\
-      BEGIN DEFERRED; \
-      COMMIT;\
-    ";
-
-    assert_eq!(query, expected_query);
-  }
-
-  #[test]
-  fn command_end_should_be_add_after_begin_when_specified() {
-    let query = sql::Transaction::new().end("").begin("IMMEDIATE").as_string();
-    let expected_query = "\
-      BEGIN IMMEDIATE; \
-      END;\
-    ";
-
-    assert_eq!(query, expected_query);
-  }
-}
-
 mod select_method {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -831,6 +846,166 @@ mod update_method {
       .update(sql::Update::new())
       .as_string();
     let expected_query = "UPDATE users;";
+
+    assert_eq!(query, expected_query);
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+mod create_index_method {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_create_index_should_add_a_create_index_command() {
+    let query = sql::Transaction::new()
+      .create_index(sql::CreateIndex::new().create_index("users_name_idx"))
+      .as_string();
+
+    let expected_query = "CREATE INDEX users_name_idx;";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_create_index_should_accumulate_values_on_consecutive_calls() {
+    let query = sql::Transaction::new()
+      .create_index(sql::CreateIndex::new().create_index("users_name_idx"))
+      .create_index(sql::CreateIndex::new().create_index("orders_product_name_idx"))
+      .as_string();
+
+    let expected_query = "CREATE INDEX users_name_idx; CREATE INDEX orders_product_name_idx;";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_create_index_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new()
+      .create_index(sql::CreateIndex::new())
+      .create_index(sql::CreateIndex::new().create_index("orders_product_name_idx"))
+      .create_index(sql::CreateIndex::new())
+      .as_string();
+
+    let expected_query = "CREATE INDEX orders_product_name_idx;";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+mod drop_index_method {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn method_drop_index_should_add_a_drop_index_command() {
+    let query = sql::Transaction::new()
+      .drop_index(sql::DropIndex::new().drop_index("users_name_idx"))
+      .as_string();
+
+    let expected_query = "DROP INDEX users_name_idx;";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_drop_index_should_accumulate_values_on_consecutive_calls() {
+    let query = sql::Transaction::new()
+      .drop_index(sql::DropIndex::new().drop_index("users_name_idx"))
+      .drop_index(sql::DropIndex::new().drop_index("orders_product_name_idx"))
+      .as_string();
+
+    let expected_query = "DROP INDEX users_name_idx; DROP INDEX orders_product_name_idx;";
+
+    assert_eq!(expected_query, query);
+  }
+
+  #[test]
+  fn method_drop_index_should_not_accumulate_values_when_expression_is_empty() {
+    let query = sql::Transaction::new()
+      .drop_index(sql::DropIndex::new())
+      .drop_index(sql::DropIndex::new().drop_index("orders_product_name_idx"))
+      .drop_index(sql::DropIndex::new())
+      .as_string();
+
+    let expected_query = "DROP INDEX orders_product_name_idx;";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(not(feature = "sqlite"))]
+mod order_of_commands {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn command_set_transaction_should_be_add_after_start_transaction() {
+    let query = sql::Transaction::new()
+      .set_transaction("READ ONLY")
+      .start_transaction("")
+      .as_string();
+    let expected_query = "\
+      START TRANSACTION; \
+      SET TRANSACTION READ ONLY;\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn command_commit_should_be_add_after_start_transaction_when_specified() {
+    let query = sql::Transaction::new()
+      .commit("")
+      .start_transaction("REPEATABLE READ")
+      .as_string();
+    let expected_query = "\
+      START TRANSACTION REPEATABLE READ; \
+      COMMIT;\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn command_commit_should_be_add_after_set_transaction_when_specified() {
+    let query = sql::Transaction::new()
+      .commit("")
+      .set_transaction("READ ONLY")
+      .as_string();
+    let expected_query = "\
+      SET TRANSACTION READ ONLY; \
+      COMMIT;\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+}
+
+#[cfg(feature = "sqlite")]
+mod order_of_commands {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn command_commit_should_be_add_after_begin_when_specified() {
+    let query = sql::Transaction::new().commit("").begin("DEFERRED").as_string();
+    let expected_query = "\
+      BEGIN DEFERRED; \
+      COMMIT;\
+    ";
+
+    assert_eq!(query, expected_query);
+  }
+
+  #[test]
+  fn command_end_should_be_add_after_begin_when_specified() {
+    let query = sql::Transaction::new().end("").begin("IMMEDIATE").as_string();
+    let expected_query = "\
+      BEGIN IMMEDIATE; \
+      END;\
+    ";
 
     assert_eq!(query, expected_query);
   }
