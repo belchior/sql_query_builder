@@ -82,6 +82,14 @@ impl Concat for Delete {
         DeleteClause::Returning,
         &self._returning,
       );
+      query = self.concat_order_by(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        DeleteClause::OrderBy,
+        &self._order_by,
+      );
     }
 
     #[cfg(feature = "mysql")]
@@ -166,34 +174,34 @@ impl Delete {
 
 #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use crate::concat::non_standard::ConcatWith;
-
 #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 impl ConcatWith<DeleteClause> for Delete {}
 
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 use crate::concat::non_standard::ConcatReturning;
-
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 impl ConcatReturning<DeleteClause> for Delete {}
+
+#[cfg(any(feature = "sqlite", feature = "mysql"))]
+use crate::concat::sql_standard::ConcatOrderBy;
+#[cfg(any(feature = "sqlite", feature = "mysql"))]
+impl ConcatOrderBy<DeleteClause> for Delete {}
 
 #[cfg(feature = "mysql")]
 use crate::{
   concat::{
     mysql::ConcatPartition,
     non_standard::ConcatLimit,
-    sql_standard::{ConcatFrom, ConcatJoin, ConcatOrderBy},
+    sql_standard::{ConcatFrom, ConcatJoin},
   },
   utils,
 };
-
 #[cfg(feature = "mysql")]
 impl ConcatFrom<DeleteClause> for Delete {}
 #[cfg(feature = "mysql")]
 impl ConcatJoin<DeleteClause> for Delete {}
 #[cfg(feature = "mysql")]
 impl ConcatLimit<DeleteClause> for Delete {}
-#[cfg(feature = "mysql")]
-impl ConcatOrderBy<DeleteClause> for Delete {}
 #[cfg(feature = "mysql")]
 impl ConcatPartition<DeleteClause> for Delete {}
 

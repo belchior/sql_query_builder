@@ -368,6 +368,39 @@ impl Delete {
   }
 }
 
+#[cfg(any(doc, feature = "sqlite", feature = "mysql"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+impl Delete {
+  /// The `order by` clause.
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(any(feature = "sqlite", feature = "mysql"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let delete = sql::Delete::new()
+  ///   .order_by("created_at asc");
+  ///
+  /// # let expected = "ORDER BY created_at asc";
+  /// # assert_eq!(expected, delete.as_string());
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// ORDER BY created_at asc
+  /// ```
+  ///
+  /// Note: For crate feature `sqlite` this clause is behind a flag at SQLite, [more info](https://sqlite.org/lang_delete.html#optional_limit_and_order_by_clauses).
+  pub fn order_by(mut self, column: &str) -> Self {
+    push_unique(&mut self._order_by, column.trim().to_string());
+    self
+  }
+}
+
 #[cfg(any(doc, feature = "mysql"))]
 #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
 impl Delete {
@@ -638,32 +671,6 @@ impl Delete {
   /// ```
   pub fn limit(mut self, num: &str) -> Self {
     self._limit = num.trim().to_string();
-    self
-  }
-
-  /// The `order by` clause
-  ///
-  /// # Example
-  ///
-  /// ```
-  /// # #[cfg(feature = "mysql")]
-  /// # {
-  /// # use sql_query_builder as sql;
-  /// let delete = sql::Delete::new()
-  ///   .order_by("created_at asc");
-  ///
-  /// # let expected = "ORDER BY created_at asc";
-  /// # assert_eq!(expected, delete.as_string());
-  /// # }
-  /// ```
-  ///
-  /// Output
-  ///
-  /// ```sql
-  /// ORDER BY created_at asc
-  /// ```
-  pub fn order_by(mut self, column: &str) -> Self {
-    push_unique(&mut self._order_by, column.trim().to_string());
     self
   }
 

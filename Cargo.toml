@@ -4,11 +4,12 @@ description = "Write SQL queries in a simple and composable way"
 documentation = "https://docs.rs/sql_query_builder"
 repository = "https://github.com/belchior/sql_query_builder"
 authors = ["Belchior Oliveira <belchior@outlook.com>"]
-version = "2.5.2"
+version = "2.6.2"
 edition = "2021"
 rust-version = "1.62"
 license = "MIT"
 keywords = ["sql", "query", "postgres", "sqlite", "mysql"]
+exclude = [".github", ".vscode", "scripts"]
 
 [features]
 #! SQL Query Builder comes with the following optional features:
