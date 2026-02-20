@@ -269,6 +269,9 @@ pub struct Delete {
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _returning: Vec<String>,
 
+  #[cfg(any(feature = "sqlite", feature = "mysql"))]
+  pub(crate) _order_by: Vec<String>,
+
   #[cfg(feature = "mysql")]
   pub(crate) _delete: Vec<String>,
 
@@ -280,9 +283,6 @@ pub struct Delete {
 
   #[cfg(feature = "mysql")]
   pub(crate) _limit: String,
-
-  #[cfg(feature = "mysql")]
-  pub(crate) _order_by: Vec<String>,
 
   #[cfg(feature = "mysql")]
   pub(crate) _partition: Vec<String>,
@@ -305,6 +305,11 @@ pub enum DeleteClause {
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   Returning,
 
+  #[cfg(any(feature = "sqlite", feature = "mysql"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  OrderBy,
+
   #[cfg(feature = "mysql")]
   #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   Limit,
@@ -320,10 +325,6 @@ pub enum DeleteClause {
   #[cfg(feature = "mysql")]
   #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   Join,
-
-  #[cfg(feature = "mysql")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
-  OrderBy,
 
   #[cfg(feature = "mysql")]
   #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
@@ -820,6 +821,9 @@ pub struct Update {
   #[cfg(any(feature = "postgresql", feature = "sqlite"))]
   pub(crate) _with: Vec<(String, std::sync::Arc<dyn crate::behavior::WithQuery + Send + Sync>)>,
 
+  #[cfg(any(feature = "sqlite", feature = "mysql"))]
+  pub(crate) _order_by: Vec<String>,
+
   #[cfg(not(feature = "sqlite"))]
   pub(crate) _update: String,
 
@@ -831,9 +835,6 @@ pub struct Update {
 
   #[cfg(feature = "mysql")]
   pub(crate) _limit: String,
-
-  #[cfg(feature = "mysql")]
-  pub(crate) _order_by: Vec<String>,
 }
 
 #[cfg(feature = "sqlite")]
@@ -866,6 +867,11 @@ pub enum UpdateClause {
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   With,
 
+  #[cfg(any(feature = "sqlite", feature = "mysql"))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+  OrderBy,
+
   #[cfg(feature = "sqlite")]
   #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
   UpdateOr,
@@ -877,10 +883,6 @@ pub enum UpdateClause {
   #[cfg(feature = "mysql")]
   #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
   Limit,
-
-  #[cfg(feature = "mysql")]
-  #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
-  OrderBy,
 }
 
 /// Builder of [Values] command.

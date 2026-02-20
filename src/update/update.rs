@@ -424,6 +424,33 @@ impl Update {
   }
 }
 
+#[cfg(any(doc, feature = "sqlite", feature = "mysql"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+#[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
+impl Update {
+  /// The `order by` clause
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "mysql")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let update = sql::Update::new()
+  ///   .order_by("login asc");
+  ///
+  /// # let expected = "ORDER BY login asc";
+  /// # assert_eq!(expected, update.as_string());
+  /// # }
+  /// ```
+  ///
+  /// Note: For crate feature `sqlite` this clause is behind a flag at SQLite, [more info](https://sqlite.org/lang_update.html#optional_limit_and_order_by_clauses).
+  pub fn order_by(mut self, column: &str) -> Self {
+    push_unique(&mut self._order_by, column.trim().to_string());
+    self
+  }
+}
+
 #[cfg(feature = "sqlite")]
 use crate::structure::UpdateVars;
 
@@ -626,27 +653,8 @@ impl Update {
     self._limit = num.trim().to_string();
     self
   }
-
-  /// The `order by` clause
-  ///
-  /// # Example
-  ///
-  /// ```
-  /// # #[cfg(feature = "mysql")]
-  /// # {
-  /// # use sql_query_builder as sql;
-  /// let update = sql::Update::new()
-  ///   .order_by("login asc");
-  ///
-  /// # let expected = "ORDER BY login asc";
-  /// # assert_eq!(expected, update.as_string());
-  /// # }
-  /// ```
-  pub fn order_by(mut self, column: &str) -> Self {
-    push_unique(&mut self._order_by, column.trim().to_string());
-    self
-  }
 }
+
 impl std::fmt::Display for Update {
   fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
     write!(f, "{}", self.as_string())

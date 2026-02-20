@@ -91,7 +91,7 @@ mod select_command {
   }
 }
 
-#[cfg(feature = "mysql")]
+#[cfg(any(feature = "sqlite", feature = "mysql"))]
 mod delete_command {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -188,7 +188,24 @@ mod delete_command {
   }
 }
 
-#[cfg(feature = "mysql")]
+#[cfg(feature = "sqlite")]
+mod delete_command_sqlite {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn clause_order_by_should_be_after_returning_clause() {
+    let query = sql::Delete::new()
+      .returning("*")
+      .order_by("created_at desc")
+      .as_string();
+    let expected_query = "RETURNING * ORDER BY created_at desc";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(any(feature = "sqlite", feature = "mysql"))]
 mod update_command {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -277,6 +294,23 @@ mod update_command {
       .raw_after(sql::UpdateClause::OrderBy, "limit 20")
       .as_string();
     let expected_query = "ORDER BY id desc limit 20";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(feature = "sqlite")]
+mod update_command_sqlite {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn clause_order_by_should_be_after_returning_clause() {
+    let query = sql::Update::new()
+      .returning("*")
+      .order_by("created_at desc")
+      .as_string();
+    let expected_query = "RETURNING * ORDER BY created_at desc";
 
     assert_eq!(expected_query, query);
   }
