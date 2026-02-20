@@ -23,6 +23,28 @@ pub(crate) trait ConcatLimit<Clause: PartialEq> {
   }
 }
 
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+pub(crate) trait ConcatOffset<Clause: PartialEq> {
+  fn concat_offset(
+    &self,
+    items_raw_before: &Vec<(Clause, String)>,
+    items_raw_after: &Vec<(Clause, String)>,
+    query: String,
+    fmts: &fmt::Formatter,
+    clause: Clause,
+    offset: &str,
+  ) -> String {
+    let fmt::Formatter { lb, space, .. } = fmts;
+    let sql = if offset.is_empty() == false {
+      format!("OFFSET{space}{offset}{space}{lb}")
+    } else {
+      "".to_string()
+    };
+
+    concat_raw_before_after(items_raw_before, items_raw_after, query, fmts, clause, sql)
+  }
+}
+
 #[cfg(any(feature = "postgresql", feature = "sqlite"))]
 pub(crate) trait ConcatReturning<Clause: PartialEq> {
   fn concat_returning(
