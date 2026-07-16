@@ -116,7 +116,14 @@ impl Concat for Select {
         SelectClause::Limit,
         &self._limit,
       );
-      query = self.concat_offset(query, &fmts);
+      query = self.concat_offset(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Offset,
+        &self._offset,
+      );
       query = self.concat_combinator(query, &fmts, Combinator::Except);
       query = self.concat_combinator(query, &fmts, Combinator::Intersect);
       query = self.concat_combinator(query, &fmts, Combinator::Union);
@@ -179,7 +186,14 @@ impl Concat for Select {
         SelectClause::Limit,
         &self._limit,
       );
-      query = self.concat_offset(query, &fmts);
+      query = self.concat_offset(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Offset,
+        &self._offset,
+      );
       query = self.concat_combinator(query, &fmts, Combinator::Except);
       query = self.concat_combinator(query, &fmts, Combinator::Intersect);
       query = self.concat_combinator(query, &fmts, Combinator::Union);
@@ -250,7 +264,14 @@ impl Concat for Select {
         SelectClause::Limit,
         &self._limit,
       );
-      query = self.concat_offset(query, &fmts);
+      query = self.concat_offset(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        SelectClause::Offset,
+        &self._offset,
+      );
       query = self.concat_combinator(query, &fmts, Combinator::Except);
       query = self.concat_combinator(query, &fmts, Combinator::Intersect);
       query = self.concat_combinator(query, &fmts, Combinator::Union);
@@ -339,12 +360,13 @@ impl Select {
 }
 
 #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
-use crate::concat::non_standard::{ConcatLimit, ConcatWith};
-
-#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
-impl ConcatWith<SelectClause> for Select {}
+use crate::concat::non_standard::{ConcatLimit, ConcatOffset, ConcatWith};
 #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 impl ConcatLimit<SelectClause> for Select {}
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+impl ConcatOffset<SelectClause> for Select {}
+#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
+impl ConcatWith<SelectClause> for Select {}
 
 #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 impl Select {
@@ -395,30 +417,7 @@ impl Select {
   }
 }
 
-#[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
-impl Select {
-  fn concat_offset(&self, query: String, fmts: &fmt::Formatter) -> String {
-    let fmt::Formatter { lb, space, .. } = fmts;
-    let sql = if self._offset.is_empty() == false {
-      let start = &self._offset;
-      format!("OFFSET{space}{start}{space}{lb}")
-    } else {
-      "".to_string()
-    };
-
-    concat_raw_before_after(
-      &self._raw_before,
-      &self._raw_after,
-      query,
-      fmts,
-      SelectClause::Offset,
-      sql,
-    )
-  }
-}
-
 #[cfg(feature = "mysql")]
 use crate::concat::mysql::ConcatPartition;
-
 #[cfg(feature = "mysql")]
 impl ConcatPartition<SelectClause> for Select {}

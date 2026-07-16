@@ -567,7 +567,6 @@ impl Select {
 
 #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 use crate::behavior::WithQuery;
-
 #[cfg(any(feature = "postgresql", feature = "sqlite", feature = "mysql"))]
 impl WithQuery for Select {}
 

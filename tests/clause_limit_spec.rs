@@ -58,7 +58,7 @@ mod select_command {
   }
 }
 
-#[cfg(feature = "mysql")]
+#[cfg(any(feature = "sqlite", feature = "mysql"))]
 mod delete_command {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -118,7 +118,7 @@ mod delete_command {
   }
 }
 
-#[cfg(feature = "mysql")]
+#[cfg(any(feature = "sqlite", feature = "mysql"))]
 mod update_command {
   use pretty_assertions::assert_eq;
   use sql_query_builder as sql;
@@ -173,6 +173,20 @@ mod update_command {
       .raw_after(sql::UpdateClause::Limit, "/* uncommon argument */")
       .as_string();
     let expected_query = "LIMIT 10 /* uncommon argument */";
+
+    assert_eq!(expected_query, query);
+  }
+}
+
+#[cfg(feature = "sqlite")]
+mod update_command_sqlite {
+  use pretty_assertions::assert_eq;
+  use sql_query_builder as sql;
+
+  #[test]
+  fn clause_limit_should_be_after_returning_clause() {
+    let query = sql::Update::new().limit("42").returning("*").as_string();
+    let expected_query = "RETURNING * LIMIT 42";
 
     assert_eq!(expected_query, query);
   }

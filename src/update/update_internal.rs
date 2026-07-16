@@ -144,6 +144,22 @@ impl Concat for Update {
         UpdateClause::OrderBy,
         &self._order_by,
       );
+      query = self.concat_limit(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Limit,
+        &self._limit,
+      );
+      query = self.concat_offset(
+        &self._raw_before,
+        &self._raw_after,
+        query,
+        &fmts,
+        UpdateClause::Offset,
+        &self._offset,
+      );
     }
 
     #[cfg(feature = "mysql")]
@@ -196,9 +212,16 @@ impl ConcatReturning<UpdateClause> for Update {}
 impl ConcatWith<UpdateClause> for Update {}
 
 #[cfg(any(feature = "sqlite", feature = "mysql"))]
-use crate::concat::sql_standard::ConcatOrderBy;
+use crate::concat::{non_standard::ConcatLimit, sql_standard::ConcatOrderBy};
+#[cfg(any(feature = "sqlite", feature = "mysql"))]
+impl ConcatLimit<UpdateClause> for Update {}
 #[cfg(any(feature = "sqlite", feature = "mysql"))]
 impl ConcatOrderBy<UpdateClause> for Update {}
+
+#[cfg(feature = "sqlite")]
+use crate::concat::non_standard::ConcatOffset;
+#[cfg(feature = "sqlite")]
+impl ConcatOffset<UpdateClause> for Update {}
 
 #[cfg(feature = "sqlite")]
 use crate::concat::sqlite::ConcatUpdate;
@@ -229,8 +252,3 @@ impl Update {
     )
   }
 }
-
-#[cfg(feature = "mysql")]
-use crate::concat::non_standard::ConcatLimit;
-#[cfg(feature = "mysql")]
-impl ConcatLimit<UpdateClause> for Update {}

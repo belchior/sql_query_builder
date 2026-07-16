@@ -372,6 +372,38 @@ impl Delete {
 #[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
 #[cfg_attr(docsrs, doc(cfg(feature = "mysql")))]
 impl Delete {
+  /// The `limit` clause, this method overrides the previous value
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(any(feature = "sqlite", feature = "mysql"))]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let delete = sql::Delete::new()
+  ///   .limit("123");
+  ///
+  /// let delete = sql::Delete::new()
+  ///   .limit("1000")
+  ///   .limit("123");
+  ///
+  /// # let expected = "LIMIT 123";
+  /// # assert_eq!(expected, delete.as_string());
+  /// # }
+  /// ```
+  ///
+  /// Output
+  ///
+  /// ```sql
+  /// LIMIT 123
+  /// ```
+  ///
+  /// Note: For crate feature `sqlite` this clause is behind a flag at SQLite, [more info](https://sqlite.org/lang_delete.html#optional_limit_and_order_by_clauses).
+  pub fn limit(mut self, num: &str) -> Self {
+    self._limit = num.trim().to_string();
+    self
+  }
+
   /// The `order by` clause.
   ///
   /// # Example
@@ -397,6 +429,36 @@ impl Delete {
   /// Note: For crate feature `sqlite` this clause is behind a flag at SQLite, [more info](https://sqlite.org/lang_delete.html#optional_limit_and_order_by_clauses).
   pub fn order_by(mut self, column: &str) -> Self {
     push_unique(&mut self._order_by, column.trim().to_string());
+    self
+  }
+}
+
+#[cfg(any(doc, feature = "sqlite"))]
+#[cfg_attr(docsrs, doc(cfg(feature = "sqlite")))]
+impl Delete {
+  /// The `offset` clause, this method overrides the previous value
+  ///
+  /// # Example
+  ///
+  /// ```
+  /// # #[cfg(feature = "sqlite")]
+  /// # {
+  /// # use sql_query_builder as sql;
+  /// let delete = sql::Delete::new()
+  ///   .offset("1500");
+  ///
+  /// let delete = sql::Delete::new()
+  ///   .offset("1000")
+  ///   .offset("1500");
+  ///
+  /// # let expected = "OFFSET 1500";
+  /// # assert_eq!(expected, delete.as_string());
+  /// # }
+  /// ```
+  ///
+  /// Note: For crate feature `sqlite` this clause is behind a flag at SQLite, [more info](https://sqlite.org/lang_delete.html#optional_limit_and_order_by_clauses).
+  pub fn offset(mut self, num: &str) -> Self {
+    self._offset = num.trim().to_string();
     self
   }
 }
@@ -641,36 +703,6 @@ impl Delete {
       let join = format!("RIGHT JOIN {table}");
       push_unique(&mut self._join, join);
     }
-    self
-  }
-
-  /// The `limit` clause, this method overrides the previous value
-  ///
-  /// # Example
-  ///
-  /// ```
-  /// # #[cfg(feature = "mysql")]
-  /// # {
-  /// # use sql_query_builder as sql;
-  /// let delete = sql::Delete::new()
-  ///   .limit("123");
-  ///
-  /// let delete = sql::Delete::new()
-  ///   .limit("1000")
-  ///   .limit("123");
-  ///
-  /// # let expected = "LIMIT 123";
-  /// # assert_eq!(expected, delete.as_string());
-  /// # }
-  /// ```
-  ///
-  /// Output
-  ///
-  /// ```sql
-  /// LIMIT 123
-  /// ```
-  pub fn limit(mut self, num: &str) -> Self {
-    self._limit = num.trim().to_string();
     self
   }
 
